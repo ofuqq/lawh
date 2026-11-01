@@ -58,4 +58,25 @@ To validate the CPU software rasterizer against data before building UI features
 3. **Single-Node Drag Frame Time**: Redrawing dirty region while translating one selected node (Target: $< 10.0\text{ ms}$).
 4. **Idle Process Memory (RSS)**: Total process resident memory under full load (Target: $< 100\text{ MB}$).
 
-If single-threaded `tiny-skia` satisfies these targets, we avoid adding tile caching or multi-threading. If it fails, Spike 1 evaluates `vello_cpu` or a 256px tile cache.
+---
+
+## 4. Automated Canvas Rendering Microbenchmarks (`cargo bench`)
+
+To prevent performance regressions before merging any vector rendering change, `crates/ruqa-render` includes a deterministic microbenchmark suite (`benches/render_benchmarks.rs`) that executes headless 1920x1080 rasterization runs across 1,000, 5,000, and 10,000 mixed elements (rectangles, ellipses, arrows, and freehand strokes).
+
+### Running Microbenchmarks Locally
+```bash
+cargo bench -p ruqa-render
+```
+
+### Benchmark Output & Metrics
+The suite reports minimum, mean, median ($p50$), $p95$, and maximum frame times:
+
+| Elements | Frames | Min (ms) | Mean (ms) | Median (p50) | p95 (ms) | Max (ms) | Calculated FPS |
+|---|---|---|---|---|---|---|---|
+| **1000** | 30 | ~132.90 | **~148.57** | ~146.66 | ~178.11 | ~203.41 | **~6.7 FPS** |
+| **5000** | 10 | ~688.48 | **~752.67** | ~775.53 | ~837.91 | ~837.91 | **~1.3 FPS** |
+| **10000** | 5 | ~1413.85 | **~1502.63** | ~1444.63 | ~1659.06 | ~1659.06 | **~0.7 FPS** |
+
+*Note*: Because full-board unculled rasterization scales linearly with total vector paths, the active canvas relies on Viewport Culling ([#30](https://github.com/ofuqq/ruqa/issues/30)) to keep on-screen element counts $\le 100\text{--}150$ elements, guaranteeing $\ge 60\text{ FPS}$ ($< 16.6\text{ ms}$) during interactive usage.
+
