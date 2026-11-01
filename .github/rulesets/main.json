@@ -18,7 +18,7 @@
       "type": "non_fast_forward"
     },
     {
-      "type": "linear_history"
+      "type": "required_linear_history"
     },
     {
       "type": "pull_request",
