@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/lawh-core",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.80.0"
+authors = ["Abdulrahman Hossam <ahossam.tech@gmail.com>", "Lawh Contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ofuqq/lawh"
+homepage = "https://github.com/ofuqq/lawh"
+description = "A lightweight, open-source whiteboard built in Rust."
+readme = "README.md"
