@@ -17,3 +17,6 @@ Thumbs.db
 
 # Local private instructions, prompts, and notes
 .local/
+
+# Visual regression failed diff artifacts
+crates/ruqa-render/tests/failed_diffs/

@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod offscreen;
 pub mod rough_convert;
 pub mod spike_benchmark;
 pub mod text_layout;
