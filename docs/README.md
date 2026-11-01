@@ -1,6 +1,6 @@
-# Mirsam Documentation Index
+# Ruqa Documentation Index
 
-Welcome to the architectural, product, and engineering documentation for **Mirsam** (مِرْسَم), a lightweight, open-source desktop whiteboard and study scratchpad written in Rust.
+Welcome to the architectural, product, and engineering documentation for **Ruqa** (Ruq'ah), a lightweight, open-source desktop whiteboard and study scratchpad written in Rust.
 
 ---
 
@@ -22,7 +22,7 @@ docs/
 ├── architecture/                 # Technical design proposals
 │   ├── overview.md               # High-level 3-crate architecture decomposition
 │   ├── data-model.md             # Scene graph, elements, geometry, and spatial index
-│   ├── file-format.md            # .mirsam versioned JSON schema & forward compatibility
+│   ├── file-format.md            # .ruqa versioned JSON schema & forward compatibility
 │   ├── rendering.md              # 2D rendering pipeline (tiny-skia CPU, roughr, softbuffer)
 │   ├── text-and-rtl.md           # Text layout, BiDi, shaping (parley/harfrust), fonts
 │   ├── input-and-tools.md        # Event handling, state machines, and mouse tools
@@ -34,7 +34,7 @@ docs/
 │   ├── 0002-license.md           # ADR 0002: Apache-2.0 License with NOTICE [Accepted]
 │   ├── 0003-rendering-backend.md # ADR 0003: CPU-First Rendering Pipeline [Accepted, Provisional]
 │   ├── 0004-file-format.md       # ADR 0004: Versioned JSON Document Format [Accepted]
-│   ├── 0005-project-name.md      # ADR 0005: Project Naming & Renaming to Mirsam [Accepted]
+│   ├── 0005-project-name.md      # ADR 0005: Project Naming & Renaming to Ruqa [Accepted]
 │   ├── 0006-contingency-tauri-fallback.md # ADR 0006: Contingency Tauri v2 Fallback [Accepted]
 │   ├── 0007-text-layout-parley.md # ADR 0007: Text Layout & Shaping via Parley [Accepted, Provisional]
 │   ├── 0008-ui-chrome-toolkit.md # ADR 0008: UI Chrome Toolkit Evaluation [Proposed]

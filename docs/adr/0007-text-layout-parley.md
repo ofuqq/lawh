@@ -7,7 +7,7 @@
 ---
 
 ## 1. Context and Problem Statement
-Mirsam requires text rendering on an infinite canvas. While text is secondary in early MVP milestone M1, bilingual Arabic/English text is a core product pillar planned for Milestone M2/M5.
+Ruqa requires text rendering on an infinite canvas. While text is secondary in early MVP milestone M1, bilingual Arabic/English text is a core product pillar planned for Milestone M2/M5.
 Arabic text layout presents strict requirements:
 1. **Right-to-Left (RTL) & BiDi**: Complex mixed directional runs (Unicode Bidirectional Algorithm, UAX #9).
 2. **Cursive Font Shaping**: Contextual glyph shaping (initial, medial, final, isolated forms) and ligature substitution.

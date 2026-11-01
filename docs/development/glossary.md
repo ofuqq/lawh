@@ -1,13 +1,13 @@
 # Project & Technical Glossary
 
-A plain-language glossary explaining key Rust concepts, graphics rendering terms, typography mechanics, and whiteboard domain concepts used throughout Mirsam.
+A plain-language glossary explaining key Rust concepts, graphics rendering terms, typography mechanics, and whiteboard domain concepts used throughout Ruqa.
 
 ---
 
 ## 1. Rust Ecosystem Terminology
 
 - **Crate**: The smallest compilation unit in Rust (either an executable binary or a reusable library).
-- **Workspace**: A set of related crates (e.g., `mirsam-core`, `mirsam-render`, `mirsam-app`) that share a single `Cargo.lock` file, unified target directory, and common dependency versions.
+- **Workspace**: A set of related crates (e.g., `ruqa-core`, `ruqa-render`, `ruqa-app`) that share a single `Cargo.lock` file, unified target directory, and common dependency versions.
 - **Ownership & Borrowing**: Rust's memory management model. Every value has a single owner. Values can be borrowed immutably (`&T`) by many readers, or mutably (`&mut T`) by exactly one writer, preventing data races at compile time.
 - **Lifetimes (`'a`)**: Named parameters used by the compiler to ensure references remain valid for as long as data exists, avoiding dangling pointers.
 - **Trait**: An interface contract defining shared behavior that types can implement (e.g., `Serialize`, `Clone`, `Debug`).

@@ -1,4 +1,4 @@
-# Mirsam MVP Specification (v0.1.0)
+# Ruqa MVP Specification (v0.1.0)
 
 ## 1. Goal & Product Definition
 Deliver a standalone desktop whiteboard and study scratchpad in native Rust that boots in under 150 ms, idles under 100 MB of RAM, and lets students and developers sketch diagrams, connect concepts, and write mixed Arabic/English notes using a standard mouse and keyboard on local files.
@@ -20,7 +20,7 @@ flowchart LR
         Canvas["Infinite Dark Canvas (Pan/Zoom)"]
         Draw["Pen, Eraser & Rough Shapes (R,O,L,A)"]
         Edit["Select, Move, Resize, Delete, Undo/Redo"]
-        Vault["Folder Sidebar & Atomic JSON (.mirsam)"]
+        Vault["Folder Sidebar & Atomic JSON (.ruqa)"]
         Text["Parley Text & Bundled OFL Arabic Fonts"]
         Export["PNG Image Export"]
     end
@@ -70,7 +70,7 @@ Every item below has concrete acceptance criteria:
 5. **Command-Pattern Undo / Redo**:
    - `Ctrl+Z` (Undo) and `Ctrl+Y` / `Ctrl+Shift+Z` (Redo) supporting up to 100 consecutive operations.
 6. **Versioned Document Storage & Study Vault Sidebar**:
-   - Single-board documents stored as human-readable JSON (`.mirsam` or `.mirsam.json`) with root `"schema_version": 1` and `"format": "mirsam"`.
+   - Single-board documents stored as human-readable JSON (`.ruqa` or `.ruqa.json`) with root `"schema_version": 1` and `"format": "ruqa"`.
    - Atomic saving (writes to `.tmp` file, then renames) to prevent file corruption on system crashes.
    - Collapsible left sidebar (`Ctrl+B`) showing boards within an open local OS folder ("Study Vault").
 7. **Bilingual Text & Typography (Parley Engine)**:
@@ -99,14 +99,14 @@ Every item below has concrete acceptance criteria:
 - **Study Tape (Active-Recall Occlusion Boxes)**: Colored tape strips that mask underlying terms or definitions, revealable on click for active recall flashcard review.
 - **Inline Math Rendering**: Rendering mathematical formulas via a Typst or LaTeX subset.
 - **Full Arabic UI Localization**: Right-to-left mirrored interface layout with Arabic translations.
-- **External AI Agent Integration**: Standardized `SKILL.md` specification and file-watcher hot-reloading so external agents (Claude Code, Cursor, Zed) can generate and edit `.mirsam` boards on disk.
+- **External AI Agent Integration**: Standardized `SKILL.md` specification and file-watcher hot-reloading so external agents (Claude Code, Cursor, Zed) can generate and edit `.ruqa` boards on disk.
 
 ---
 
 ## 5. Explicit WON'T List (Non-Goals with Rationale)
 
 1. ❌ **Real-Time Multiplayer Collaboration**:
-   - *Rationale*: Multi-user CRDT synchronization (e.g., Loro/Automerge over WebSockets) introduces enormous architectural complexity and server operational costs. Mirsam is strictly designed for solo study and asynchronous sharing.
+   - *Rationale*: Multi-user CRDT synchronization (e.g., Loro/Automerge over WebSockets) introduces enormous architectural complexity and server operational costs. Ruqa is strictly designed for solo study and asynchronous sharing.
 2. ❌ **Native Stylus / Tablet Pressure Calibration**:
    - *Rationale*: Eliminates driver maintenance sinkholes (Windows Ink vs Wintab, winit tablet regressions) and keeps development focused on the underserved mouse-first demographic.
 3. ❌ **Full Multi-Page PDF Editing / Redaction**:

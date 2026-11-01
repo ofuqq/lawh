@@ -1,6 +1,6 @@
 # Development Workflow & Review Cadence
 
-Mirsam follows a disciplined git and review workflow to maintain high code quality, reproducible builds, and linear git history.
+Ruqa follows a disciplined git and review workflow to maintain high code quality, reproducible builds, and linear git history.
 
 ---
 

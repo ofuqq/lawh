@@ -2,15 +2,15 @@
 
 ## Reporting Security Issues
 
-We take the security of Mirsam seriously. If you discover a security vulnerability, please do not report it through public GitHub issues or public discussions.
+We take the security of Ruqa seriously. If you discover a security vulnerability, please do not report it through public GitHub issues or public discussions.
 
 ### Preferred Method: GitHub Private Vulnerability Reporting
 Please submit all vulnerability reports confidentially via GitHub Private Vulnerability Reporting:
-[https://github.com/ofuqq/mirsam/security/advisories/new](https://github.com/ofuqq/mirsam/security/advisories/new)
+[https://github.com/ofuqq/ruqa/security/advisories/new](https://github.com/ofuqq/ruqa/security/advisories/new)
 
 ### Fallback Method: Direct Email
 If you are unable to use GitHub Private Vulnerability Reporting, you may email the project maintainer directly at:
-[ahossam.tech@gmail.com](mailto:ahossam.tech@gmail.com) with the subject line `[SECURITY] Mirsam Vulnerability Report`.
+[ahossam.tech@gmail.com](mailto:ahossam.tech@gmail.com) with the subject line `[SECURITY] Ruqa Vulnerability Report`.
 
 Please include in your report:
 - A description of the issue and potential impact.

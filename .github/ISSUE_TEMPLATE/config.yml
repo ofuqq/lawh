@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Community Discussions & Ideas
-    url: https://github.com/ofuqq/mirsam/discussions
+    url: https://github.com/ofuqq/ruqa/discussions
     about: Ask questions, share ideas, and discuss whiteboard architectures with the community.
   - name: Support & Guidelines
-    url: https://github.com/ofuqq/mirsam/blob/main/SUPPORT.md
+    url: https://github.com/ofuqq/ruqa/blob/main/SUPPORT.md
     about: Review our support resources and reporting guidelines.

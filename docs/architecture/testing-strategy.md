@@ -1,7 +1,7 @@
 # Testing & Benchmarking Strategy
 
 > **Status: Design Proposal (Draft)**  
-> This document defines automated testing layers, visual regression suites, and the performance benchmark harness for Mirsam.
+> This document defines automated testing layers, visual regression suites, and the performance benchmark harness for Ruqa.
 
 ---
 
@@ -23,21 +23,21 @@ flowchart TD
 
 ## 2. Test Layers
 
-### 1. Unit Tests (`crates/mirsam-core/src/`)
+### 1. Unit Tests (`crates/ruqa-core/src/`)
 - Fast, 100% headless tests compiled alongside modules.
 - **Coverage**:
   - `Point`, `Rect`, and `Viewport` coordinate conversion math.
   - AABB intersection tests (`Rect::intersects`).
   - Command undo/redo state mutations and depth clamping.
 
-### 2. Integration Tests (`crates/mirsam-core/tests/`)
+### 2. Integration Tests (`crates/ruqa-core/tests/`)
 - Tests document persistence and serialization resilience.
 - **Coverage**:
-  - Round-trip serialization and deserialization of `.mirsam` JSON documents.
+  - Round-trip serialization and deserialization of `.ruqa` JSON documents.
   - Atomic file write safety: confirming `.tmp` file is safely renamed.
   - Forward-compatibility tests: opening mocked future schema versions with extra keys without errors.
 
-### 3. Visual & Rasterization Snapshots (`crates/mirsam-render/tests/`)
+### 3. Visual & Rasterization Snapshots (`crates/ruqa-render/tests/`)
 - Renders deterministic test fixtures into in-memory `tiny-skia` pixmaps.
 - Compares output against golden reference PNG images to catch unintentional visual rendering regressions across Linux distributions.
 

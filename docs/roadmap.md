@@ -1,6 +1,6 @@
-# Mirsam Product Roadmap
+# Ruqa Product Roadmap
 
-This roadmap defines the sequential development milestones for Mirsam. Progress is governed by strict exit criteria and kill/pivot gates.
+This roadmap defines the sequential development milestones for Ruqa. Progress is governed by strict exit criteria and kill/pivot gates.
 
 ---
 
@@ -18,7 +18,7 @@ flowchart LR
 ## Milestone M0: Foundation, Governance & Technical Spikes
 - **Goal**: Establish the repository infrastructure, governance, license enforcement, and execute the 3 time-boxed technical spikes (48h each).
 - **Exit Criteria**:
-  - [x] Repository renamed to `mirsam`, Apache-2.0 license enforced via `cargo-deny`, governance files active.
+  - [x] Repository renamed to `ruqa`, Apache-2.0 license enforced via `cargo-deny`, governance files active.
   - [x] Research report digested into `docs/research/2026-11-market-and-technical-research.md`.
   - [ ] **Spike 1 (Rasterizer Benchmark)**: Headless benchmark measuring tiny-skia (0.12) vs vello_cpu on 5,000 rectangles, 2,000 strokes, and 500 text boxes at 2560x1440.
   - [ ] **Spike 2 (Arabic Typography & Text Editing)**: Render bilingual phrase `خوارزمية Dijkstra تعمل في O(V log V)` with bundled Aref Ruqaa and Vazirmatn fonts via parley; test editing caret.
@@ -50,7 +50,7 @@ flowchart LR
 ## Milestone M3: Persistence & Study Vault
 - **Goal**: Save and load boards as versioned JSON files and provide local folder multi-board organization.
 - **Exit Criteria**:
-  - [ ] Canonical `.mirsam` JSON document serialization with root `"schema_version": 1` and `"format": "mirsam"`.
+  - [ ] Canonical `.ruqa` JSON document serialization with root `"schema_version": 1` and `"format": "ruqa"`.
   - [ ] Atomic save on write (saving to `.tmp` before renaming) to prevent corruption.
   - [ ] Collapsible left sidebar (`Ctrl+B`) displaying folders and boards within an open local OS folder ("Study Vault").
   - [ ] Open (`Ctrl+O`) and Save (`Ctrl+S`) actions operating cleanly on local directories.
@@ -66,7 +66,7 @@ flowchart LR
   - [ ] Double-click on-canvas text editing.
   - [ ] PNG image export (`Ctrl+E`) generating cropped transparent or dark-mode images.
   - [ ] **Public v0.1.0 Release**: Prebuilt Linux (`.tar.gz`, `.AppImage`) and Windows (`.zip`) binaries published on GitHub Releases.
-  - [ ] Gate 2 passed: Founder dogfoods Mirsam exclusively for 2 weeks.
+  - [ ] Gate 2 passed: Founder dogfoods Ruqa exclusively for 2 weeks.
 
 ---
 

@@ -1,6 +1,6 @@
 # Users and Use Cases
 
-To maintain disciplined focus, Mirsam targets two primary user roles, supports one secondary role, and explicitly excludes one common non-target role.
+To maintain disciplined focus, Ruqa targets two primary user roles, supports one secondary role, and explicitly excludes one common non-target role.
 
 ---
 
@@ -13,7 +13,7 @@ To maintain disciplined focus, Mirsam targets two primary user roles, supports o
   - Web wrappers like Goodnotes on Windows consume ~1.3 GB of idle RAM and suffer 1–2s pen latency (reported by Noteastic Blog, May 2026).
   - Excalidraw lacks bundled Arabic sketchy fonts (GitHub Issue #8394) and suffers from reversed shortcut strings and inverted punctuation in RTL mode (GitHub Issues #12387, #12404).
   - OneNote freezes and syncs unpredictably on large infinite canvases.
-- **Why Mirsam Wins**: Instant cold start, sub-100 MB RAM consumption, bundled Arabic hand-drawn fonts (Aref Ruqaa and Vazirmatn), and a local folder sidebar organizing boards by course.
+- **Why Ruqa Wins**: Instant cold start, sub-100 MB RAM consumption, bundled Arabic hand-drawn fonts (Aref Ruqaa and Vazirmatn), and a local folder sidebar organizing boards by course.
 
 ### Role 2: The Self-Taught Developer & PKM Builder
 - **Hardware & OS**: Linux (Ubuntu/Arch) or macOS laptop, mechanical keyboard, mouse or trackpad.
@@ -22,7 +22,7 @@ To maintain disciplined focus, Mirsam targets two primary user roles, supports o
   - Obsidian Canvas lacks freehand drawing and sketchy hand-drawn aesthetics.
   - Excalidraw web isolates boards inside browser local storage without a native file-tree directory.
   - Lorien lacks a text tool and shape connectors entirely.
-- **Why Mirsam Wins**: Plain versioned JSON files on disk, Vim-like single-key shortcuts, fast `Ctrl+P` cross-board search, and eventual JSON Canvas interoperability in v0.2.
+- **Why Ruqa Wins**: Plain versioned JSON files on disk, Vim-like single-key shortcuts, fast `Ctrl+P` cross-board search, and eventual JSON Canvas interoperability in v0.2.
 
 ---
 
@@ -34,7 +34,7 @@ To maintain disciplined focus, Mirsam targets two primary user roles, supports o
 - **Pain Points with Current Tools**:
   - Web tools display UI clutter (sharing modals, avatars, connection banners) during screen capture.
   - Heavy apps drop frames when screen sharing at 1440p or 4K.
-- **Why Mirsam Wins**: Clean dark-theme canvas by default, minimal UI chrome that recedes while drawing, and steady 60 FPS rendering on CPU.
+- **Why Ruqa Wins**: Clean dark-theme canvas by default, minimal UI chrome that recedes while drawing, and steady 60 FPS rendering on CPU.
 
 ---
 
@@ -45,15 +45,15 @@ To maintain disciplined focus, Mirsam targets two primary user roles, supports o
 - **Reason for Exclusion**:
   1. **Infinite Canvas Vector Mismatch**: As established by Rnote maintainers in Issues #1173 and #1455, full in-place PDF multi-page editing conflicts fundamentally with infinite-canvas vector rendering.
   2. **Tablet Driver Fragility**: Supporting active stylus tilt, palm rejection, and pressure sensitivity exposes a solo developer to severe platform regressions (e.g., winit's historical Windows Ink vs Wintab conflicts and startup crashes with Wacom/XP-Pen hardware in winit #4493, #4591).
-  3. **High Competition**: Mature apps like Rnote, Xournal++, and Goodnotes already target stylus PDF annotation. Mirsam focuses strictly on mouse-first conceptual sketching.
+  3. **High Competition**: Mature apps like Rnote, Xournal++, and Goodnotes already target stylus PDF annotation. Ruqa focuses strictly on mouse-first conceptual sketching.
 
 ---
 
 ## 4. Core User Scenarios
 
 ### Scenario A: Bilingual Algorithm Study (The Feynman Technique)
-1. A student opens Mirsam from the terminal or app launcher in under 100 milliseconds.
-2. In the folder sidebar, they select `Computer-Science/Algorithms/Dijkstra.mirsam`.
+1. A student opens Ruqa from the terminal or app launcher in under 100 milliseconds.
+2. In the folder sidebar, they select `Computer-Science/Algorithms/Dijkstra.ruqa`.
 3. Pressing `R`, they drop a rough rectangle on the canvas and double-click to type:  
    `خوارزمية Dijkstra تعمل في O(V log V)`
 4. Parley automatically detects the Arabic script, renders it with bundled Vazirmatn font, and isolates the English complexity notation $O(V \log V)$ left-to-right without reversing parentheses.
@@ -61,7 +61,7 @@ To maintain disciplined focus, Mirsam targets two primary user roles, supports o
 6. The board is saved atomically to disk.
 
 ### Scenario B: Software Architecture Sketching
-1. A developer opens Mirsam alongside their code editor.
+1. A developer opens Ruqa alongside their code editor.
 2. Using single-key shortcuts (`R`, `O`, `L`), they quickly map out an event-driven message bus: Publisher, Queue, Consumer.
 3. They use the velocity-smoothed pen (`P`) to circle a potential bottleneck in red.
 4. Hitting `Ctrl+E`, they export a cropped 32-bit transparent PNG and drop it directly into a GitHub PR description.

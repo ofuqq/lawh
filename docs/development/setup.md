@@ -1,13 +1,13 @@
 # Developer Setup Guide
 
-This guide walks you through setting up a local Rust development environment to build, test, and contribute to Mirsam.
+This guide walks you through setting up a local Rust development environment to build, test, and contribute to Ruqa.
 
 ---
 
 ## 1. Prerequisites
 
 ### Rust Toolchain
-Mirsam requires the stable Rust toolchain (version 1.80.0 or newer). Install it via official `rustup`:
+Ruqa requires the stable Rust toolchain (version 1.80.0 or newer). Install it via official `rustup`:
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
@@ -47,8 +47,8 @@ sudo pacman -S --needed base-devel libx11 libxcursor libxrandr libxi libxkbcommo
 ## 2. Cloning the Repository
 
 ```bash
-git clone https://github.com/ofuqq/mirsam.git
-cd mirsam
+git clone https://github.com/ofuqq/ruqa.git
+cd ruqa
 ```
 
 ---
@@ -80,5 +80,5 @@ cargo deny check licenses bans sources
 
 ```bash
 # Launch experimental desktop runner (Untested until M1)
-cargo run -p mirsam-app
+cargo run -p ruqa-app
 ```

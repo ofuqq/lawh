@@ -1,25 +1,25 @@
-# Mirsam (مِرْسَم)
+# Ruqa
 
 > [!WARNING]
 > **Status: Pre-Alpha / In Active Bootstrapping**  
-> Mirsam is in early foundational development. The architecture, file format, and core crates are currently being established. Functional binaries and public releases will begin with milestone `v0.1.0`.
+> Ruqa is in early foundational development. The architecture, file format, and core crates are currently being established. Functional binaries and public releases will begin with milestone `v0.1.0`.
 
-[![CI](https://github.com/ofuqq/mirsam/actions/workflows/ci.yml/badge.svg)](https://github.com/ofuqq/mirsam/actions/workflows/ci.yml)
+[![CI](https://github.com/ofuqq/ruqa/actions/workflows/ci.yml/badge.svg)](https://github.com/ofuqq/ruqa/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 [Architecture](docs/README.md) | [Roadmap](docs/roadmap.md) | [Kill Criteria](docs/product/kill-criteria.md) | [Contributing](CONTRIBUTING.md)
 
 ---
 
-**Mirsam** (Arabic: مِرْسَم, meaning *easel* or *drawing studio*) is a lightweight, open-source desktop whiteboard and study scratchpad built in Rust by [Ofuq](https://github.com/ofuqq) (أفق).
+**Ruqa** (named after Ruq'ah, the swift, clean Arabic handwriting style) is a lightweight, open-source desktop whiteboard and study scratchpad built in Rust by [Ofuq](https://github.com/ofuqq).
 
-Inspired by tools like Excalidraw, Mirsam is engineered from scratch for **studying, teaching, and visual explaining**. It offers an aesthetic hand-drawn sketch style, buttery-smooth pen ink, an infinite zoomable canvas, a default dark theme, and complete offline privacy—operable entirely with a standard mouse.
+Inspired by tools like Excalidraw, Ruqa is engineered from scratch for **studying, teaching, and visual explaining**. It offers an aesthetic hand-drawn sketch style, buttery-smooth pen ink, an infinite zoomable canvas, a default dark theme, and complete offline privacy—operable entirely with a standard mouse.
 
 ---
 
 ## Key Highlights
 
-- **Hand-Drawn Aesthetic**: Rough, sketchy geometric shapes (rectangles, ellipses, arrows, lines) that keep diagrams approachable and informal.
+- **Hand-Drawn Aesthetic**: Rough, sketchy geometric shapes (rectangles, ellipses, arrows, lines, diamonds) that keep diagrams approachable and informal.
 - **Smooth Freehand Pen**: Velocity-simulated, responsive ink strokes designed to feel natural even with mouse input.
 - **Infinite Canvas**: Smooth 60+ FPS panning and zooming without arbitrary workspace boundaries.
 - **Dark Theme by Default**: High-contrast, easy-on-the-eyes palette tailored for late-night study and recording video lectures.
@@ -32,11 +32,11 @@ Inspired by tools like Excalidraw, Mirsam is engineered from scratch for **study
 ## Planned Features (v0.1.0 MVP)
 
 - [ ] **Canvas Foundation**: Infinite panning (middle-click drag / space drag) and smooth zooming centered on cursor.
-- [ ] **Drawing Tools**: Freehand pen, line, arrow, rectangle, and ellipse.
+- [ ] **Drawing Tools**: Freehand pen, line, arrow, rectangle, ellipse, and diamond.
 - [ ] **Styling**: Hand-drawn stroke jitter, fill patterns, stroke color, and stroke width.
 - [ ] **Direct Manipulation**: Select, translate, resize, duplicate, and delete shapes.
 - [ ] **History**: Unlimited local undo and redo stack.
-- [ ] **Persistence**: Single-file versioned JSON format (`.mirsam`) with forward compatibility.
+- [ ] **Persistence**: Single-file versioned JSON format (`.ruqa`) with forward compatibility.
 - [ ] **Export**: Clean PNG snapshot export for sharing and study notes.
 
 See [docs/product/mvp.md](docs/product/mvp.md) and the [Product Roadmap](docs/roadmap.md) for detailed milestone criteria.
@@ -54,8 +54,8 @@ See [docs/product/mvp.md](docs/product/mvp.md) and the [Product Roadmap](docs/ro
 ### Building & Running
 ```bash
 # Clone the repository
-git clone https://github.com/ofuqq/mirsam.git
-cd mirsam
+git clone https://github.com/ofuqq/ruqa.git
+cd ruqa
 
 # Check code formatting (Tested in CI)
 cargo fmt --all --check
@@ -70,22 +70,22 @@ cargo test --workspace
 cargo deny check licenses bans sources
 
 # Run the desktop application (Untested - Windowing runtime under M1)
-cargo run -p mirsam-app
+cargo run -p ruqa-app
 ```
 
 > [!NOTE]
-> Local desktop execution commands (`mirsam-app`) are marked as **untested** until the Milestone M1 windowing harness lands. Workflows and tests are verified via GitHub Actions CI on Linux runners.
+> Local desktop execution commands (`ruqa-app`) are marked as **untested** until the Milestone M1 windowing harness lands. Workflows and tests are verified via GitHub Actions CI on Linux runners.
 
 ---
 
 ## Project Structure
 
 ```text
-mirsam/
+ruqa/
 ├── crates/
-│   ├── mirsam-core/       # Core geometry, element models, undo stack, and file I/O
-│   ├── mirsam-render/     # (M1) 2D rendering pipeline (tiny-skia CPU, roughr, softbuffer)
-│   └── mirsam-app/        # (M1) Native OS windowing, mouse event loop, and UI chrome
+│   ├── ruqa-core/         # Core geometry, element models, undo stack, and file I/O
+│   ├── ruqa-render/       # (M1) 2D rendering pipeline (tiny-skia CPU, roughr, softbuffer)
+│   └── ruqa-app/          # (M1) Native OS windowing, mouse event loop, and UI chrome
 ├── docs/                  # Architectural specs, product vision, ADRs, and guides
 │   ├── adr/               # Architecture Decision Records (0001–0009)
 │   ├── architecture/      # Detailed design documents
@@ -104,7 +104,7 @@ mirsam/
 
 ## Documentation & Architecture
 
-- **[Product Vision & Principles](docs/product/vision.md)**: Why Mirsam exists and the principles guiding its development.
+- **[Product Vision & Principles](docs/product/vision.md)**: Why Ruqa exists and the principles guiding its development.
 - **[MVP Scope & Non-Goals](docs/product/mvp.md)**: Explicit scope boundaries for the v0.1 release.
 - **[Kill Criteria & Gates](docs/product/kill-criteria.md)**: Empirical go/no-go gates for technical spikes and dogfooding.
 - **[Architectural Overview](docs/architecture/overview.md)**: Modular design separating math/core, rendering, and windowing.
@@ -120,5 +120,5 @@ We welcome community feedback, code contributions, and discussions. Please read 
 
 ## License
 
-Mirsam is open source licensed under the **Apache License, Version 2.0**.  
+Ruqa is open source licensed under the **Apache License, Version 2.0**.  
 See the [LICENSE](LICENSE) file and [NOTICE](NOTICE) for details.

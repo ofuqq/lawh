@@ -1,6 +1,6 @@
 # AI-Assisted Development Policy & Guidelines
 
-Mirsam is built using AI coding agents in partnership with a human solo founder. To maintain rigorous code quality, architectural consistency, clean licensing, and auditability, all AI-generated code must adhere strictly to these policies.
+Ruqa is built using AI coding agents in partnership with a human solo founder. To maintain rigorous code quality, architectural consistency, clean licensing, and auditability, all AI-generated code must adhere strictly to these policies.
 
 ---
 

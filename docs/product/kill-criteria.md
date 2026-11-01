@@ -1,6 +1,6 @@
 # Project Kill & Pivot Criteria
 
-To prevent sunk-cost stagnation and protect the founder's time, Mirsam enforces three objective, time-boxed kill/pivot gates across its development lifecycle.
+To prevent sunk-cost stagnation and protect the founder's time, Ruqa enforces three objective, time-boxed kill/pivot gates across its development lifecycle.
 
 ---
 
@@ -24,7 +24,7 @@ To prevent sunk-cost stagnation and protect the founder's time, Mirsam enforces 
 
 - **Timing**: End of Week 6 (upon feature completion of Milestone M4 / v0.1 candidate).
 - **Pass / Fail Criterion**:
-  - The repository owner must use Mirsam exclusively for **two full weeks** of personal technical study, algorithm problem-solving, and diagramming.
+  - The repository owner must use Ruqa exclusively for **two full weeks** of personal technical study, algorithm problem-solving, and diagramming.
 - **Consequence of Failure (Feature Freeze)**:
   - If the owner feels compelled to revert to Excalidraw, OneNote, or Obsidian Canvas due to text-editing latency, mouse stiffness, or navigation friction, **all new feature development is strictly frozen**.
   - 100% of available engineering capacity must be dedicated to refining the core input, pan, zoom, and text-caret loops until the desktop experience demonstrably outperforms the browser tool for solo study.
@@ -39,7 +39,7 @@ To prevent sunk-cost stagnation and protect the founder's time, Mirsam enforces 
   - Releases have achieved $\ge 200$ binary downloads.
   - At least 5 external students, educators, or developers have opened organic issues, discussions, or feature suggestions detailing real study workflows.
 - **Consequence of Failure (Project Sunsetting / Repurposing)**:
-  - If metrics fall substantially below these hypotheses, Mirsam will cease operation as a standalone general-purpose desktop application.
+  - If metrics fall substantially below these hypotheses, Ruqa will cease operation as a standalone general-purpose desktop application.
   - The founder will pivot the codebase into an upstream contribution or plugin:
     1. Contribute the Arabic/RTL typography engine and Study Vault modules directly to `PatWie/drafft-ink`, or
     2. Package the study vault tools as an Obsidian Canvas community plugin.

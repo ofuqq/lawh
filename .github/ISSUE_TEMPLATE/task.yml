@@ -12,7 +12,7 @@ body:
     attributes:
       label: Task Objective
       description: What specific component, function, or fix needs to be built?
-      placeholder: Implement AABB intersection check for Viewport culling in mirsam-core.
+      placeholder: Implement AABB intersection check for Viewport culling in ruqa-core.
     validations:
       required: true
   - type: textarea
@@ -20,7 +20,7 @@ body:
     attributes:
       label: Scope & Affected Crates
       description: Which crates and files are within scope for this task?
-      placeholder: crates/mirsam-core/src/geometry.rs
+      placeholder: crates/ruqa-core/src/geometry.rs
     validations:
       required: true
   - type: textarea

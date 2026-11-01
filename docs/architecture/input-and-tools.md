@@ -1,13 +1,13 @@
 # Input Handling & Tool State Machines
 
 > **Status: Design Proposal (Draft)**  
-> This document specifies mouse and keyboard event handling, coordinate mapping, and tool interaction state machines for Mirsam.
+> This document specifies mouse and keyboard event handling, coordinate mapping, and tool interaction state machines for Ruqa.
 
 ---
 
 ## 1. Mouse & Keyboard Interaction Matrix
 
-Mirsam is built to be fast and fluid with a standard two-button mouse with scroll wheel and keyboard:
+Ruqa is built to be fast and fluid with a standard two-button mouse with scroll wheel and keyboard:
 
 | Input Gesture | Context | Result |
 | :--- | :--- | :--- |
@@ -57,7 +57,7 @@ stateDiagram-v2
 
 ## 3. Velocity-Based Stroke Smoothing (`freedraw`)
 
-Raw mouse input produces discrete steps (~60–125 Hz). Mirsam uses the pure-Rust port of Steve Ruiz's `perfect-freehand` algorithm (`freedraw` crate or local module):
+Raw mouse input produces discrete steps (~60–125 Hz). Ruqa uses the pure-Rust port of Steve Ruiz's `perfect-freehand` algorithm (`freedraw` crate or local module):
 1. **Dynamic Pressure Simulation**: Calculates instantaneous mouse speed between successive points ($v = \Delta d / \Delta t$).
 2. **Tapering**: High speed thins the stroke; slow deliberate movement widens it.
 3. **Polygon Contour Generation**: Generates an outer polygon outline rendered with anti-aliasing in `tiny-skia`.

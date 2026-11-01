@@ -1,7 +1,7 @@
 # Market & Technical Research Digest: Digital Whiteboards & Study Vaults
 
 **Date**: November 2026  
-**Context**: Evaluation of external product research report (*Product Research, Market Analysis, and Technical Architecture Report: Project Lawh*, November 2026) to inform the architecture, scope, licensing, and naming of **Mirsam**.
+**Context**: Evaluation of external product research report (*Product Research, Market Analysis, and Technical Architecture Report: Project Lawh*, November 2026) to inform the architecture, scope, licensing, and naming of **Ruqa**.
 
 ---
 
@@ -27,15 +27,15 @@ The research report analyzed the 2024–2026 visual note-taking, whiteboard, and
 
 | Report Recommendation | Our Decision | Rationale |
 | :--- | :--- | :--- |
-| **Rename from Lawh** to avoid collision with Lawh.ai (Classes 9/42). | **Adopt Mirsam (مِرْسَم)** | Verified Lawh.ai conflict. Evaluated candidates: `Mirsam` is clean on crates.io, GitHub, and has zero software app collisions. |
+| **Rename from Lawh** to avoid collision with Lawh.ai (Classes 9/42). | **Adopt Ruqa (from Ruq'ah)** | Verified Lawh.ai conflict. Evaluated candidates: `Ruqa` is clean on crates.io, GitHub, and has zero software app collisions. |
 | **Dual-license core under MIT/Apache, app under MPL-2.0 or GPL-3.0; or fork drafft-ink under AGPLv3**. | **Apache-2.0 ONLY across all crates** | Apache-2.0 provides an explicit patent grant, commercial clarity, and ecosystem alignment. Forking drafft-ink is rejected because AGPLv3 is copyleft and incompatible with Apache-2.0. |
 | **Adopt Clean-Room Implementation**. | **Accepted** | Zero code copied from drafft-ink, Rnote, or GPL/AGPL tools. Architecture references only. |
-| **Adopt Tauri v2 Hybrid** as immediate shortcut if shipping in 3 weeks. | **Native Rust first; Tauri v2 as pre-approved fallback (ADR 0006)** | We pursue native Rust (3 crates: `mirsam-core`, `mirsam-render`, `mirsam-app`). If the Day-14 technical spike gate fails, we trigger the pre-approved pivot to Tauri v2. |
+| **Adopt Tauri v2 Hybrid** as immediate shortcut if shipping in 3 weeks. | **Native Rust first; Tauri v2 as pre-approved fallback (ADR 0006)** | We pursue native Rust (3 crates: `ruqa-core`, `ruqa-render`, `ruqa-app`). If the Day-14 technical spike gate fails, we trigger the pre-approved pivot to Tauri v2. |
 | **Use roughr core only without adapter crates**. | **Adopted (ADR 0003)** | Avoids dependency version lock-in between `tiny-skia` and `rough_tiny_skia`. Local converter maps `roughr::core::OpSet` directly to `tiny_skia::PathBuilder`. |
 | **Use parley over cosmic-text for Arabic/BiDi**. | **Adopted (ADR 0007)** | `parley` leverages Linebender’s `harfrust` (HarfBuzz port) and `icu4x`, actively addressing UAX#9 isolates and cursive shaping. |
 | **Use egui for UI chrome and text editing overlay**. | **Proposed (ADR 0008)** | Evaluated in Spikes 1 & 2. egui usually requires GPU wgpu, which challenges CPU-only rendering; Spike 2 will decide between egui overlay vs parley::PlainEditor. |
 | **Implement 256px spatial tile cache + rayon immediately**. | **Provisional Rule**: Do not add tile cache or rayon until benchmark proves necessity | Avoid premature optimization. Test single-threaded tiny-skia first; introduce tile caching only if the 5k-element benchmark fails. |
-| **Adopt JSON Canvas (.canvas) as native format**. | **Use native versioned JSON (.mirsam); JSON Canvas as v0.2 export** | Native format requires magic key, schema versioning, and freehand/rough style parameters that JSON Canvas 1.0 cannot express. |
+| **Adopt JSON Canvas (.canvas) as native format**. | **Use native versioned JSON (.ruqa); JSON Canvas as v0.2 export** | Native format requires magic key, schema versioning, and freehand/rough style parameters that JSON Canvas 1.0 cannot express. |
 | **Add Active-Recall Study Tape & Numbered Frames**. | **Scheduled for v0.2 / v0.3** | Excellent for student personas, but scoped after core drawing, selection, vault persistence, and Arabic text are solid. |
 | **Adopt Assisted-by commit trailers for AI code**. | **Adopted (ADR 0009)** | Standardizes human accountability: `Assisted-by: <tool>:<model>`, mandatory human review, no unreviewed dependencies. |
 
@@ -46,12 +46,12 @@ The research report analyzed the 2024–2026 visual note-taking, whiteboard, and
 To uphold our strict rule against inventing or propagating unverified facts, all external claims from the research report are categorized below:
 
 ### Independently Verified by Us
-- **crates.io availability**: Verified that `mirsam`, `mirsam-core`, `saboora`, `saboora-core`, `karrasa`, and `karrasa-core` were unregistered (HTTP 404).
+- **crates.io availability**: Verified that `ruqa`, `ruqa-core`, `saboora`, `saboora-core`, `karrasa`, and `karrasa-core` were unregistered (HTTP 404).
 - **Lawh.ai collision**: Confirmed live commercial operation of Lawh.ai offering Arabic/RTL vector design and Claude MCP integration (https://lawh.ai/features).
 - **rough_tiny_skia dependency pinning**: Confirmed that `rough_tiny_skia 0.14.0` depends on `tiny-skia = "^0.11"`, conflicting with `tiny-skia 0.12.0`.
 - **drafft-ink license & stack**: Confirmed `PatWie/drafft-ink` is AGPL-3.0 using vello, parley, egui, and roughr.
 - **GitHub Actions pinned SHAs**: Verified `actions/checkout@v4.2.2`, `dtolnay/rust-toolchain`, and `Swatinem/rust-cache` commit hashes against GitHub tags.
-- **Rulesets schema**: Verified against GitHub REST API (`POST /repos/ofuqq/mirsam/rulesets`).
+- **Rulesets schema**: Verified against GitHub REST API (`POST /repos/ofuqq/ruqa/rulesets`).
 
 ### Unverified Claims from the Research Report (Reported by Source, Not Independently Verified)
 1. **Goodnotes Windows RAM & Latency**: Reported by Noteastic Blog (May 2026) [https://noteastic.app/en/blog/goodnotes-slow-on-windows-heres-why] as consuming 1.3 GB idle RAM and 1–2s pen delay on Windows. *Not independently verified on our hardware.*

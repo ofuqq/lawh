@@ -1,5 +1,5 @@
 name: Bug Report
-description: Create a report to help us fix a defect or unexpected behavior in Mirsam.
+description: Create a report to help us fix a defect or unexpected behavior in Ruqa.
 title: "fix: "
 labels: ["type: bug", "status: needs-triage"]
 body:
@@ -21,7 +21,7 @@ body:
       label: Steps to Reproduce
       description: Step-by-step instructions to reproduce the behavior.
       placeholder: |
-        1. Open Mirsam
+        1. Open Ruqa
         2. Select the Rectangle tool
         3. Click and drag on canvas
         4. See unexpected artifact

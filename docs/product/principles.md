@@ -1,11 +1,11 @@
 # Product Principles
 
-These six principles govern technical and design decisions in Mirsam.
+These six principles govern technical and design decisions in Ruqa.
 
 ---
 
 ### 1. Fast, Light, and Low-RAM
-Mirsam must feel like grabbing a sheet of paper.
+Ruqa must feel like grabbing a sheet of paper.
 - Cold boot time under 150 milliseconds.
 - Process resident memory (RSS) stays under 100 MB during active study.
 - Steady 60 FPS panning and drawing on standard laptop CPUs.
@@ -13,7 +13,7 @@ Mirsam must feel like grabbing a sheet of paper.
 
 ### 2. Offline and Local-First
 Your thoughts and study materials live on your computer.
-- Mirsam is 100% offline. Zero network calls, zero accounts, zero analytics.
+- Ruqa is 100% offline. Zero network calls, zero accounts, zero analytics.
 - Boards are stored as human-readable, versioned JSON files directly in normal filesystem folders.
 - Compatible with existing backup and sync tools (Git, Syncthing, rsync).
 

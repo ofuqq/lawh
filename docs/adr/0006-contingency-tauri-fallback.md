@@ -7,7 +7,7 @@
 ---
 
 ## 1. Context and Problem Statement
-Mirsam's primary architecture is a pure native Rust application (`mirsam-core`, `mirsam-render`, `mirsam-app`) targeting zero web-runtime overhead, sub-25 MB RAM consumption, and sub-second cold boot.
+Ruqa's primary architecture is a pure native Rust application (`ruqa-core`, `ruqa-render`, `ruqa-app`) targeting zero web-runtime overhead, sub-25 MB RAM consumption, and sub-second cold boot.
 However, building a complete 2D desktop graphics stack (windowing, CPU/GPU rasterization, hand-drawn stroke geometry, and internationalized BiDi text editing) in Rust is technically demanding.
 
 To de-risk the project against indefinite stall or failure during initial prototyping, a formal, pre-approved contingency architecture is required.
@@ -29,7 +29,7 @@ If Gate 1 fails, the founder immediately executes the pivot without reopening ar
 
 ## 3. Contingency Architecture: Tauri v2 Hybrid
 
-If triggered, Mirsam pivots to a **Tauri v2** hybrid application:
+If triggered, Ruqa pivots to a **Tauri v2** hybrid application:
 
 ```
 +--------------------------------------------------------------+
@@ -43,7 +43,7 @@ If triggered, Mirsam pivots to a **Tauri v2** hybrid application:
                                |
 +--------------------------------------------------------------+
 |               Backend (Rust Core & Local Daemon)             |
-|  - mirsam-core (Document scene graph, JSON serialization)    |
+|  - ruqa-core (Document scene graph, JSON serialization)    |
 |  - Vault storage, file system watchers, auto-save            |
 |  - Export utilities (PNG/SVG export via headless renderer)   |
 |  - Native OS dialogs, menu integration                       |
@@ -53,7 +53,7 @@ If triggered, Mirsam pivots to a **Tauri v2** hybrid application:
 ### Clean-Room Constraints for Frontend:
 - Must use strictly permissive components (MIT, Apache-2.0, or BSD).
 - Never copy code from AGPL/GPL projects (e.g., drafft-ink, Rnote).
-- Retain existing `.mirsam` JSON schema and `mirsam-core` Rust crate for document state and file I/O.
+- Retain existing `.ruqa` JSON schema and `ruqa-core` Rust crate for document state and file I/O.
 
 ---
 
@@ -62,7 +62,7 @@ If triggered, Mirsam pivots to a **Tauri v2** hybrid application:
 ### Positive:
 - **Instant Browser Text Engine**: Resolves complex BiDi, HarfBuzz shaping, cursive font fallback, and OS IME input out of the box using the system webview.
 - **De-risks Schedule**: Guarantees a working desktop MVP within a realistic timeline even if pure native Rust windowing/text layout stalls.
-- **Reuses Core Logic**: The entire `mirsam-core` crate (data model, file format, undo/redo, validation) remains 100% native Rust and unchanged.
+- **Reuses Core Logic**: The entire `ruqa-core` crate (data model, file format, undo/redo, validation) remains 100% native Rust and unchanged.
 
 ### Negative:
 - **Memory Footprint**: System webview runtime increases baseline idle RAM consumption from ~20 MB to ~80–120 MB.

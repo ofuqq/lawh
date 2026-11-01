@@ -1,7 +1,7 @@
 # Typography & Bidirectional (Arabic/RTL) Text Architecture
 
 > **Status: Design Proposal (Draft)**  
-> This document specifies the text shaping, bidirectional layout, and font bundling architecture in `mirsam-render`.
+> This document specifies the text shaping, bidirectional layout, and font bundling architecture in `ruqa-render`.
 
 ---
 
@@ -49,7 +49,7 @@ When a sentence contains both Arabic and English technical terms:
 ```
 Unicode treats parentheses and spaces as bidirectional neutral characters. Without explicit isolation, the parentheses will flip and attach to the wrong side of the English token.
 
-Mirsam wraps embedded code, math, and shortcut tokens in explicit **Unicode Left-to-Right Isolates**:
+Ruqa wraps embedded code, math, and shortcut tokens in explicit **Unicode Left-to-Right Isolates**:
 - Prefix: `U+2066` (`LEFT-TO-RIGHT ISOLATE` / `LRI`)
 - Suffix: `U+2069` (`POP DIRECTIONAL ISOLATE` / `PDI`)
 

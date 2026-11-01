@@ -1,16 +1,16 @@
 [workspace]
 resolver = "2"
 members = [
-  "crates/mirsam-core",
+  "crates/ruqa-core",
 ]
 
 [workspace.package]
 version = "0.0.1"
 edition = "2021"
 rust-version = "1.80.0"
-authors = ["Abdulrahman Hossam <ahossam.tech@gmail.com>", "Mirsam Contributors"]
+authors = ["Abdulrahman Hossam <ahossam.tech@gmail.com>", "Ruqa Contributors"]
 license = "Apache-2.0"
-repository = "https://github.com/ofuqq/mirsam"
-homepage = "https://github.com/ofuqq/mirsam"
+repository = "https://github.com/ofuqq/ruqa"
+homepage = "https://github.com/ofuqq/ruqa"
 description = "A lightweight, open-source desktop whiteboard and study scratchpad in Rust."
 readme = "README.md"

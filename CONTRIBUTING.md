@@ -1,6 +1,6 @@
-# Contributing to Mirsam
+# Contributing to Ruqa
 
-Welcome! Mirsam is an open-source, lightweight whiteboard and study scratchpad built in Rust. We appreciate your interest in contributing to the project.
+Welcome! Ruqa is an open-source, lightweight whiteboard and study scratchpad built in Rust. We appreciate your interest in contributing to the project.
 
 ---
 
@@ -12,7 +12,7 @@ All contributors and participants must adhere to our [Code of Conduct](CODE_OF_C
 
 ## Licensing of Contributions (Inbound = Outbound)
 
-Mirsam is licensed exclusively under the **Apache License, Version 2.0**.
+Ruqa is licensed exclusively under the **Apache License, Version 2.0**.
 
 By contributing code, documentation, or other assets to this repository, you agree that your contributions are licensed under the Apache License, Version 2.0 (inbound = outbound) without additional terms or conditions.
 - **Attribution & Notice**: Third-party permissive code (MIT/Apache/BSD) must retain copyright notices and be recorded in [NOTICE](NOTICE).

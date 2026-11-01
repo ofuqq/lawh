@@ -1,4 +1,4 @@
-# cargo-deny configuration for Mirsam
+# cargo-deny configuration for Ruqa
 # Validates dependency licenses, security advisories, and bans.
 
 [graph]

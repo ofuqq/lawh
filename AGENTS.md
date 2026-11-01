@@ -1,14 +1,14 @@
-# AI Agent Guidelines for Mirsam
+# AI Agent Guidelines for Ruqa
 
 > If `.local/AI_BRIEF.md` exists in your workspace, read it first for runtime context.
 
 ## 1. Project Summary
-Mirsam is an open-source, lightweight desktop whiteboard built in Rust. It delivers an Excalidraw-like hand-drawn aesthetic, infinite canvas, dark theme by default, and mouse-first usability for studying and visual explanation.
+Ruqa is an open-source, lightweight desktop whiteboard built in Rust (named after Ruq'ah, the swift, clean Arabic handwriting style). It delivers an Excalidraw-like hand-drawn aesthetic, infinite canvas, dark theme by default, and mouse-first usability for studying and visual explanation.
 
 ## 2. Repository Map
-- `crates/mirsam-core`: Data models, geometry, scene graph, undo/redo history, and `.mirsam` serialization.
-- `crates/mirsam-render`: 2D rasterization, roughr conversion, softbuffer presentation, and text layout.
-- `crates/mirsam-app`: Native OS windowing (`winit`), mouse input dispatch, and UI chrome.
+- `crates/ruqa-core`: Data models, geometry, scene graph, undo/redo history, and `.ruqa` serialization.
+- `crates/ruqa-render`: 2D rasterization, roughr conversion, softbuffer presentation, and text layout.
+- `crates/ruqa-app`: Native OS windowing (`winit`), mouse input dispatch, and UI chrome.
 - `docs/`: Canonical specifications:
   - `docs/product/`: Vision, principles, users, competitive analysis, MVP scope, and kill criteria.
   - `docs/architecture/`: Technical design, data models, rendering, text/RTL, and file format specs.

@@ -4,29 +4,29 @@ This log records major technical, architectural, product, and governance decisio
 
 ---
 
-### [2026-11-01] Decision 1: Rename Project from Lawh to Mirsam
-- **Decision**: Adopt **Mirsam** (`ofuqq/mirsam`, crates `mirsam-core`, `mirsam-render`, `mirsam-app`) as canonical project and repository name.
-- **Context**: External research report identified an active commercial company, Lawh.ai (https://lawh.ai/features), operating in the exact same Arabic/RTL vector canvas vertical. Renaming avoids trademark infringement risk (Classes 9/42) and SEO dilution. Audited candidate list: `mirsam` is clean on crates.io (404), clean on GitHub (`ofuqq/mirsam`), and has no software whiteboard collision.
+### [2026-11-01] Decision 1: Rename Project from Lawh to Ruqa
+- **Decision**: Adopt **Ruqa** (`ofuqq/ruqa`, crates `ruqa-core`, `ruqa-render`, `ruqa-app`) as canonical project and repository name.
+- **Context**: External research report identified an active commercial company, Lawh.ai (https://lawh.ai/features), operating in the exact same Arabic/RTL vector canvas vertical. Renaming avoids trademark infringement risk (Classes 9/42) and SEO dilution. Audited candidate list: `ruqa` is clean on crates.io (404), clean on GitHub (`ofuqq/ruqa`), and has no software whiteboard collision.
 - **Status**: **Approved & Implemented** (recorded in ADR 0005).
 
 ---
 
 ### [2026-11-01] Decision 2: License Switch to Apache-2.0 ONLY
-- **Decision**: License Mirsam strictly under **Apache-2.0** with a `NOTICE` file; remove MIT dual-licensing. Enforce license compliance via `cargo-deny` in CI.
+- **Decision**: License Ruqa strictly under **Apache-2.0** with a `NOTICE` file; remove MIT dual-licensing. Enforce license compliance via `cargo-deny` in CI.
 - **Context**: Apache-2.0 provides an explicit patent grant and strong contributor protections while remaining widely compatible across the Rust ecosystem.
 - **Status**: **Accepted** (recorded in ADR 0002).
 
 ---
 
 ### [2026-11-01] Decision 3: Clean-Room Implementation & Rejection of drafft-ink Fork
-- **Decision**: Build Mirsam clean-room; strictly prohibit copying code from AGPL/GPL projects (drafft-ink, Rnote, Xournal++). Reject forking drafft-ink due to AGPLv3 copyleft incompatibility with Apache-2.0.
+- **Decision**: Build Ruqa clean-room; strictly prohibit copying code from AGPL/GPL projects (drafft-ink, Rnote, Xournal++). Reject forking drafft-ink due to AGPLv3 copyleft incompatibility with Apache-2.0.
 - **Context**: Preserves license purity and developer trust.
 - **Status**: **Approved & Implemented**.
 
 ---
 
 ### [2026-11-01] Decision 4: 3-Crate Architecture & Pre-Approved Tauri Fallback
-- **Decision**: Scaffold greenfield 3-crate architecture (`mirsam-core`, `mirsam-render`, `mirsam-app`). Pre-approve a contingency fallback to a Tauri v2 hybrid architecture if the Day-14 Technical Spike fails.
+- **Decision**: Scaffold greenfield 3-crate architecture (`ruqa-core`, `ruqa-render`, `ruqa-app`). Pre-approve a contingency fallback to a Tauri v2 hybrid architecture if the Day-14 Technical Spike fails.
 - **Context**: Decouples domain models from rendering while providing an immediate escape hatch if native Rust text editing stalls.
 - **Status**: **Accepted** (recorded in ADR 0006).
 
@@ -52,7 +52,7 @@ This log records major technical, architectural, product, and governance decisio
 ---
 
 ### [2026-11-01] Decision 8: Native Versioned JSON Format
-- **Decision**: Use an independent versioned JSON document format (`.mirsam`) with root `schema_version: 1` and `format: "mirsam"` magic keys from day one. Support JSON Canvas (`.canvas`) as an export target in v0.2.
+- **Decision**: Use an independent versioned JSON document format (`.ruqa`) with root `schema_version: 1` and `format: "ruqa"` magic keys from day one. Support JSON Canvas (`.canvas`) as an export target in v0.2.
 - **Status**: **Accepted** (recorded in ADR 0004).
 
 ---

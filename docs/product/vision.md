@@ -1,4 +1,4 @@
-# Product Vision: Mirsam
+# Product Vision: Ruqa
 
 ## 1. Problem Statement
 
@@ -11,18 +11,18 @@ Laptop-based students and self-taught developers who study with a keyboard and m
 
 ---
 
-## 2. The Mirsam Mission
+## 2. The Ruqa Mission
 
-**Mirsam** (Arabic: مِرْسَم, meaning pencil, drawing instrument, or artist's studio) is a fast, lightweight, open-source desktop whiteboard and study scratchpad written in native Rust by [Ofuq](https://github.com/ofuqq).
+**Ruqa** (Arabic: Ruq'ah, meaning pencil, drawing instrument, or artist's studio) is a fast, lightweight, open-source desktop whiteboard and study scratchpad written in native Rust by [Ofuq](https://github.com/ofuqq).
 
-Mirsam combines the approachable hand-drawn aesthetic of Excalidraw with the local-first file organization of a developer study vault. It boots in under 100 milliseconds, idles under 80 MB of RAM, works 100% offline, offers first-class bilingual Arabic/Latin typography out of the box, and is optimized for the two-button mouse and keyboard.
+Ruqa combines the approachable hand-drawn aesthetic of Excalidraw with the local-first file organization of a developer study vault. It boots in under 100 milliseconds, idles under 80 MB of RAM, works 100% offline, offers first-class bilingual Arabic/Latin typography out of the box, and is optimized for the two-button mouse and keyboard.
 
 ---
 
 ## 3. Core Pillars
 
 - **Low-RAM Native Speed**: Built with a lean native Rust runtime (tiny-skia on CPU + softbuffer). Zero Chromium/Electron runtime bloat, zero background telemetry.
-- **The Local "Study Vault"**: Boards are saved as lightweight, human-readable versioned JSON files (`.mirsam`) in standard OS folders, accessible via a collapsible sidebar and cross-board search (`Ctrl+P`).
+- **The Local "Study Vault"**: Boards are saved as lightweight, human-readable versioned JSON files (`.ruqa`) in standard OS folders, accessible via a collapsible sidebar and cross-board search (`Ctrl+P`).
 - **First-Class Bilingual Typography**: Out-of-the-box Arabic and Latin font pairing (Aref Ruqaa for headings, Vazirmatn for body notes) rendered with proper bidirectional shaping via Linebender's `parley`.
 - **Mouse & Keyboard Ergonomics**: Velocity-simulated stroke tapering turns mouse movements into legible handwriting. Single-key tool shortcuts (R, O, L, A, P, E) enable rapid diagramming without stylus hardware.
 - **Approachable Sketch Aesthetic**: Hand-drawn contours (via `roughr`) eliminate the intimidation of visual perfection, encouraging quick visual self-explanation.

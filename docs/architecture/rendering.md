@@ -7,11 +7,11 @@
 
 ## 1. Pipeline Overview
 
-Mirsam employs a clean CPU-first software rendering pipeline:
+Ruqa employs a clean CPU-first software rendering pipeline:
 
 ```mermaid
 flowchart TD
-    Scene["mirsam-core Scene Graph<br/>(&[Element])"] --> Cull["1. Viewport Culling<br/>Filter visible elements via AABB check"]
+    Scene["ruqa-core Scene Graph<br/>(&[Element])"] --> Cull["1. Viewport Culling<br/>Filter visible elements via AABB check"]
     Cull --> Convert["2. Vector Geometry Conversion<br/>Local roughr OpSet -> tiny_skia PathBuilder"]
     Convert --> Raster["3. Software Rasterization<br/>tiny-skia PixmapMut surface"]
     Raster --> Blit["4. Window Surface Presentation<br/>softbuffer blits 32-bit RGBA to OS Window"]
@@ -29,7 +29,7 @@ flowchart TD
 
 ## 3. The `roughr` Local Converter (No Adapter Crates)
 
-To prevent crate version conflicts (such as `rough_tiny_skia 0.14` pinning `tiny-skia = "0.11"` against newer releases), `mirsam-render` depends **only on `roughr` core** (`roughr = "0.14"`).
+To prevent crate version conflicts (such as `rough_tiny_skia 0.14` pinning `tiny-skia = "0.11"` against newer releases), `ruqa-render` depends **only on `roughr` core** (`roughr = "0.14"`).
 
 A lightweight internal converter function (~35 LOC) maps `roughr::core::OpSet` directly into `tiny_skia::PathBuilder`:
 

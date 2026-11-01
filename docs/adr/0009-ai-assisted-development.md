@@ -7,14 +7,14 @@
 ---
 
 ## 1. Context and Problem Statement
-Mirsam is built by a solo founder learning Rust, collaborating directly with advanced AI engineering agents.
+Ruqa is built by a solo founder learning Rust, collaborating directly with advanced AI engineering agents.
 To ensure the repository remains maintainable, legally compliant, auditable, and of exceptional engineering quality, clear standards must govern AI-assisted contributions.
 
 ---
 
 ## 2. Decision Outcome
 
-We establish five binding rules for AI-assisted development in the Mirsam project:
+We establish five binding rules for AI-assisted development in the Ruqa project:
 
 ### Rule 1: Clean-Room Implementation
 - AI agents are strictly prohibited from copying, decompiling, or transcribing code from copyleft projects (e.g. AGPLv3 `drafft-ink`, GPL `Rnote`, `Xournal++`) or proprietary commercial software.

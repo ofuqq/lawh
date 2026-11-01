@@ -1,17 +1,17 @@
-//! # mirsam-core
+//! # ruqa-core
 //!
-//! Core data structures, canvas geometry, and serialization for the Mirsam whiteboard.
+//! Core data structures, canvas geometry, and serialization for the Ruqa whiteboard.
 
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
-/// Version indicator for the mirsam-core library.
+/// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Returns the library greeting message.
 #[must_use]
 pub fn greeting() -> &'static str {
-    "Mirsam Core - Lightweight Whiteboard Foundation"
+    "Ruqa Core - Lightweight Whiteboard Foundation"
 }
 
 #[cfg(test)]
@@ -20,10 +20,7 @@ mod tests {
 
     #[test]
     fn test_greeting() {
-        assert_eq!(
-            greeting(),
-            "Mirsam Core - Lightweight Whiteboard Foundation"
-        );
+        assert_eq!(greeting(), "Ruqa Core - Lightweight Whiteboard Foundation");
     }
 
     #[test]

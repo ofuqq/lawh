@@ -7,7 +7,7 @@
 ---
 
 ## 1. Context and Problem Statement
-Mirsam aims to provide a lightweight, instant-starting, offline study scratchpad and whiteboard. Most existing tools (Excalidraw, tldraw, Obsidian Canvas) run on web runtimes (Chromium, Electron, DOM/Canvas) that consume 150–400 MB of RAM, launch slowly, and suffer from garbage collection pauses during handwriting strokes.
+Ruqa aims to provide a lightweight, instant-starting, offline study scratchpad and whiteboard. Most existing tools (Excalidraw, tldraw, Obsidian Canvas) run on web runtimes (Chromium, Electron, DOM/Canvas) that consume 150–400 MB of RAM, launch slowly, and suffer from garbage collection pauses during handwriting strokes.
 
 We require a systems programming language that compiles to lean native binaries, guarantees memory safety without garbage collection, delivers predictable 60+ FPS rendering, and offers rich 2D vector and typography libraries.
 

@@ -7,7 +7,7 @@
 ---
 
 ## 1. Context and Problem Statement
-Selecting an open-source license sets the rules for how community members, researchers, and commercial organizations can use, modify, and contribute to Mirsam. We must balance protecting the project with encouraging adoption and enabling `mirsam-core` to be integrated into developer study workflows.
+Selecting an open-source license sets the rules for how community members, researchers, and commercial organizations can use, modify, and contribute to Ruqa. We must balance protecting the project with encouraging adoption and enabling `ruqa-core` to be integrated into developer study workflows.
 
 ---
 
@@ -36,9 +36,9 @@ Chosen option: **Option 1 (Apache License, Version 2.0 ONLY)**.
 3. **Automated Enforcement**: Enforced via `cargo-deny` in CI, allowing only permissive/compatible licenses (Apache-2.0, MIT, BSD-2/3, ISC, Unicode-*, Zlib, CC0, OFL-1.1 for fonts) and denying all GPL/AGPL/LGPL copyleft licenses.
 
 ### The Explicit Trade-Off: "Fork and Close"
-- Under Apache-2.0, **anyone may fork Mirsam, add proprietary modifications, and distribute closed-source binaries without contributing source code back**.
-- **Considered Alternative (AGPL-3.0)**: Projects like `drafft-ink` use AGPLv3. However, Mirsam is an offline desktop client, not a networked SaaS server. AGPL creates severe corporate and academic adoption hurdles without providing meaningful defense for desktop software. Furthermore, adopting AGPL would prevent `mirsam-core` from being embedded into MIT/Apache developer tooling.
+- Under Apache-2.0, **anyone may fork Ruqa, add proprietary modifications, and distribute closed-source binaries without contributing source code back**.
+- **Considered Alternative (AGPL-3.0)**: Projects like `drafft-ink` use AGPLv3. However, Ruqa is an offline desktop client, not a networked SaaS server. AGPL creates severe corporate and academic adoption hurdles without providing meaningful defense for desktop software. Furthermore, adopting AGPL would prevent `ruqa-core` from being embedded into MIT/Apache developer tooling.
 - *Mitigation*: Our defense against forks is continuous engineering speed, direct user empathy for solo learners, active community engagement, and strong brand trust under the Ofuq organization.
 
 ### Clean-Room Rule
-Forking or copying code from AGPL/GPL projects (including `drafft-ink`, `rnote`, or `Xournal++`) is strictly prohibited. Mirsam is developed clean-room.
+Forking or copying code from AGPL/GPL projects (including `drafft-ink`, `rnote`, or `Xournal++`) is strictly prohibited. Ruqa is developed clean-room.

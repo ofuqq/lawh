@@ -1,7 +1,7 @@
 # Data Model Architecture
 
 > **Status: Design Proposal (Draft)**  
-> This document details the in-memory scene graph, element types, and geometry data structures inside `mirsam-core`.
+> This document details the in-memory scene graph, element types, and geometry data structures inside `ruqa-core`.
 
 ---
 
