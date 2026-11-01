@@ -7,6 +7,7 @@
 
 pub mod rough_convert;
 pub mod spike_benchmark;
+pub mod text_layout;
 
 /// Library version string.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
