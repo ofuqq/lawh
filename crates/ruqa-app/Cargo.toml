@@ -1,0 +1,19 @@
+[package]
+name = "ruqa-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native desktop windowing, winit 0.30 event loop, and mouse input dispatch for Ruqa."
+readme = "README.md"
+
+[dependencies]
+ruqa-core = { path = "../ruqa-core" }
+ruqa-render = { path = "../ruqa-render" }
+winit = "0.30"
+softbuffer = "0.4"
+tiny-skia = "0.11"
+
+[dev-dependencies]

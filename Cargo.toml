@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "crates/ruqa-core",
   "crates/ruqa-render",
+  "crates/ruqa-app",
 ]
 
 [workspace.package]
