@@ -1,0 +1,34 @@
+name: Feature Request
+description: Propose an idea or capability enhancement for Lawh.
+title: "feat: "
+labels: ["type: feature", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please keep the Lawh principles in mind: **Light, Fast, Offline, Hand-Drawn, Simple First, Mouse-First**.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement / Motivation
+      description: Is your feature request related to a problem or study workflow?
+      placeholder: When studying system design diagrams, I need to quickly duplicate a node...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & User Experience
+      description: Describe what you would like to happen and how the interaction should feel.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you have considered.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Links to prior art, diagrams, or sketches illustrating the proposal.

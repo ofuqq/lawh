@@ -1,0 +1,154 @@
+# GitHub Label Taxonomy for Lawh (ofuqq/lawh)
+# Source of truth for repository labels.
+
+- name: "type: bug"
+  color: "d73a4a"
+  description: "Something is not working as expected"
+
+- name: "type: feature"
+  color: "1d76db"
+  description: "New feature or capability proposal"
+
+- name: "type: docs"
+  color: "0075ca"
+  description: "Documentation improvements or additions"
+
+- name: "type: chore"
+  color: "7057ff"
+  description: "Maintenance tasks, tooling, or repo updates"
+
+- name: "type: refactor"
+  color: "a2eeef"
+  description: "Code restructuring without changing behavior"
+
+- name: "type: performance"
+  color: "d4c5f9"
+  description: "Performance optimizations and benchmarks"
+
+- name: "type: security"
+  color: "b60205"
+  description: "Security fixes or hardening"
+
+- name: "type: question"
+  color: "d876e3"
+  description: "Questions, discussions, or requests for clarification"
+
+- name: "area: canvas"
+  color: "5319e7"
+  description: "Infinite canvas coordinates, viewport, pan, and zoom"
+
+- name: "area: rendering"
+  color: "5319e7"
+  description: "Drawing engine, rasterization, tiny-skia, or vello"
+
+- name: "area: input"
+  color: "5319e7"
+  description: "Mouse, pointer, gesture, and event handling"
+
+- name: "area: tools"
+  color: "5319e7"
+  description: "Whiteboard tools (pen, rectangle, ellipse, line, arrow)"
+
+- name: "area: file-format"
+  color: "5319e7"
+  description: "File persistence, JSON schema, and versioning"
+
+- name: "area: ui"
+  color: "5319e7"
+  description: "Application chrome, HUD, menus, and styling"
+
+- name: "area: text-arabic"
+  color: "5319e7"
+  description: "Arabic and RTL text layout, BiDi, and shaping"
+
+- name: "area: export"
+  color: "5319e7"
+  description: "Export to PNG, SVG, or other formats"
+
+- name: "area: build-ci"
+  color: "5319e7"
+  description: "Build systems, workflows, CI/CD, and scripts"
+
+- name: "area: docs"
+  color: "5319e7"
+  description: "Repository and architectural documentation"
+
+- name: "priority: high"
+  color: "b60205"
+  description: "Urgent or blocking core milestone deliverables"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Standard milestone tasks and improvements"
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: "Nice-to-have or lower urgency items"
+
+- name: "status: needs-triage"
+  color: "fbca04"
+  description: "Newly submitted issue awaiting maintainer triage"
+
+- name: "status: needs-info"
+  color: "fbca04"
+  description: "Waiting for additional details or repro steps"
+
+- name: "status: blocked"
+  color: "e4e669"
+  description: "Blocked by another issue, dependency, or upstream bug"
+
+- name: "status: ready"
+  color: "0e8a16"
+  description: "Triaged and ready for implementation"
+
+- name: "community: good first issue"
+  color: "006b75"
+  description: "Good for newcomers to the project"
+
+- name: "community: help wanted"
+  color: "006b75"
+  description: "Open for community contributors to claim"
+
+- name: "resolution: duplicate"
+  color: "cfd3d7"
+  description: "Duplicate of an existing issue or pull request"
+
+- name: "resolution: wontfix"
+  color: "ffffff"
+  description: "Decision made not to pursue or fix this"
+
+- name: "resolution: invalid"
+  color: "e4e669"
+  description: "Issue does not apply or cannot be reproduced"
+
+- name: "workflow: decision-needed"
+  color: "e11d21"
+  description: "Requires an architectural or product decision"
+
+- name: "workflow: adr"
+  color: "0052cc"
+  description: "Associated with an Architectural Decision Record"
+
+- name: "workflow: breaking-change"
+  color: "d93f0b"
+  description: "Introduces breaking API, format, or schema changes"
+
+- name: "workflow: ai-assisted"
+  color: "1d76db"
+  description: "Created, modified, or assisted by AI agents"
+
+- name: "workflow: agent-ready"
+  color: "0e8a16"
+  description: "Self-contained and spec'd for AI agent implementation"
+
+- name: "tooling: dependencies"
+  color: "bfdadc"
+  description: "Dependency updates managed by Cargo or Dependabot"
+
+- name: "tooling: rust"
+  color: "dea584"
+  description: "Rust toolchain, editions, lints, or compiler settings"
+
+- name: "tooling: github_actions"
+  color: "2188ff"
+  description: "GitHub Actions and workflow maintenance"

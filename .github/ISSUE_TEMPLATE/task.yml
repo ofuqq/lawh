@@ -1,0 +1,42 @@
+name: Maintainer / Agent Task
+description: A small, self-contained implementation task specified with clear acceptance criteria.
+title: "task: "
+labels: ["type: chore", "status: ready", "workflow: agent-ready"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to scope small engineering units (typically ~half a day of work for an AI agent or maintainer).
+  - type: textarea
+    id: objective
+    attributes:
+      label: Task Objective
+      description: What specific component, function, or fix needs to be built?
+      placeholder: Implement AABB intersection check for Viewport culling in lawh-core.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope & Affected Crates
+      description: Which crates and files are within scope for this task?
+      placeholder: crates/lawh-core/src/geometry.rs
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Specific, verifiable conditions that must pass for this task to be considered complete.
+      placeholder: |
+        - [ ] Rect::intersects returns true when two bounding boxes overlap.
+        - [ ] Unit tests cover edge-adjacent and completely disjoint rectangles.
+        - [ ] Benchmarked with cargo test.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Relevant Docs & ADRs
+      description: Links to relevant architectural documents in docs/ or ADRs.
+      placeholder: docs/architecture/data-model.md

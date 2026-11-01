@@ -1,0 +1,49 @@
+name: Bug Report
+description: Create a report to help us fix a defect or unexpected behavior in Lawh.
+title: "fix: "
+labels: ["type: bug", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please verify that your issue has not already been reported in existing issues.
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I draw an ellipse with the mouse, the right border disappears...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the behavior.
+      placeholder: |
+        1. Open Lawh
+        2. Select the Rectangle tool
+        3. Click and drag on canvas
+        4. See unexpected artifact
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen instead.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating System & Environment
+      description: Distribution, windowing system (X11/Wayland), Rust version.
+      placeholder: Ubuntu 24.04 (Wayland), rustc 1.82.0
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context & Screenshots
+      description: Add any relevant screenshots, logs, or error backtraces.
