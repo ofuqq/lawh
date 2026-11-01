@@ -1,13 +1,13 @@
 # Developer Setup Guide
 
-This guide walks you through setting up a local Rust development environment to build, test, and contribute to Lawh.
+This guide walks you through setting up a local Rust development environment to build, test, and contribute to Mirsam.
 
 ---
 
 ## 1. Prerequisites
 
 ### Rust Toolchain
-Lawh requires the stable Rust toolchain (version 1.80.0 or newer). Install it via official `rustup`:
+Mirsam requires the stable Rust toolchain (version 1.80.0 or newer). Install it via official `rustup`:
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
@@ -19,13 +19,14 @@ rustc --version
 cargo --version
 ```
 
-### Required Cargo Components
-Install `rustfmt` (code formatter) and `clippy` (linter):
+### Required Cargo Components & Tools
+Install `rustfmt` (code formatter), `clippy` (linter), and `cargo-deny` (license & dependency auditor):
 ```bash
 rustup component add rustfmt clippy
+cargo install --locked cargo-deny
 ```
 
-### Linux System Dependencies (for future GUI windowing)
+### Linux System Dependencies (for GUI windowing)
 Building native desktop windows on Linux requires development headers for X11 / Wayland:
 ```bash
 # Ubuntu / Debian
@@ -46,25 +47,28 @@ sudo pacman -S --needed base-devel libx11 libxcursor libxrandr libxi libxkbcommo
 ## 2. Cloning the Repository
 
 ```bash
-git clone https://github.com/ofuqq/lawh.git
-cd lawh
+git clone https://github.com/ofuqq/mirsam.git
+cd mirsam
 ```
 
 ---
 
-## 3. Verified Build & Test Commands
+## 3. Verified Build, Test & Lint Commands
 
-Run these commands to verify your workspace is healthy before making changes:
+Run these exact commands to verify your workspace is healthy before opening a pull request:
 
 ```bash
 # Check code formatting (Tested in CI)
-cargo fmt --check
+cargo fmt --all --check
 
 # Run Clippy with warnings treated as errors (Tested in CI)
 cargo clippy --workspace --all-targets -- -D warnings
 
 # Run all unit and integration tests (Tested in CI)
 cargo test --workspace
+
+# Verify licenses and bans (Tested in CI)
+cargo deny check licenses bans sources
 ```
 
 ---
@@ -76,5 +80,5 @@ cargo test --workspace
 
 ```bash
 # Launch experimental desktop runner (Untested until M1)
-cargo run -p lawh-app
+cargo run -p mirsam-app
 ```

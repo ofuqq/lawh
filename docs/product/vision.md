@@ -1,23 +1,28 @@
-# Product Vision: Lawh (لَوْح)
+# Product Vision: Mirsam
 
 ## 1. Problem Statement
 
-Modern digital whiteboard tools have increasingly drifted toward heavy, enterprise-focused, collaborative web platforms (Miro, Mural, FigJam, tldraw cloud). While these platforms excel at team sprint retrospectives and corporate workshops, they introduce significant friction for individual learners, educators, and technical explainers:
+Modern visual thinking and whiteboard applications have split into two flawed extremes:
 
-1. **Heavy Resource Footprint**: Running Chromium/Electron instances with complex web bundles consumes hundreds of megabytes of memory and battery life, causing noticeable input latency on budget hardware.
-2. **Cloud & Account Dependency**: Forced account creation, telemetry, paywalled export resolutions, and mandatory internet connectivity disrupt focused solo study sessions and offline work.
-3. **Rigid, Overly Formal Aesthetics**: Standard vector tools produce sterile, overly rigid shapes that make rapid idea-sketching feel intimidating rather than exploratory.
-4. **Neglected Right-to-Left (RTL) Support**: Existing whiteboard tools treat Arabic text as an afterthought, leading to broken bidirectional shaping, reversed cursor movements, and misalignment with diagram flow.
+1. **Bloated Web/Electron Wrappers**: Tools like Goodnotes for Windows consume ~1.3 GB of idle RAM with noticeable stroke latency (reported by Noteastic Blog, May 2026, not independently verified). General web whiteboards like Excalidraw suffer performance degradation beyond 5,000 elements (GitHub Issue #7280), lack multi-board folder organization, and exhibit recurring right-to-left (RTL) bugs and missing Arabic sketch fonts (GitHub Issues #8394, #12404).
+2. **Stylus-Centric Desktop Notebooks**: Tools like Rnote and Lorien target digital graphics tablets (Wacom, Surface, iPad) and GNOME desktop conventions. They lack mouse-first diagramming ergonomics, geometric box connectors, and in Lorien's case, lack even a basic text tool.
 
-## 2. The Lawh Mission
+Laptop-based students and self-taught developers who study with a keyboard and mouse are stranded without a fast, native tool to sketch systems, draw algorithms, and organize bilingual technical notes.
 
-**Lawh** (Arabic for *board* or *slate*) is a fast, lightweight, open-source desktop whiteboard designed specifically for **studying, self-explaining, and technical communication**.
+---
 
-It provides an approachable, hand-drawn aesthetic where imperfect sketches communicate concepts faster than polished diagrams. By running natively via a lean Rust runtime, Lawh launches instantly, consumes minimal system resources, works completely offline, and responds immediately to mouse input.
+## 2. The Mirsam Mission
+
+**Mirsam** (Arabic: مِرْسَم, meaning pencil, drawing instrument, or artist's studio) is a fast, lightweight, open-source desktop whiteboard and study scratchpad written in native Rust by [Ofuq](https://github.com/ofuqq).
+
+Mirsam combines the approachable hand-drawn aesthetic of Excalidraw with the local-first file organization of a developer study vault. It boots in under 100 milliseconds, idles under 80 MB of RAM, works 100% offline, offers first-class bilingual Arabic/Latin typography out of the box, and is optimized for the two-button mouse and keyboard.
+
+---
 
 ## 3. Core Pillars
 
-- **Zero-Friction Solo Study**: Launch in under 100 milliseconds, open a local `.lawh` file, and sketch immediately. No sign-ups, no sync spinners, no subscriptions.
-- **The Hand-Drawn Advantage**: By introducing intentional micro-variations and sketchy contours to geometric shapes, Lawh removes the psychological pressure of visual perfection, fostering freer thinking and faster diagramming.
-- **Mouse-First Fluidity**: Not everyone owns a drawing tablet or stylus. Lawh’s velocity-sensitive stroke algorithms and intuitive mouse bindings (middle-drag panning, scroll zooming, edge handles) ensure desktop mouse users draw clean notes effortlessly.
-- **First-Class Arabic & RTL Foundation**: While full text shaping is scheduled post-v0.1, Lawh is architecturally architected to treat Right-to-Left text and canvas semantics as a core citizen, not a third-party hack.
+- **Low-RAM Native Speed**: Built with a lean native Rust runtime (tiny-skia on CPU + softbuffer). Zero Chromium/Electron runtime bloat, zero background telemetry.
+- **The Local "Study Vault"**: Boards are saved as lightweight, human-readable versioned JSON files (`.mirsam`) in standard OS folders, accessible via a collapsible sidebar and cross-board search (`Ctrl+P`).
+- **First-Class Bilingual Typography**: Out-of-the-box Arabic and Latin font pairing (Aref Ruqaa for headings, Vazirmatn for body notes) rendered with proper bidirectional shaping via Linebender's `parley`.
+- **Mouse & Keyboard Ergonomics**: Velocity-simulated stroke tapering turns mouse movements into legible handwriting. Single-key tool shortcuts (R, O, L, A, P, E) enable rapid diagramming without stylus hardware.
+- **Approachable Sketch Aesthetic**: Hand-drawn contours (via `roughr`) eliminate the intimidation of visual perfection, encouraging quick visual self-explanation.

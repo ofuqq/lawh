@@ -1,4 +1,4 @@
-# GitHub Label Taxonomy for Lawh (ofuqq/lawh)
+# GitHub Label Taxonomy for Mirsam (ofuqq/mirsam)
 # Source of truth for repository labels.
 
 - name: "type: bug"
@@ -8,6 +8,10 @@
 - name: "type: feature"
   color: "1d76db"
   description: "New feature or capability proposal"
+
+- name: "type: spike"
+  color: "d93f0b"
+  description: "Time-boxed (48h max) exploratory prototype or benchmark"
 
 - name: "type: docs"
   color: "0075ca"
@@ -124,6 +128,10 @@
 - name: "workflow: decision-needed"
   color: "e11d21"
   description: "Requires an architectural or product decision"
+
+- name: "workflow: gate"
+  color: "b60205"
+  description: "Formal kill criterion or go/no-go gate check"
 
 - name: "workflow: adr"
   color: "0052cc"

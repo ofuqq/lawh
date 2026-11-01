@@ -1,36 +1,37 @@
-# File Format Specification (`.lawh`)
+# File Format Specification (`.mirsam`)
 
 > **Status: Design Proposal (Draft)**  
-> This document defines the canonical on-disk storage format for Lawh canvas documents.
+> This document defines the canonical on-disk storage format and Study Vault structure for Mirsam.
 
 ---
 
-## 1. Format Design Goals
+## 1. Design Principles
 
-1. **Human-Readable & Diffable**: Stored as clean, UTF-8 encoded JSON so users can inspect documents in text editors and track changes in Git.
-2. **Explicit Versioning**: A root `version` integer enables future migrations without guessing schema shapes.
-3. **Forward & Backward Compatibility**: Clients must ignore unknown properties rather than crashing when opening files created by newer versions.
-4. **Self-Contained**: Contains all geometry, styles, and viewport state necessary to reconstruct the canvas identically.
+1. **Human-Readable & Git-Diffable**: Stored as clean, UTF-8 encoded JSON.
+2. **Explicit Schema Versioning**: Top-level `schema_version: 1` and `format: "mirsam"` magic keys.
+3. **Atomic File Writes**: Document saves write first to a temporary file (`.board.mirsam.tmp`) and atomically rename it into place, preventing corruption during system crashes.
+4. **Vault-as-a-Folder**: A Study Vault is simply a standard operating system folder containing `.mirsam` files and subdirectories. Zero proprietary database containers.
+5. **JSON Canvas (.canvas) as Export Target**: While JSON Canvas (jsoncanvas.org) is an excellent open standard, it cannot natively represent freehand strokes or rough style parameters. Mirsam provides 1-click export to `.canvas` in v0.2 for Obsidian interoperability.
 
 ---
 
 ## 2. Schema Specification (Version 1)
 
-File extension: `.lawh`  
-MIME type: `application/vnd.lawh+json`
+File extension: `.mirsam` (or `.mirsam.json`)  
+MIME type: `application/vnd.mirsam+json`
 
 ### Example Document Payload
 ```json
 {
-  "version": 1,
-  "app": "lawh",
+  "format": "mirsam",
+  "schema_version": 1,
+  "app_version": "0.1.0",
   "created_at": "2026-11-01T14:00:00Z",
   "updated_at": "2026-11-01T14:30:00Z",
   "canvas": {
     "background_color": "#121212",
-    "grid_enabled": true,
     "viewport": {
-      "pan": { "x": 120.5, "y": -45.0 },
+      "pan": { "x": 0.0, "y": 0.0 },
       "zoom": 1.0
     }
   },
@@ -52,18 +53,15 @@ MIME type: `application/vnd.lawh+json`
     },
     {
       "id": 1002,
-      "type": "stroke",
-      "points": [
-        { "x": 120.0, "y": 140.0 },
-        { "x": 135.0, "y": 142.5 },
-        { "x": 160.0, "y": 150.0 }
-      ],
-      "pressures": [0.5, 0.6, 0.7],
+      "type": "text",
+      "position": { "x": 120.0, "y": 140.0 },
+      "content": "خوارزمية Dijkstra تعمل في O(V log V)",
+      "font_size": 18.0,
       "style": {
         "stroke_color": "#4DD0E1",
         "fill_color": null,
-        "stroke_width": 3.0,
-        "roughness": 1.0,
+        "stroke_width": 1.0,
+        "roughness": 0.0,
         "seed": 918237
       }
     }
@@ -75,11 +73,6 @@ MIME type: `application/vnd.lawh+json`
 
 ## 3. Forward Compatibility & Migration Rules
 
-1. **Ignore Unknown Fields**:
-   - In Rust, deserialization structs must NOT fail on unknown attributes (default Serde behavior).
-   - This ensures a file saved in Lawh v0.3 can be safely opened in Lawh v0.1 without throwing a parse error.
-2. **Version Checks**:
-   - If `version <= CURRENT_SUPPORTED_VERSION`, the client parses directly or applies sequential migrations ($1 \to 2 \to 3$).
-   - If `version > CURRENT_SUPPORTED_VERSION`, the application warns the user that the document was created with a newer version, but attempts best-effort rendering of recognizable elements.
-3. **Corrupted Element Recovery**:
-   - If an individual element fails schema validation, the parser logs a warning, skips that single element, and loads the remaining valid elements.
+1. **Permissive Deserialization**: The parser ignores unrecognized JSON keys without failing. A file generated in v0.3 can be read safely in v0.1.
+2. **Format Verification**: The parser verifies `"format": "mirsam"` before reading to avoid attempting to parse foreign JSON files.
+3. **Sequential Migration Pipeline**: When breaking changes occur in future versions, explicit migration functions ($v1 \to v2 \to v3$) update files automatically upon save.

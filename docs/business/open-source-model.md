@@ -1,62 +1,59 @@
-# Open Source Business Model & Sustainability
+# Open Source Model & Sustainability
 
-As a solo founder building an open-source tool, balancing community adoption, contributor friction, and long-term project sustainability is essential. This document evaluates our licensing decisions, contributor policies, sustainability models, and project risks.
-
----
-
-## 1. Licensing Analysis: Permissive vs Copyleft
-
-### The Decision: Dual MIT / Apache-2.0
-Lawh is published under the dual **MIT / Apache-2.0** license, matching the canonical standard of the Rust ecosystem.
-
-### The Explicit Trade-Off
-- **Advantage (Adoption & Integration)**: Developers and companies can freely embed `lawh-core` into their tools, study workflows, and plugins without fear of licensing contamination. Permissive licensing drastically accelerates community adoption and trust.
-- **The Core Risk ("Fork and Close")**: Anyone—including well-funded commercial entities—can take Lawh, add features, and redistribute it as proprietary closed-source software without giving anything back.
-
-### The Considered Alternative: AGPLv3 (Network Copyleft)
-We specifically considered the **GNU Affero General Public License (AGPL-3.0)**, as used by projects like `drafft-ink`:
-- *Why AGPL is Attractive to Solo Founders*: AGPL prevents cloud providers and competitors from hosting modified versions of your code as a closed SaaS service without contributing source code back.
-- *Why We Rejected AGPL for v0.1*:
-  1. Lawh is a **local-first desktop tool**, not a cloud SaaS service; AGPL's network copyleft clause provides little defensive value for offline desktop binaries.
-  2. AGPL creates severe adoption friction. Many enterprise developers and educational institutions are legally prohibited from installing or contributing to AGPL software.
-  3. Reusability of `lawh-core` as a generic Rust library for drawing algorithms would be severely hindered.
+Mirsam is built as an open-source, local-first utility. This document outlines our licensing model, clean-room rules, sustainability options, and contributor policy.
 
 ---
 
-## 2. Contributor Policy (Inbound = Outbound)
+## 1. Licensing Model: Apache-2.0 ONLY
 
-- **Inbound = Outbound**: All contributions submitted to Lawh are accepted under the existing dual MIT/Apache-2.0 license.
-- **No CLA (Contributor License Agreement)**: CLAs create legal paperwork and discourage casual open-source contributors. We do not require a CLA.
-- **No DCO (Developer Certificate of Origin) for Now**: To keep early bootstrapping frictionless, DCO sign-offs (`git commit -s`) are not enforced in v0.1. (This decision will be revisited when external contributors arrive; see [decision-log.md](decision-log.md)).
+Mirsam is licensed exclusively under the **Apache License, Version 2.0** with a standard `NOTICE` file.
+
+### Why Apache-2.0?
+1. **Explicit Patent License (Section 3)**: Provides strong patent retaliation protections, protecting contributors and users from patent aggression.
+2. **Clear Commercial Permissions**: Companies, researchers, and students can freely use Mirsam without fear of licensing ambiguity.
+3. **Ecosystem Standardization**: Aligns cleanly with modern systems libraries and tools across the Rust and developer tooling ecosystems.
+
+### The Honest Trade-Off: "Fork and Close"
+Under the Apache-2.0 license, **anyone may fork Mirsam, add proprietary features, and distribute closed-source binaries without contributing source code back**.
+- **Evaluated Alternative (AGPL-3.0)**: Projects like `drafft-ink` use AGPLv3 to force source reciprocity on network hosts. However, Mirsam is an offline desktop tool, not a cloud service. Copyleft creates severe institutional friction and prevents the core geometry library (`mirsam-core`) from being reused in open-source developer tooling.
+- *Our Defense*: Continuous engineering speed, direct user empathy for solo learners, active community engagement, and strong brand trust under the Ofuq organization.
 
 ---
 
-## 3. Trademark and Naming Protection
+## 2. Clean-Room Implementation Policy
 
-While the source code is permissively licensed, the **Lawh** name, logo, and identity are protected under customary trademark principles:
-- Forked distributions may not claim to be the official Lawh release or use official branding without permission.
-- The organization name **Ofuq** (أفق) and the project name **Lawh** (لَوْح) represent our reputation for high-quality, privacy-respecting educational software.
+Mirsam enforces a strict clean-room development standard:
+- **Zero Copied Code from Copyleft Projects**: No code may be copied, vendored, or closely translated from GPL, LGPL, or AGPL codebases (such as `drafft-ink`, `flxzt/rnote`, or `Xournal++`).
+- **Forking drafft-ink is Rejected**: Although drafft-ink implements useful whiteboard primitives, its AGPLv3 license makes forking legally incompatible with our Apache-2.0 decision.
+- **Vendoring Rules**: Only MIT- or Apache-2.0-licensed code may be vendored, and all original copyright headers and license texts must be preserved alongside an entry in `NOTICE`.
+
+---
+
+## 3. Contributor Policy (Inbound = Outbound)
+
+- **Inbound = Outbound**: All contributions submitted to Mirsam are licensed under Apache-2.0.
+- **No CLA**: We do not require a Contributor License Agreement.
+- **No DCO for Initial Development**: To maintain low friction for early development, Developer Certificate of Origin (`Signed-off-by`) sign-offs are not required for v0.1.
+- **Revisit Trigger**: Enforcing DCO will be revisited when the first external non-founder contributor arrives (recorded in [decision-log.md](decision-log.md)).
 
 ---
 
 ## 4. Sustainability & Monetization Options
 
-For a solo maintainer, relying purely on unpaid passion leads to burnout. Sustainable pathways include:
+Mirsam will have **zero monetization in v0.1.0**. The software and Linux/Windows binaries are 100% free.
 
-1. **GitHub Sponsors & Open Collective**: Direct developer support from grateful students, educators, and power users.
-2. **App Store Convenience Builds**:
-   - The source code and raw Linux binaries remain 100% free on GitHub.
-   - Convenient, auto-updating packaged builds can be sold for a small fee on app stores (e.g., Flathub paid tier, Steam, Microsoft Store, Mac App Store).
-3. **Supporter Perks & Themes**: Providing custom cosmetic canvas themes (e.g., specialized vintage notebook or chalk themes) for financial sponsors.
-4. **Educational Grants**: Applying for open-source and educational software development grants (e.g., NLnet, sovereign tech funds).
+To sustain development long-term without crippling the core tool with paywalls, three ethical options exist for post-v0.1:
+
+1. **Convenience App Store Builds**:
+   - Source code and raw binaries on GitHub Releases remain free forever.
+   - Convenient, auto-updating signed builds can be offered on app stores (e.g. Microsoft Store, Mac App Store) for a one-time fee (e.g. ~$12; revenue estimates reported in 2026 market research are unverified).
+2. **Optional Hosted Study Sharing & Sync (The Obsidian/Anki Model)**:
+   - For users who want one-click web publishing of lecture boards or multi-device encrypted sync without configuring Git/Syncthing, an optional hosted service (e.g. ~$3/month; estimate unverified) could be introduced in v0.3+.
+3. **Public-Interest Open-Source Grants**:
+   - Applying for educational and open-source infrastructure grants (e.g. NLnet Foundation in Europe, regional open-source funds).
 
 ---
 
-## 5. Risk Assessment
+## 5. Trademark & Name Protection
 
-| Risk | Impact | Mitigation Strategy |
-| :--- | :--- | :--- |
-| **Big Tech / Commercial Fork** | High | Maintain faster iteration, tighter community bonds, and superior user empathy. Community loyalty follows the active maintainer, not a cold fork. |
-| **Maintainer Burnout** | High | Strict MVP scope boundaries. Aggressive refusal of enterprise features (collaboration, cloud sync). Reliance on AI agents for boilerplate execution. |
-| **Upstream Dependency Abandonment** | Medium | Isolate niche crates (`rough_tiny_skia`, `freedraw`) behind thin internal module wrappers. If an upstream crate stalls, we can fork and vendor it cleanly. |
-| **Lack of Initial Traction** | Low | Low cost to run. Lawh solves the maintainer's own daily study needs; utility exists even with zero external users. |
+While the code is Apache-2.0, the name **Mirsam** and organization **Ofuq** (أفق) are protected under customary trademark law. Forked distributions may not use official branding without permission.

@@ -1,12 +1,12 @@
 [package]
-name = "lawh-core"
+name = "mirsam-core"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Core geometry, data models, and document serialization for Lawh whiteboard."
+description = "Core geometry, data models, and document serialization for Mirsam whiteboard."
 readme = "README.md"
 
 [dependencies]

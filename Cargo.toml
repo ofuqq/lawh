@@ -1,16 +1,16 @@
 [workspace]
 resolver = "2"
 members = [
-  "crates/lawh-core",
+  "crates/mirsam-core",
 ]
 
 [workspace.package]
 version = "0.0.1"
 edition = "2021"
 rust-version = "1.80.0"
-authors = ["Abdulrahman Hossam <ahossam.tech@gmail.com>", "Lawh Contributors"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/ofuqq/lawh"
-homepage = "https://github.com/ofuqq/lawh"
-description = "A lightweight, open-source whiteboard built in Rust."
+authors = ["Abdulrahman Hossam <ahossam.tech@gmail.com>", "Mirsam Contributors"]
+license = "Apache-2.0"
+repository = "https://github.com/ofuqq/mirsam"
+homepage = "https://github.com/ofuqq/mirsam"
+description = "A lightweight, open-source desktop whiteboard and study scratchpad in Rust."
 readme = "README.md"

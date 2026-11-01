@@ -37,6 +37,9 @@
         "required_status_checks": [
           {
             "context": "Lint and Test (Linux)"
+          },
+          {
+            "context": "License and Dependency Check"
           }
         ]
       }

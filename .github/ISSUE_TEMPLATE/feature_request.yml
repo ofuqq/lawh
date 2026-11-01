@@ -1,12 +1,12 @@
 name: Feature Request
-description: Propose an idea or capability enhancement for Lawh.
+description: Propose an idea or capability enhancement for Mirsam.
 title: "feat: "
 labels: ["type: feature", "status: needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Please keep the Lawh principles in mind: **Light, Fast, Offline, Hand-Drawn, Simple First, Mouse-First**.
+        Please keep the Mirsam principles in mind: **Light, Fast, Offline, Hand-Drawn, Simple First, Mouse-First**.
   - type: textarea
     id: problem
     attributes:

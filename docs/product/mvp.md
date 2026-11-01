@@ -1,91 +1,139 @@
-# Lawh MVP Specification (v0.1.0)
+# Mirsam MVP Specification (v0.1.0)
 
-## 1. Goal & Vision Statement
-Deliver a rock-solid, standalone Linux desktop whiteboard that boots in under 100ms, lets a student or developer sketch diagrams and explain concepts with a smooth hand-drawn look using only a mouse, saves to a versioned local `.lawh` file, and exports high-resolution PNG snapshots.
-
-## 2. Target User
-The solo technical learner, student, or developer who wants an instant, offline, zero-account sketching scratchpad to visually decompose algorithms, systems, and study notes.
+## 1. Goal & Product Definition
+Deliver a standalone desktop whiteboard and study scratchpad in native Rust that boots in under 150 ms, idles under 100 MB of RAM, and lets students and developers sketch diagrams, connect concepts, and write mixed Arabic/English notes using a standard mouse and keyboard on local files.
 
 ---
 
-## 3. Scope Boundaries: MUST / SHOULD / WON'T
-
-### MUST Have (v0.1 Hard Requirements)
-Every MUST item has strict acceptance criteria.
-
-1. **Infinite Pan & Zoom Canvas**
-   - *Acceptance Criteria*:
-     - Middle-click drag and `Space + Left-click` drag pan the canvas smoothly.
-     - Scroll wheel zooms smoothly in and out centered on the current mouse pointer position.
-     - Zoom levels constrained safely between 10% (0.1x) and 1000% (10.0x).
-     - Maintains 60 FPS panning on standard 1080p desktop display.
-2. **Smooth Freehand Pen Tool**
-   - *Acceptance Criteria*:
-     - User can draw continuous freehand lines using left-click drag.
-     - Velocity-based stroke smoothing eliminates mouse staircase artifacts.
-     - Color palette provides at least 5 standard high-contrast dark-mode colors (White, Slate, Cyan, Green, Coral/Red).
-     - Stroke width selector (Thin, Medium, Thick).
-3. **Hand-Drawn Basic Shapes**
-   - *Acceptance Criteria*:
-     - Rectangle, Ellipse, Line, and Arrow tools.
-     - Rendered with organic hand-drawn sketchiness (two-pass jittered contour via Rough algorithm).
-     - Arrowheads auto-align to line endpoint angle.
-4. **Direct Selection & Manipulation**
-   - *Acceptance Criteria*:
-     - Selection tool allows clicking an element or dragging a bounding selection box to select multiple shapes.
-     - Selected elements show an active bounding box with corner resize handles.
-     - Dragging inside bounding box translates selected elements.
-     - Hitting `Delete` or `Backspace` removes selected elements from the canvas.
-5. **Unlimited Undo / Redo**
-   - *Acceptance Criteria*:
-     - `Ctrl+Z` reverses the last user action (stroke, shape creation, move, delete).
-     - `Ctrl+Y` or `Ctrl+Shift+Z` redoes the action.
-     - History stack stores up to 100 consecutive operations without memory growth anomalies.
-6. **Persistence & Versioned File Format (`.lawh`)**
-   - *Acceptance Criteria*:
-     - `Ctrl+S` saves the entire canvas state to a `.lawh` JSON document.
-     - File format includes a top-level `"version": 1` field and forward-compatible structure.
-     - `Ctrl+O` opens a `.lawh` file from disk and reconstructs the canvas exactly.
-7. **PNG Image Export**
-   - *Acceptance Criteria*:
-     - `Ctrl+E` exports the canvas contents to a cropped 32-bit RGBA PNG image matching element bounds.
-     - User can toggle dark-theme background inclusion vs transparent PNG export.
-8. **Rendering Performance Benchmark (Decision 7 Exit Criterion)**
-   - *Acceptance Criteria*:
-     - Automated headless benchmark tests frame rendering time with 1,000, 5,000, and 10,000 strokes.
-     - Target for CPU tiny-skia renderer: **Frame render time < 16.6 ms (sustaining 60 FPS) at 1,000 strokes**.
-     - Provides clear data points to evaluate whether GPU acceleration (`vello`) is required for larger boards.
-
-### SHOULD Have (v0.1 Stretch Goals)
-- [ ] Keyboard shortcut cheat sheet modal (`?` key).
-- [ ] Shape duplication via `Ctrl+D` or `Alt + Drag`.
-- [ ] Stroke fill styles (Hachure, Solid, Cross-hatch).
-- [ ] Multi-level grid toggle (Subtle dots or plain background).
-
-### WON'T Have in v0.1 (Explicit Non-Goals)
-- ❌ **No Real-Time Collaboration**: No WebSockets, WebRTC, multiplayer cursors, or server syncing.
-- ❌ **No User Accounts / Cloud**: No logins, authentication, or cloud drives.
-- ❌ **No Full Arabic Text Shaping**: Arabic/RTL text rendering requires HarfBuzz BiDi shaping (scheduled for v0.2).
-- ❌ **No Complex Text Layout**: Text tool in v0.1 is either omitted or strictly limited to basic ASCII labels.
-- ❌ **No Mobile or Web Builds**: Native desktop (Linux) is the exclusive tier-1 target for v0.1.
+## 2. Target Personas
+- **Primary**: Bilingual STEM Student on a Laptop & Self-Taught Developer / PKM Builder.
+- **Secondary**: Live Technical Explainer / Content Creator.
+- **Explicitly Excluded**: Stylus Lecture PDF Annotators (see [users-and-use-cases.md](users-and-use-cases.md)).
 
 ---
 
-## 4. Success Metrics
+## 3. Scope Boundaries: v0.1 vs v0.2 vs v0.3+
 
-1. **Cold Boot Time**: Binary launches to an interactive canvas in `< 100 ms` on modern Linux desktops.
-2. **Idle Memory**: Process uses `< 50 MB` RSS when running an empty or small canvas.
-3. **Input Responsiveness**: Pen draw input lag `< 16 ms` between mouse movement and raster update.
-4. **Zero-Crash Stability**: 0 panics during continuous 30-minute drawing and undo/redo stress testing.
+```mermaid
+flowchart LR
+    subgraph v01["v0.1.0 Core MVP (M0–M4)"]
+        Canvas["Infinite Dark Canvas (Pan/Zoom)"]
+        Draw["Pen, Eraser & Rough Shapes (R,O,L,A)"]
+        Edit["Select, Move, Resize, Delete, Undo/Redo"]
+        Vault["Folder Sidebar & Atomic JSON (.mirsam)"]
+        Text["Parley Text & Bundled OFL Arabic Fonts"]
+        Export["PNG Image Export"]
+    end
+
+    subgraph v02["v0.2.0 Smart Features (M5)"]
+        Connect["Box-to-Box Raycast Connectors"]
+        AutoGrow["Bound Text Auto-Grow"]
+        Search["Ctrl+P Cross-Board Search"]
+        Snap["Snapping & Alignment Guides"]
+        Frames["Numbered Lecture Frames"]
+        Zen["Zen Mode (Alt+Z) & Image Paste"]
+        JCanvas["JSON Canvas (.canvas) Export"]
+    end
+
+    subgraph v03["v0.3.0+ Advanced Study"]
+        Tape["Study Tape (Occlusion Boxes)"]
+        Math["Inline Math (Typst / LaTeX)"]
+        RTLUI["Full Arabic UI Localization"]
+        Skill["Agent SKILL.md + File Watcher"]
+    end
+
+    v01 --> v02 --> v03
+```
 
 ---
 
-## 5. Minimum Open-Source Launch Requirements
+## 4. Detailed Feature Breakdown
 
-Before announcing v0.1.0 to the community, the repository must have:
-1. **Compelling README**: Clear pitch, pre-alpha status banner, roadmap, and placeholder for a 5-second demo GIF.
-2. **Open Source Governance**: Dual MIT/Apache-2.0 license, CONTRIBUTING guide, Contributor Covenant Code of Conduct.
-3. **Automated CI**: GitHub Actions verifying `cargo fmt`, `cargo clippy`, and unit tests on every pull request.
-4. **Issue & PR Templates**: Structured bug reports, feature requests, and maintainer task templates.
-5. **Packaged Linux Binaries**: Automated GitHub Release delivering a standalone Linux `tar.gz` and AppImage/binary.
-6. **Sample Files**: A directory of bundled `.lawh` sample diagrams (e.g., `samples/welcome.lawh`, `samples/system-architecture.lawh`).
+### v0.1.0 (Public Launch Scope: Milestones M0–M4)
+Every item below has concrete acceptance criteria:
+
+1. **Infinite Dark Canvas**:
+   - Panning via middle-click drag or `Space + Left-click drag`.
+   - Cursor-centered zooming via mouse scroll wheel (clamped 0.1x to 10.0x).
+   - High-contrast dark theme by default (`#121212` background).
+2. **Velocity-Simulated Freehand Pen & Segment Eraser**:
+   - Freehand pen with velocity-based stroke tapering (using `freedraw` algorithm) to eliminate mouse staircase artifacts.
+   - Eraser tool (`E`) that removes intersected strokes or elements on click/drag.
+3. **Hand-Drawn Geometric Shapes**:
+   - Rectangle (`R`), Ellipse (`O`), Line (`L`), and Arrow (`A`) tools with single-key shortcuts.
+   - Procedural hand-drawn jitter generated via `roughr` core and rendered to `tiny-skia` paths.
+   - Deterministic `seed: u64` saved per element to prevent stroke jitter between frames.
+4. **Direct Selection & Transformation**:
+   - Select tool (`V`) supporting single-element click selection and box drag multi-selection.
+   - Bounding box with 8-point resize handles and drag translation.
+   - Deletion via `Delete` or `Backspace`.
+5. **Command-Pattern Undo / Redo**:
+   - `Ctrl+Z` (Undo) and `Ctrl+Y` / `Ctrl+Shift+Z` (Redo) supporting up to 100 consecutive operations.
+6. **Versioned Document Storage & Study Vault Sidebar**:
+   - Single-board documents stored as human-readable JSON (`.mirsam` or `.mirsam.json`) with root `"schema_version": 1` and `"format": "mirsam"`.
+   - Atomic saving (writes to `.tmp` file, then renames) to prevent file corruption on system crashes.
+   - Collapsible left sidebar (`Ctrl+B`) showing boards within an open local OS folder ("Study Vault").
+7. **Bilingual Text & Typography (Parley Engine)**:
+   - Text rendering on canvas powered by Linebender's `parley` (using `harfrust` HarfBuzz port and `icu4x`).
+   - Bundled OFL-licensed fonts: **Aref Ruqaa** (display/headings) and **Vazirmatn** (body notes).
+   - Automatic paragraph direction detection with strict LTR isolation for embedded English code or math tokens.
+   - Basic on-canvas text editing (double-click to activate text input buffer).
+8. **PNG Export**:
+   - `Ctrl+E` exports a cropped 32-bit RGBA PNG image of canvas elements with dark or transparent background.
+
+---
+
+### v0.2.0 (Milestone M5: Smart Study & Interoperability)
+- **Bound Text with Auto-Grow**: Typing inside a rectangle or ellipse automatically expands the container's vertical bounds when text wraps.
+- **Smart Box-to-Box Raycast Connectors**: Arrows pinned to element boundaries (using a ray-AABB intersection algorithm) that stay connected when shapes move.
+- **Snapping Guides**: Visual alignment lines showing center and edge alignment with nearby shapes during drag.
+- **Cross-Board Search (`Ctrl+P`)**: Instant fuzzy search across filenames, frame titles, and text contents within the current study vault.
+- **Numbered Lecture Frames**: 16:9 and A4 frame containers serving as presentation slides (`PageDown` / `PageUp`) and table-of-contents bookmarks.
+- **Zen Mode (`Alt+Z`)**: Hides all sidebar and toolbar chrome for distraction-free sketching.
+- **Clipboard Image Paste (`Ctrl+V`)**: Pasting PNG/JPEG screenshots directly onto the canvas.
+- **JSON Canvas (`.canvas`) Export**: One-click export enabling boards to be opened directly in Obsidian Canvas.
+
+---
+
+### v0.3.0+ (Advanced Study & Ecosystem Expansion)
+- **Study Tape (Active-Recall Occlusion Boxes)**: Colored tape strips that mask underlying terms or definitions, revealable on click for active recall flashcard review.
+- **Inline Math Rendering**: Rendering mathematical formulas via a Typst or LaTeX subset.
+- **Full Arabic UI Localization**: Right-to-left mirrored interface layout with Arabic translations.
+- **External AI Agent Integration**: Standardized `SKILL.md` specification and file-watcher hot-reloading so external agents (Claude Code, Cursor, Zed) can generate and edit `.mirsam` boards on disk.
+
+---
+
+## 5. Explicit WON'T List (Non-Goals with Rationale)
+
+1. ❌ **Real-Time Multiplayer Collaboration**:
+   - *Rationale*: Multi-user CRDT synchronization (e.g., Loro/Automerge over WebSockets) introduces enormous architectural complexity and server operational costs. Mirsam is strictly designed for solo study and asynchronous sharing.
+2. ❌ **Native Stylus / Tablet Pressure Calibration**:
+   - *Rationale*: Eliminates driver maintenance sinkholes (Windows Ink vs Wintab, winit tablet regressions) and keeps development focused on the underserved mouse-first demographic.
+3. ❌ **Full Multi-Page PDF Editing / Redaction**:
+   - *Rationale*: Rnote maintainers confirmed (Issues #1173, #1455) that full in-place PDF multi-page editing conflicts fundamentally with infinite-canvas vector data models.
+4. ❌ **Built-In Cloud LLM / AI Chat Client**:
+   - *Rationale*: Embedding cloud AI wrappers adds subscription management, API keys, and bloat to a local-first tool. External AI agents interact via local files and open formats (`SKILL.md`).
+5. ❌ **Mobile Builds (iOS / Android)**:
+   - *Rationale*: Preserves engineering focus on desktop Windows and Linux ergonomics.
+6. ❌ **Cloud Sync / Proprietary Accounts**:
+   - *Rationale*: Users manage their own sync via Git, Syncthing, or standard cloud folders (Google Drive, Dropbox, OneDrive).
+
+---
+
+## 6. Success Metrics at 90 Days Post-Launch
+
+- **Cold Boot Time**: $< 150\text{ ms}$ on standard modern hardware.
+- **Memory Footprint**: $< 100\text{ MB}$ resident memory (RSS) with a 1,000-element canvas.
+- **Rendering Throughput**: Sustained 60 FPS ($< 16.6\text{ ms}$ frame time) during continuous panning and zooming.
+- **Adoption & Community (Hypotheses)**: 100+ GitHub stars, 200+ binary downloads, and at least 15 real study boards created by the owner during daily dogfooding.
+
+---
+
+## 7. Open-Source Launch Requirements (v0.1.0 Checklist)
+
+Before public announcement:
+- [ ] Root `README.md` with an 8-second 60 FPS demo video/GIF illustrating single-key shapes, mouse pen, and Arabic typography.
+- [ ] Apache-2.0 License, `NOTICE`, and `CONTRIBUTING.md` guide.
+- [ ] Zero-install prebuilt binaries for Linux (`.tar.gz` / `.AppImage`) and Windows (`.zip`) published on GitHub Releases.
+- [ ] Bundled `examples/study-vault/` containing 3 realistic boards (Algorithms diagram, bilingual system architecture, circuit analysis).
+- [ ] Documented JSON schema specification in `docs/architecture/file-format.md`.

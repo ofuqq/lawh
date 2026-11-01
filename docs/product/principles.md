@@ -1,40 +1,41 @@
 # Product Principles
 
-These six principles guide every architectural, feature, and UI decision in Lawh. When trade-offs arise, we evaluate them against these core tenets.
+These six principles govern technical and design decisions in Mirsam.
 
 ---
 
-### 1. Light and Fast
-Lawh must feel as instantaneous as grabbing a real piece of paper.
-- Cold startup must remain under 100 milliseconds.
-- Memory consumption should stay small (< 60 MB for average sketches).
-- Rendering and panning must sustain a steady 60 FPS on modest integrated GPUs and CPUs.
-- Avoid bulky runtimes, heavy web views, or unnecessary background services.
+### 1. Fast, Light, and Low-RAM
+Mirsam must feel like grabbing a sheet of paper.
+- Cold boot time under 150 milliseconds.
+- Process resident memory (RSS) stays under 100 MB during active study.
+- Steady 60 FPS panning and drawing on standard laptop CPUs.
+- Avoid bulky runtimes, webviews, and unneeded background daemons.
 
 ### 2. Offline and Local-First
-Your thoughts and study materials belong exclusively on your computer.
-- Lawh works 100% offline without requiring any network connection.
-- Documents are saved as human-readable, versioned `.lawh` files directly in your filesystem.
-- Zero analytics, zero telemetry tracking, and zero forced account creation.
+Your thoughts and study materials live on your computer.
+- Mirsam is 100% offline. Zero network calls, zero accounts, zero analytics.
+- Boards are stored as human-readable, versioned JSON files directly in normal filesystem folders.
+- Compatible with existing backup and sync tools (Git, Syncthing, rsync).
 
-### 3. Hand-Drawn and Approachable
-Perfection inhibits exploratory learning and rapid problem solving.
-- Shapes should feature controlled sketchiness and jitter (via the Rough algorithm).
-- Diagramming should feel informal, invites edits, and reduces the intimidation of drawing complex system designs.
-- Avoid clinical, hyper-precise CAD-style snap systems that slow down quick thinking.
+### 3. Mouse-First Ergonomics
+A graphics tablet is a luxury; a standard mouse and keyboard are standard equipment.
+- Velocity-based stroke smoothing makes freehand mouse drawing smooth and natural.
+- Single-key tool selection (R for Rectangle, O for Ellipse, L for Line, A for Arrow, P for Pen, E for Eraser, V for Select).
+- One-handed canvas navigation via middle-click drag, Space+drag, and wheel zoom.
 
-### 4. Simple First
-A focused tool that does five things exceptionally well beats a bloated tool that does fifty things mediocrity.
-- Limit configuration knobs; provide intelligent, aesthetically pleasing defaults.
-- Say "no" to features that primarily serve corporate enterprise meetings (e.g., voting timers, video calls, collaborative cursors).
-- Every tool on the screen must earn its existence through frequent study and explanation usage.
+### 4. Hand-Drawn and Approachable
+Precision tools create psychological resistance to exploratory sketching.
+- Shapes feature slight, controlled sketchiness via the Rough algorithm.
+- Imperfect diagrams invite rapid iteration and self-explanation.
+- Avoid rigid CAD snap grids that slow down quick thinking.
 
-### 5. Mouse-First Usability
-A stylus or tablet should be a welcome luxury, never a requirement.
-- Stroke smoothing and velocity-based stroke expansion must make standard desktop mouse drawing feel natural and legible.
-- Canvas navigation (pan via middle-click or space-drag, zoom via scroll wheel) must be effortless using only one hand on the mouse.
+### 5. Native Bilingual Typography (Arabic/RTL + Latin)
+Arabic script is a first-class citizen from day one.
+- Bundled open-source fonts for both Arabic and Latin text without requiring system font configuration.
+- Native bidirectional layout (Unicode UAX#9) with strict left-to-right isolation for code and math tokens.
+- No reversed keyboard shortcut labels or inverted punctuation.
 
-### 6. Respect the Learner's Focus
-Studying often happens late at night or during deep concentration blocks.
-- Dark theme is the first-class default, pairing a high-contrast charcoal canvas with vibrant pastel pen strokes.
-- Clean, minimal UI chrome that recedes into the background while drawing.
+### 6. Focused Simplicity
+A focused tool that excels at personal study beats a multi-feature enterprise platform.
+- Say "no" to enterprise features like multiplayer voting timers, video calls, and cloud databases.
+- Every feature must directly serve the student or developer sketching and understanding technical concepts.

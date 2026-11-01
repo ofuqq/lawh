@@ -1,57 +1,63 @@
 # Input Handling & Tool State Machines
 
 > **Status: Design Proposal (Draft)**  
-> This document specifies mouse and keyboard event handling, coordinate mapping, and tool interaction state machines.
+> This document specifies mouse and keyboard event handling, coordinate mapping, and tool interaction state machines for Mirsam.
 
 ---
 
-## 1. Mouse Interaction Matrix
+## 1. Mouse & Keyboard Interaction Matrix
 
-Lawh is designed to be fully operable using a standard two-button mouse with a scroll wheel:
+Mirsam is built to be fast and fluid with a standard two-button mouse with scroll wheel and keyboard:
 
-| User Action | Context | Result |
+| Input Gesture | Context | Result |
 | :--- | :--- | :--- |
-| **Left Click & Drag** | Pen tool active | Draw continuous smoothed freehand stroke |
-| **Left Click & Drag** | Shape tool active | Draw shape from origin to cursor |
-| **Left Click & Drag** | Select tool on canvas | Drag multi-element selection rectangle |
-| **Left Click & Drag** | Select tool on element | Translate selected element(s) |
-| **Middle Click & Drag** | Any tool active | Pan canvas view smoothly |
-| **Space + Left Click Drag** | Any tool active | Pan canvas view smoothly |
-| **Mouse Wheel Scroll** | Any tool active | Zoom in / out centered on cursor position |
-| **Right Click** | Element | Contextual properties (Color, Width, Delete) |
+| **Left Click & Drag** | Pen tool (`P`) | Draw continuous velocity-smoothed freehand stroke |
+| **Left Click & Drag** | Eraser tool (`E`) | Erase intersected strokes / elements |
+| **Left Click & Drag** | Shape tool (`R`, `O`, `L`, `A`) | Draw geometric shape from origin to cursor |
+| **Left Click & Drag** | Select tool (`V`) on canvas | Drag multi-element selection bounding box |
+| **Left Click & Drag** | Select tool (`V`) on element | Translate selected element(s) |
+| **Double Click** | Canvas or Shape | Activate on-canvas text editing |
+| **Middle Click & Drag** | Any tool | Pan canvas view smoothly |
+| **Space + Left Click Drag** | Any tool | Pan canvas view smoothly |
+| **Mouse Wheel Scroll** | Any tool | Zoom in / out centered on cursor position |
+| **Ctrl + Z** | Any tool | Undo last action |
+| **Ctrl + Y / Ctrl+Shift+Z** | Any tool | Redo last action |
+| **Ctrl + S** | Any tool | Save board atomically to disk |
+| **Ctrl + B** | Any tool | Toggle Study Vault folder sidebar |
+| **Ctrl + E** | Any tool | Export canvas to PNG image |
 
 ---
 
 ## 2. Tool State Machine
 
-The interaction engine operates as a state machine where the active tool receives translated world coordinates:
-
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
-    Idle --> DrawingPreview: MouseDown(Left) [Shape Tool]
-    DrawingPreview --> DrawingPreview: MouseMove [Update Bounds]
-    DrawingPreview --> Committed: MouseUp(Left) [Create Element]
-    
-    Idle --> Inking: MouseDown(Left) [Pen Tool]
-    Inking --> Inking: MouseMove [Append Point & Pressure]
+    Idle --> Inking: MouseDown(Left) [Pen Tool P]
+    Inking --> Inking: MouseMove [Append Point via freedraw]
     Inking --> Committed: MouseUp(Left) [Commit Stroke]
 
-    Idle --> Selecting: MouseDown(Left) [Select Tool on Empty Canvas]
-    Selecting --> Selecting: MouseMove [Update Marquee]
-    Selecting --> Selected: MouseUp(Left) [Select Contained Elements]
+    Idle --> Erasing: MouseDown(Left) [Eraser Tool E]
+    Erasing --> Erasing: MouseMove [Delete Intersected Elements]
+    Erasing --> Committed: MouseUp(Left)
 
-    Committed --> Idle: Append to Scene & Undo Stack
+    Idle --> DrawingShape: MouseDown(Left) [Shape Tool R, O, L, A]
+    DrawingShape --> DrawingShape: MouseMove [Update Bounds/Endpoint]
+    DrawingShape --> Committed: MouseUp(Left) [Create Element with Seed]
+
+    Idle --> Selecting: MouseDown(Left) [Select Tool V on Canvas]
+    Selecting --> Selecting: MouseMove [Update Marquee]
+    Selecting --> Selected: MouseUp(Left) [Select Elements]
+
+    Committed --> Idle: Push to Undo Stack & Redraw
     Selected --> Idle: On Deselect
 ```
 
 ---
 
-## 3. Stroke Smoothing Algorithm
+## 3. Velocity-Based Stroke Smoothing (`freedraw`)
 
-Raw mouse events arrive as discrete $(x, y)$ points at ~60–125 Hz. Without smoothing, drawing circles or curves with a mouse produces jagged, stair-stepped lines.
-
-1. **Velocity Calculation**: Calculate instantaneous distance and time between successive pointer events:
-   $$v = \frac{\Delta d}{\Delta t}$$
-2. **Width Modulation**: Fast strokes thin slightly; slow deliberate strokes widen, simulating natural ink pressure.
-3. **Catmull-Rom or Bezier Fitting**: Intermediate points are smoothed using a sliding window spline before committing vector contours to the scene graph.
+Raw mouse input produces discrete steps (~60–125 Hz). Mirsam uses the pure-Rust port of Steve Ruiz's `perfect-freehand` algorithm (`freedraw` crate or local module):
+1. **Dynamic Pressure Simulation**: Calculates instantaneous mouse speed between successive points ($v = \Delta d / \Delta t$).
+2. **Tapering**: High speed thins the stroke; slow deliberate movement widens it.
+3. **Polygon Contour Generation**: Generates an outer polygon outline rendered with anti-aliasing in `tiny-skia`.

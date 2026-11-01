@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "lawh-core"
+name = "mirsam-core"
 version = "0.0.1"

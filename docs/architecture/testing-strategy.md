@@ -1,7 +1,7 @@
-# Testing Strategy
+# Testing & Benchmarking Strategy
 
 > **Status: Design Proposal (Draft)**  
-> This document defines the automated testing layers, regression verification, and performance benchmarks for Lawh.
+> This document defines automated testing layers, visual regression suites, and the performance benchmark harness for Mirsam.
 
 ---
 
@@ -9,10 +9,10 @@
 
 ```mermaid
 flowchart TD
-    Bench["Performance Benchmarks<br/>Frame time at 1k / 5k / 10k strokes"]
-    Visual["Visual & Golden Snapshot Tests<br/>Render deterministic .lawh to PNG and diff"]
-    Integ["Integration Tests<br/>Serde round-trips, file format forward-compat"]
-    Unit["Unit Tests<br/>Geometry math, coordinate transforms, undo/redo stack"]
+    Bench["Performance Benchmark Harness<br/>5k rectangles + 2k strokes + 500 text boxes"]
+    Visual["Visual Snapshot Tests<br/>Render deterministic boards to PNG and diff"]
+    Integ["Integration Tests<br/>Atomic save/load, schema validation, forward-compat"]
+    Unit["Unit Tests<br/>Geometry math, AABB intersections, command undo/redo"]
 
     Bench --> Visual
     Visual --> Integ
@@ -23,29 +23,39 @@ flowchart TD
 
 ## 2. Test Layers
 
-### 1. Unit Tests (Fast, Headless)
-- Located in `crates/lawh-core/src/` alongside code in `#[cfg(test)] mod tests`.
-- **Scope**:
+### 1. Unit Tests (`crates/mirsam-core/src/`)
+- Fast, 100% headless tests compiled alongside modules.
+- **Coverage**:
   - `Point`, `Rect`, and `Viewport` coordinate conversion math.
-  - AABB intersection tests (selection hit-testing and viewport culling).
-  - Undo and Redo command reversal logic.
-  - Zero dependencies on graphics hardware or OS windows.
+  - AABB intersection tests (`Rect::intersects`).
+  - Command undo/redo state mutations and depth clamping.
 
-### 2. Integration Tests (`tests/`)
-- Located in `crates/lawh-core/tests/`.
-- **Scope**:
-  - End-to-end document serialization and deserialization.
-  - Forward-compatibility tests: opening a mocked v2 document in a v1 reader to ensure unrecognized properties are safely ignored without crashing.
-  - Corrupted document recovery: ensuring partially corrupted JSON yields valid remaining shapes.
+### 2. Integration Tests (`crates/mirsam-core/tests/`)
+- Tests document persistence and serialization resilience.
+- **Coverage**:
+  - Round-trip serialization and deserialization of `.mirsam` JSON documents.
+  - Atomic file write safety: confirming `.tmp` file is safely renamed.
+  - Forward-compatibility tests: opening mocked future schema versions with extra keys without errors.
 
-### 3. Visual Golden Tests (Headless Rasterization)
-- Because `tiny-skia` is a software rasterizer, it renders identically on any CPU architecture without GPU driver variance.
-- Test runner renders canonical sample boards (e.g., `samples/geometric-primitives.lawh`) into an in-memory pixmap.
-- Pixel diff against golden PNG files catches unintentional rendering regressions.
+### 3. Visual & Rasterization Snapshots (`crates/mirsam-render/tests/`)
+- Renders deterministic test fixtures into in-memory `tiny-skia` pixmaps.
+- Compares output against golden reference PNG images to catch unintentional visual rendering regressions across Linux distributions.
 
-### 4. Rendering Performance Benchmarks (Decision 7)
-- Automated Criterion / harness benchmarks measuring milliseconds per frame:
-  - **1,000 synthetic strokes**: Target $< 16.6\text{ ms}$ (sustained 60 FPS on standard modern CPU).
-  - **5,000 synthetic strokes**: Target $< 50\text{ ms}$.
-  - **10,000 synthetic strokes**: Stress evaluation point for GPU (`vello`) transition planning.
-- Run locally and on dedicated CI runs to detect throughput regressions.
+---
+
+## 3. Performance Benchmark Harness (Spike 1 Specification)
+
+To validate the CPU software rasterizer against data before building UI features, a benchmark harness tests performance on a heavy synthetic study board:
+
+### Benchmark Scene (Resolution: $2560 \times 1440$)
+- **5,000** `roughr` geometric rectangles
+- **2,000** `freedraw` 200-point freehand strokes
+- **500** mixed Arabic/English `parley` text boxes
+
+### Target Metrics (Performance Hypotheses)
+1. **Cold Viewport Rasterization**: Time to render full 1440p frame during continuous zoom (Target: $< 16.6\text{ ms}$, sustaining 60 FPS).
+2. **Viewport Pan Frame Time**: Blitting frame buffer during continuous middle-click pan (Target: $< 16.6\text{ ms}$).
+3. **Single-Node Drag Frame Time**: Redrawing dirty region while translating one selected node (Target: $< 10.0\text{ ms}$).
+4. **Idle Process Memory (RSS)**: Total process resident memory under full load (Target: $< 100\text{ MB}$).
+
+If single-threaded `tiny-skia` satisfies these targets, we avoid adding tile caching or multi-threading. If it fails, Spike 1 evaluates `vello_cpu` or a 256px tile cache.

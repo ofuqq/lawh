@@ -1,0 +1,51 @@
+name: Technical Spike
+description: A time-boxed (48-hour max) exploratory investigation to evaluate technical risk and answer architectural questions with working code.
+title: "spike: "
+labels: ["type: spike", "status: ready", "workflow: gate"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Spikes are disposable or foundational prototypes constrained by a strict 48-hour time box.
+        They must produce empirical benchmark data or answer go/no-go gates defined in `docs/product/kill-criteria.md`.
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis / Architectural Question
+      description: What specific risk or assumption are we testing?
+      placeholder: Can tiny-skia + softbuffer sustain 60 FPS rendering 1,000 rough shapes + freehand strokes on integrated CPU graphics?
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Time Box
+      description: Maximum calendar or engineering hours allocated (default: 48h).
+      placeholder: 48 hours (max)
+    validations:
+      required: true
+  - type: textarea
+    id: exit_criteria
+    attributes:
+      label: Empirical Exit Criteria (Pass / Fail Gates)
+      description: What exact numbers, benchmarks, or functional tests define success?
+      placeholder: |
+        - [ ] Criterion 1: Render 1,000 rough shapes in <= 16.6 ms per frame (60 FPS).
+        - [ ] Criterion 2: Single tiny-skia version resolved in cargo tree.
+        - [ ] Criterion 3: Clean-room proof (zero copyleft code).
+    validations:
+      required: true
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Expected Deliverables
+      description: What artifacts must this spike produce (PR, benchmark log, ADR update)?
+      placeholder: Prototype branch `spike/<name>`, benchmark output in PR description, and recommendation for ADR update.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Relevant Docs & ADRs
+      description: Links to relevant architectural documents in docs/ or ADRs.
+      placeholder: docs/adr/0003-rendering-backend.md, docs/product/kill-criteria.md

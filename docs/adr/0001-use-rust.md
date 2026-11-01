@@ -7,26 +7,26 @@
 ---
 
 ## 1. Context and Problem Statement
-Lawh aims to provide a lightweight, instant-starting, offline whiteboard for studying and technical explanation. Most existing whiteboards (Excalidraw, tldraw, Obsidian Canvas) are built on TypeScript/JavaScript web stacks (Electron, React, Chromium Canvas). While web technologies offer rapid prototyping, they consume 150–400 MB of RAM, launch slowly, and introduce unpredictable garbage-collection stutter during pen strokes.
+Mirsam aims to provide a lightweight, instant-starting, offline study scratchpad and whiteboard. Most existing tools (Excalidraw, tldraw, Obsidian Canvas) run on web runtimes (Chromium, Electron, DOM/Canvas) that consume 150–400 MB of RAM, launch slowly, and suffer from garbage collection pauses during handwriting strokes.
 
-We need a systems programming language that compiles to lean native binaries, guarantees memory safety, delivers consistent 60+ FPS rendering, and offers rich 2D graphics libraries.
+We require a systems programming language that compiles to lean native binaries, guarantees memory safety without garbage collection, delivers predictable 60+ FPS rendering, and offers rich 2D vector and typography libraries.
 
 ---
 
 ## 2. Decision Drivers
-- **Cold Boot Time**: Must start up in $< 100\text{ ms}$.
-- **Memory Footprint**: Must consume $< 60\text{ MB}$ RSS.
-- **Predictable Latency**: Zero garbage collection pauses during continuous mouse drawing.
-- **Cross-Platform Portability**: Native compilation across Linux, Windows, and macOS.
-- **AI Agent Productivity**: Strong type system and compiler error diagnostics that allow AI coding agents to write reliable, verifiable code.
+- **Cold Boot Time**: Must start up in $< 150\text{ ms}$.
+- **Memory Footprint**: Must stay under $< 100\text{ MB}$ RSS.
+- **Predictable Latency**: Zero garbage collection pauses during mouse drawing.
+- **Cross-Platform Portability**: Native compilation across Linux and Windows.
+- **Compiler Safety for AI Collaboration**: Strong static typing and compiler diagnostics that guide AI coding agents to write reliable, verifiable code.
 
 ---
 
 ## 3. Considered Options
 - **Option 1**: Rust (Native binary, zero-cost abstractions, strong typing, active ecosystem).
-- **Option 2**: TypeScript / Electron or Tauri (Rapid web ecosystem, Excalidraw codebase familiarity, but higher memory and web runtime overhead).
-- **Option 3**: C++ / Qt (Native speed, mature desktop GUI, but memory safety risks and complex build toolchains for a solo founder).
-- **Option 4**: Go (Fast compilation, simple concurrency, but garbage collected and limited desktop 2D rendering ecosystem).
+- **Option 2**: TypeScript / Electron or Tauri (Rapid web ecosystem, but higher memory footprint).
+- **Option 3**: C++ / Qt (Native speed, mature desktop GUI, but memory safety risks and complex build toolchains).
+- **Option 4**: Go (Fast compilation, simple concurrency, but garbage-collected runtime).
 
 ---
 
@@ -34,11 +34,11 @@ We need a systems programming language that compiles to lean native binaries, gu
 Chosen option: **Option 1 (Rust)**.
 
 ### Rationale
-1. **Performance & Footprint**: Rust binaries start immediately, consume negligible memory, and have zero GC runtime overhead.
-2. **Compiler-Guaranteed Safety**: Rust’s borrow checker and type system eliminate data races, null pointer dereferences, and memory corruption bugs without a runtime cost.
-3. **Flourishing 2D Graphics Ecosystem**: The Rust graphics community has produced world-class 2D rendering libraries (`tiny-skia`, `vello`), windowing libraries (`winit`), and text shapers (`cosmic-text`, `parley`).
-4. **AI-Assisted Synergy**: The Rust compiler’s strict error messages act as a strong feedback harness for AI agents, catching logic bugs at compile time.
+1. **Performance & Footprint**: Rust binaries start immediately, consume minimal memory, and have zero GC runtime overhead.
+2. **Compiler-Guaranteed Safety**: Rust’s borrow checker eliminates data races, null pointer dereferences, and memory corruption bugs.
+3. **Flourishing Graphics & Typography Ecosystem**: Modern pure-Rust crates (`tiny-skia`, `parley`, `roughr`, `freedraw`, `winit`, `softbuffer`) allow a greenfield desktop build without C++ build dependencies.
+4. **Contingency Safeguard**: If low-level graphics complexity stalls the project, Rust backends integrate cleanly with a pre-approved Tauri v2 hybrid fallback (see ADR 0006).
 
 ### Negative Consequences & Mitigations
 - **Learning Curve**: The founder is a Rust beginner.  
-  *Mitigation*: AI agents operate in "Teaching Mode" (as codified in `AGENTS.md`), explaining Rust idioms, ownership, and borrow-checker patterns clearly. Architecture is kept strictly modular with thin abstractions.
+  *Mitigation*: AI agents operate in "Teaching Mode" (as codified in `AGENTS.md`), explaining Rust idioms, ownership, and borrow-checker patterns clearly. Module sizes are capped at ~350 LOC.

@@ -1,58 +1,70 @@
 # Rendering Architecture
 
 > **Status: Design Proposal (Draft)**  
-> This document details the 2D software rendering pipeline, rough shape generation, and frame presentation.
+> This document details the CPU-first software rasterization pipeline, the `roughr` local converter, and window presentation.
 
 ---
 
 ## 1. Pipeline Overview
 
-Lawh adopts a CPU-first software rendering pipeline for v0.1:
+Mirsam employs a clean CPU-first software rendering pipeline:
 
 ```mermaid
 flowchart TD
-    Scene["lawh-core Scene Graph<br/>(&[Element])"] --> Cull["1. Viewport Culling<br/>Filter visible elements via AABB"]
-    Cull --> Raster["2. Software Rasterization<br/>tiny-skia PixmapMut + rough_tiny_skia"]
-    Raster --> Blit["3. Window Buffer Presentation<br/>softbuffer blits 32-bit RGBA to OS Window"]
+    Scene["mirsam-core Scene Graph<br/>(&[Element])"] --> Cull["1. Viewport Culling<br/>Filter visible elements via AABB check"]
+    Cull --> Convert["2. Vector Geometry Conversion<br/>Local roughr OpSet -> tiny_skia PathBuilder"]
+    Convert --> Raster["3. Software Rasterization<br/>tiny-skia PixmapMut surface"]
+    Raster --> Blit["4. Window Surface Presentation<br/>softbuffer blits 32-bit RGBA to OS Window"]
 ```
 
-### Why CPU-First for v0.1?
-- **Zero GPU Driver Pitfalls**: Software rasterization runs uniformly across all Linux distributions (X11 and Wayland) and CI test environments without requiring Vulkan, OpenGL, or proprietary GPU drivers.
-- **Predictable Performance**: `tiny-skia` is an optimized pure-Rust port of Skia's 2D software rasterizer with SIMD acceleration (SSE, AVX, NEON).
-- **Simplicity**: No complex WebGPU pipeline initialization, shader compilation, or swapchain synchronization.
+---
+
+## 2. Why CPU-First with `tiny-skia`?
+
+1. **Zero GPU Driver Variance**: Eliminates driver crashes, Vulkan/Metal/DirectX initialization errors, and Wayland swapchain bugs.
+2. **Deterministic Output**: CPU rasterization renders identically on all Linux distributions, Windows, and headless CI runners.
+3. **Sub-100 MB RAM Footprint**: Bypasses the heavy baseline RAM overhead of GPU swapchains (e.g. wgpu).
 
 ---
 
-## 2. Rough Shape Rasterization
+## 3. The `roughr` Local Converter (No Adapter Crates)
 
-Hand-drawn shapes are rendered using `rough_tiny_skia` (v0.14) and `roughr` (v0.14):
-1. **Contour Jitter**: The algorithm calculates slight offsets along line segments, drawing double strokes with controlled curvature.
-2. **Deterministic Seed**: The `style.seed` is passed into the generator, ensuring identical stroke paths between frames.
-3. **Paths to Pixmap**: The resulting vector paths are drawn directly into a `tiny_skia::PixmapMut` surface with anti-aliasing enabled.
+To prevent crate version conflicts (such as `rough_tiny_skia 0.14` pinning `tiny-skia = "0.11"` against newer releases), `mirsam-render` depends **only on `roughr` core** (`roughr = "0.14"`).
+
+A lightweight internal converter function (~35 LOC) maps `roughr::core::OpSet` directly into `tiny_skia::PathBuilder`:
+
+```rust
+use roughr::core::{Op, OpSet};
+use tiny_skia::{Path, PathBuilder};
+
+pub fn opset_to_path(op_set: &OpSet) -> Option<Path> {
+    let mut pb = PathBuilder::new();
+    for op in &op_set.ops {
+        match *op {
+            Op::Move(pt) => pb.move_to(pt.x as f32, pt.y as f32),
+            Op::LineTo(pt) => pb.line_to(pt.x as f32, pt.y as f32),
+            Op::BezierCurveTo(c1, c2, pt) => {
+                pb.cubic_to(c1.x as f32, c1.y as f32, c2.x as f32, c2.y as f32, pt.x as f32, pt.y as f32);
+            }
+        }
+    }
+    pb.finish()
+}
+```
 
 ---
 
-## 3. Window Buffer Presentation (`softbuffer`)
+## 4. Rule on Spatial Tile Caching & Multithreading
 
-How pixels reach the display:
-1. `winit` (0.30.x) provides the desktop window handle.
-2. `softbuffer::Context` binds to the display server (X11 / Wayland / Win32 / Cocoa).
-3. `softbuffer::Surface` creates a presentation buffer matching the window's physical pixel width and height.
-4. `tiny-skia` renders into an RGBA byte slice:
-   ```rust
-   let mut buffer = surface.buffer_mut()?;
-   // Copy tiny_skia pixmap pixels into softbuffer slice
-   for (dst, src) in buffer.iter_mut().zip(pixmap.data()) {
-       *dst = pack_rgba_to_u32(src);
-   }
-   buffer.present()?;
-   ```
+> **Architectural Rule**: Do NOT implement 256px spatial tile caching or multi-threaded `rayon` workers until the benchmark harness in Spike 1 proves that single-threaded `tiny-skia` fails to maintain 60 FPS ($< 16.6\text{ ms}$) on a 5,000-element scene.
+
+Prematurely introducing a tile cache adds dirty-rectangle tracking, invalidation bugs, and thread synchronization overhead. We keep the pipeline single-threaded and direct until data demands optimization.
 
 ---
 
-## 4. Viewport Culling & Optimization
+## 5. Window Presentation via `softbuffer`
 
-To maintain 60 FPS even on large infinite boards:
-- **Axis-Aligned Bounding Box (AABB) Culling**: Before rasterizing an element, its bounding box is checked against the visible screen viewport in world coordinates.
-- **Offscreen Skip**: Elements completely outside the viewport are rejected before calculating rough paths.
-- **Benchmark Gate**: An automated benchmark measuring 1k, 5k, and 10k strokes will govern whether and when Lawh transitions to GPU compute rendering (`vello`).
+1. `winit` (0.30.x) creates the OS window and handles input events.
+2. `softbuffer::Surface` binds to the native window handle.
+3. On redraw, `tiny-skia` draws into an in-memory `Pixmap`.
+4. Pixels are copied directly into `surface.buffer_mut()`, and `buffer.present()` presents the frame to the display.

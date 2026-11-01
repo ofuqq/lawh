@@ -1,17 +1,17 @@
-//! # lawh-core
+//! # mirsam-core
 //!
-//! Core data structures, canvas geometry, and serialization for the Lawh whiteboard.
+//! Core data structures, canvas geometry, and serialization for the Mirsam whiteboard.
 
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
-/// Version indicator for the lawh-core library.
+/// Version indicator for the mirsam-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Returns the library greeting message.
 #[must_use]
 pub fn greeting() -> &'static str {
-    "Lawh Core - Lightweight Whiteboard Foundation"
+    "Mirsam Core - Lightweight Whiteboard Foundation"
 }
 
 #[cfg(test)]
@@ -20,7 +20,10 @@ mod tests {
 
     #[test]
     fn test_greeting() {
-        assert_eq!(greeting(), "Lawh Core - Lightweight Whiteboard Foundation");
+        assert_eq!(
+            greeting(),
+            "Mirsam Core - Lightweight Whiteboard Foundation"
+        );
     }
 
     #[test]
