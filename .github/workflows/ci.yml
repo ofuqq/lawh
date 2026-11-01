@@ -51,4 +51,6 @@ jobs:
       - name: Check licenses and dependencies
         uses: EmbarkStudios/cargo-deny-action@c3bbe7e4e3f7baeee1a3dd9aec0a3b2aded580fb # v2.0.11
         with:
-          arguments: --all-features licenses bans sources
+          command: check
+          arguments: --all-features
+          command-arguments: licenses bans sources
