@@ -3,7 +3,7 @@
 use std::ops::{Add, Div, Mul, Sub};
 
 /// A point in 2D continuous coordinate space.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, serde::Serialize, serde::Deserialize)]
 pub struct Point {
     /// Horizontal coordinate.
     pub x: f32,

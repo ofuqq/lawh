@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod element;
 pub mod error;
 pub mod geometry;
 

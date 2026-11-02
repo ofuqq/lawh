@@ -3,7 +3,7 @@
 use super::point::Point;
 
 /// An axis-aligned 2D bounding box defined by minimum and maximum corner points.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, serde::Serialize, serde::Deserialize)]
 pub struct Rect {
     /// Top-left (minimum x and y) corner in world coordinates.
     pub min: Point,
