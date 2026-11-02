@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Organic fill pattern rendering in `ruqa-render` supporting `Solid`, `SemiTransparent` (50% opacity), `Hachure` (hand-drawn parallel angled sketch lines), and `CrossHatch` (intersecting hatching) for closed shapes (rectangles, ellipses, diamonds) (fixes #29).
+- Hand-drawn fill jitter generation matching stroke roughness and deterministic seed stability across rendering frames (fixes #29).
+- Separated fill path rasterization (`OpSetType::FillPath`) and sketch hatching rasterization (`OpSetType::FillSketch`) from outline strokes (`OpSetType::Path`) in `shape_render` and `rough_options` (fixes #29).
+- `FillStyle::SemiTransparent` variant and helper methods (`is_filled`, `ALL`) in `ruqa-core` (fixes #29).
 - Contextual styling HUD panel in `ruqa-render` and `ruqa-app` featuring 6 curated dark-theme color swatches (White, Coral, Yellow, Green, Cyan, Lavender), 3 stroke width presets (Thin 1.0, Medium 2.5, Bold 4.0), and roughness toggle (Clean 0.0 vs Sketchy 1.2) (fixes #28).
 - Selection-aware style mutations applying property changes to selected elements as undoable `Command::ModifyElements` history actions and updating default creation styles when nothing is selected (fixes #28).
 - Selection style synchronization (`sync_style_from_selection`) updating HUD panel indicators when shapes are selected (fixes #28).

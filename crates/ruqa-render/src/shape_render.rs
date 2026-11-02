@@ -5,9 +5,6 @@
 //! seed stability across frames.
 
 use crate::rough_convert::{default_rough_stroke, drawable_to_paths};
-use roughr::core::OptionsBuilder;
-use roughr::generator::Generator;
-use roughr::Point2D;
 use ruqa_core::element::Element;
 use ruqa_core::geometry::{Size, Viewport};
 use ruqa_core::scene::Scene;
@@ -37,87 +34,15 @@ pub fn parse_hex_color(hex: &str) -> Option<Color> {
     }
 }
 
+pub use crate::rough_options::generate_element_drawables;
+
 /// Generates vector [`Path`]s for an [`Element`] using deterministic seed options.
 ///
 /// The returned paths are completely stable across calls as long as the element's
 /// geometry and PRNG seed remain unchanged.
 #[must_use]
 pub fn generate_element_paths(element: &Element) -> Vec<Path> {
-    let generator = Generator::default();
-    let style = element.style();
-
-    let options = OptionsBuilder::default()
-        .seed(style.seed)
-        .roughness(style.roughness)
-        .stroke_width(style.stroke_width)
-        .build()
-        .ok();
-
     match element {
-        Element::Rectangle { bounds, .. } => {
-            let drawable = generator.rectangle(
-                bounds.min.x,
-                bounds.min.y,
-                bounds.width(),
-                bounds.height(),
-                &options,
-            );
-            drawable_to_paths(&drawable)
-        }
-        Element::Ellipse { bounds, .. } => {
-            let center = bounds.center();
-            let drawable = generator.ellipse(
-                center.x,
-                center.y,
-                bounds.width(),
-                bounds.height(),
-                &options,
-            );
-            drawable_to_paths(&drawable)
-        }
-        Element::Diamond { bounds, .. } => {
-            let center = bounds.center();
-            let points = [
-                Point2D::new(center.x, bounds.min.y),
-                Point2D::new(bounds.max.x, center.y),
-                Point2D::new(center.x, bounds.max.y),
-                Point2D::new(bounds.min.x, center.y),
-            ];
-            let drawable = generator.polygon(&points, &options);
-            drawable_to_paths(&drawable)
-        }
-        Element::Line { start, end, .. } => {
-            let drawable = generator.line(start.x, start.y, end.x, end.y, &options);
-            drawable_to_paths(&drawable)
-        }
-        Element::Arrow { start, end, .. } => {
-            let mut paths = Vec::new();
-            // Main shaft line
-            let shaft = generator.line(start.x, start.y, end.x, end.y, &options);
-            paths.extend(drawable_to_paths(&shaft));
-
-            // Arrowhead barbs
-            let dx = end.x - start.x;
-            let dy = end.y - start.y;
-            let length = dx.hypot(dy);
-            if length > 1e-4 {
-                let angle = dy.atan2(dx);
-                let barb_len = (12.0 + style.stroke_width * 2.0).min(length * 0.5);
-                let barb_angle = std::f32::consts::FRAC_PI_6; // 30 degrees in radians
-
-                let a1 = angle - std::f32::consts::PI + barb_angle;
-                let a2 = angle - std::f32::consts::PI - barb_angle;
-
-                let p1 = (end.x + barb_len * a1.cos(), end.y + barb_len * a1.sin());
-                let p2 = (end.x + barb_len * a2.cos(), end.y + barb_len * a2.sin());
-
-                let barb1 = generator.line(end.x, end.y, p1.0, p1.1, &options);
-                let barb2 = generator.line(end.x, end.y, p2.0, p2.1, &options);
-                paths.extend(drawable_to_paths(&barb1));
-                paths.extend(drawable_to_paths(&barb2));
-            }
-            paths
-        }
         Element::Stroke {
             points,
             pressures,
@@ -126,6 +51,13 @@ pub fn generate_element_paths(element: &Element) -> Vec<Path> {
         } => crate::pen_render::stroke_to_outline_polygon(points, pressures, style.stroke_width)
             .into_iter()
             .collect(),
+        _ => {
+            let options = crate::rough_options::build_rough_options(element.style());
+            generate_element_drawables(element, &options)
+                .iter()
+                .flat_map(drawable_to_paths)
+                .collect()
+        }
     }
 }
 
@@ -142,18 +74,67 @@ pub fn render_element(element: &Element, pixmap: &mut PixmapMut<'_>, transform: 
         }
         _ => {
             let style = element.style();
-            let color = parse_hex_color(&style.stroke_color)
+            let options = crate::rough_options::build_rough_options(style);
+
+            let stroke_color = parse_hex_color(&style.stroke_color)
                 .unwrap_or_else(|| Color::from_rgba8(224, 224, 224, 255));
-
-            let mut paint = Paint::default();
-            paint.set_color(color);
-            paint.anti_alias = true;
-
+            let mut stroke_paint = Paint::default();
+            stroke_paint.set_color(stroke_color);
+            stroke_paint.anti_alias = true;
             let stroke = default_rough_stroke(style.stroke_width);
-            let paths = generate_element_paths(element);
 
-            for path in &paths {
-                pixmap.stroke_path(path, &paint, &stroke, transform, None);
+            let fill_color = crate::rough_options::resolved_fill_color(style);
+            let fill_weight = (style.stroke_width * 0.6).max(1.0);
+            let fill_stroke = crate::rough_convert::stroke_with_capping(
+                fill_weight,
+                tiny_skia::LineCap::Round,
+                tiny_skia::LineJoin::Round,
+            );
+
+            let drawables = generate_element_drawables(element, &options);
+            for drawable in &drawables {
+                for set in &drawable.sets {
+                    match set.op_set_type {
+                        roughr::core::OpSetType::FillPath => {
+                            if let Some(fc) = fill_color {
+                                if let Some(path) = crate::rough_convert::opset_to_path_closed(set)
+                                {
+                                    let mut fill_paint = Paint::default();
+                                    fill_paint.set_color(fc);
+                                    fill_paint.anti_alias = true;
+                                    pixmap.fill_path(
+                                        &path,
+                                        &fill_paint,
+                                        tiny_skia::FillRule::Winding,
+                                        transform,
+                                        None,
+                                    );
+                                }
+                            }
+                        }
+                        roughr::core::OpSetType::FillSketch => {
+                            if let Some(fc) = fill_color {
+                                if let Some(path) = crate::rough_convert::opset_to_path(set) {
+                                    let mut fill_paint = Paint::default();
+                                    fill_paint.set_color(fc);
+                                    fill_paint.anti_alias = true;
+                                    pixmap.stroke_path(
+                                        &path,
+                                        &fill_paint,
+                                        &fill_stroke,
+                                        transform,
+                                        None,
+                                    );
+                                }
+                            }
+                        }
+                        roughr::core::OpSetType::Path => {
+                            if let Some(path) = crate::rough_convert::opset_to_path(set) {
+                                pixmap.stroke_path(&path, &stroke_paint, &stroke, transform, None);
+                            }
+                        }
+                    }
+                }
             }
         }
     }

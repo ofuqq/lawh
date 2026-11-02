@@ -107,12 +107,31 @@ pub enum FillStyle {
     None,
     /// Solid single-color fill.
     Solid,
+    /// Semi-transparent solid single-color fill (50% opacity).
+    SemiTransparent,
     /// Hand-drawn parallel hachure lines.
     Hachure,
     /// Crossed hand-drawn hatch lines.
     CrossHatch,
     /// Stippled dot pattern fill.
     Dots,
+}
+
+impl FillStyle {
+    /// Primary fill styles supported by Ruqa.
+    pub const ALL: [FillStyle; 5] = [
+        FillStyle::None,
+        FillStyle::Solid,
+        FillStyle::SemiTransparent,
+        FillStyle::Hachure,
+        FillStyle::CrossHatch,
+    ];
+
+    /// Returns `true` if the fill style is not [`FillStyle::None`].
+    #[must_use]
+    pub fn is_filled(self) -> bool {
+        self != FillStyle::None
+    }
 }
 
 /// Styling and roughness parameters for a whiteboard element.
@@ -182,5 +201,15 @@ mod tests {
 
         assert_eq!(RoughnessPreset::Clean.toggle(), RoughnessPreset::Sketchy);
         assert_eq!(RoughnessPreset::Sketchy.toggle(), RoughnessPreset::Clean);
+    }
+
+    #[test]
+    fn test_fill_style_properties() {
+        assert!(!FillStyle::None.is_filled());
+        assert!(FillStyle::Solid.is_filled());
+        assert!(FillStyle::SemiTransparent.is_filled());
+        assert!(FillStyle::Hachure.is_filled());
+        assert!(FillStyle::CrossHatch.is_filled());
+        assert_eq!(FillStyle::ALL.len(), 5);
     }
 }
