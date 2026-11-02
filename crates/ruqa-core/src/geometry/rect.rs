@@ -64,6 +64,15 @@ impl Rect {
             && self.min.y <= other.max.y
             && self.max.y >= other.min.y
     }
+
+    /// Returns the smallest bounding box enclosing both `self` and `other`.
+    #[must_use]
+    pub fn union(&self, other: &Self) -> Self {
+        Self {
+            min: Point::new(self.min.x.min(other.min.x), self.min.y.min(other.min.y)),
+            max: Point::new(self.max.x.max(other.max.x), self.max.y.max(other.max.y)),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -86,5 +95,9 @@ mod tests {
         let r3 = Rect::from_xywh(200.0, 200.0, 30.0, 30.0);
         assert!(r1.intersects(&r2));
         assert!(!r1.intersects(&r3));
+
+        let u = r1.union(&r3);
+        assert_eq!(u.min, Point::new(10.0, 20.0));
+        assert_eq!(u.max, Point::new(230.0, 230.0));
     }
 }

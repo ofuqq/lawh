@@ -8,6 +8,7 @@
 pub mod element;
 pub mod error;
 pub mod geometry;
+pub mod scene;
 
 /// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

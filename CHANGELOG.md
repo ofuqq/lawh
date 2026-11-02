@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Core `Scene` model in `ruqa-core` with monotonic element IDs, z-index reordering, spatial aggregate bounds, and viewport visibility culling (fixes #50).
 - Geometric shape primitives (`Rectangle`, `Ellipse`, `Diamond`, `Line`, `Arrow`), `ElementStyle`, and `FillStyle` in `ruqa-core` with Serde JSON round-trip serialization (fixes #13).
 - Converter from `roughr` operation sets and drawables to `tiny_skia::Path` with open/closed path conversion and round stroke capping (fixes #12).
 - Pan and zoom canvas interaction in `ruqa-app` via middle-mouse drag, Space + left drag, and cursor-anchored wheel zooming with phantom-click suppression (fixes #11).
