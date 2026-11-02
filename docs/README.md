@@ -9,6 +9,7 @@ Welcome to the architectural, product, and engineering documentation for **Ruqa*
 ```text
 docs/
 ├── README.md                     # This documentation map
+├── user-guide.md                 # End-user guide: controls, tools, shortcuts, vault, export
 ├── roadmap.md                    # Project roadmap and milestone exit criteria (M0–M5)
 ├── research/                     # Technical and market research digests
 │   └── 2026-11-market-and-technical-research.md # Market analysis, crate audit, source index
