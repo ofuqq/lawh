@@ -61,6 +61,12 @@ pub struct WhiteboardApp {
     pub hovered_tool: Option<ruqa_core::tool::Tool>,
     /// Whether the pointer was pressed inside the toolbar HUD.
     pub toolbar_pressed: bool,
+    /// Default creation style and active style for selected elements.
+    pub current_style: ruqa_core::style::ElementStyle,
+    /// Whether the contextual style HUD panel is visible.
+    pub show_style_panel: bool,
+    /// Whether the pointer was pressed inside the style HUD panel.
+    pub style_panel_pressed: bool,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
     /// Current physical window size.
@@ -99,6 +105,14 @@ impl WhiteboardApp {
             active_tool: ruqa_core::tool::Tool::default(),
             hovered_tool: None,
             toolbar_pressed: false,
+            current_style: ruqa_core::style::ElementStyle {
+                stroke_color: ruqa_core::style::PALETTE_COLORS[0].to_string(),
+                stroke_width: ruqa_core::style::StrokeWidthPreset::Medium.width(),
+                roughness: ruqa_core::style::RoughnessPreset::Sketchy.factor(),
+                ..Default::default()
+            },
+            show_style_panel: true,
+            style_panel_pressed: false,
             is_editing_text: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
@@ -126,7 +140,7 @@ impl WhiteboardApp {
         let screen_pt = Point::new(logical_x as f32, logical_y as f32);
         self.handle_toolbar_cursor_moved(screen_pt);
 
-        if self.toolbar_pressed {
+        if self.toolbar_pressed || self.style_panel_pressed {
             return;
         }
 
@@ -161,11 +175,15 @@ impl WhiteboardApp {
                 self.pointer.left_pressed = pressed;
                 if pressed {
                     self.pointer.panned_during_press = false;
-                    if let Some((cx, cy)) = self.pointer.cursor_pos {
-                        #[allow(clippy::cast_possible_truncation)]
-                        let screen_pt = Point::new(cx as f32, cy as f32);
-                        if self.handle_toolbar_pointer_down(screen_pt) {
-                            return;
+                    if !self.pointer.is_panning() {
+                        if let Some((cx, cy)) = self.pointer.cursor_pos {
+                            #[allow(clippy::cast_possible_truncation)]
+                            let screen_pt = Point::new(cx as f32, cy as f32);
+                            if self.handle_toolbar_pointer_down(screen_pt)
+                                || self.handle_style_panel_pointer_down(screen_pt)
+                            {
+                                return;
+                            }
                         }
                     }
                     if !self.pointer.is_panning() {
@@ -186,7 +204,9 @@ impl WhiteboardApp {
                         }
                     }
                 } else {
-                    if self.handle_toolbar_pointer_up() {
+                    let mut consumed = self.handle_toolbar_pointer_up();
+                    consumed |= self.handle_style_panel_pointer_up();
+                    if consumed {
                         return;
                     }
                     if !self.pointer.panned_during_press {
@@ -197,6 +217,7 @@ impl WhiteboardApp {
                             self.history.push(cmd);
                             self.mark_dirty();
                         }
+                        self.sync_style_from_selection();
                     }
                 }
             }
@@ -248,6 +269,7 @@ impl WhiteboardApp {
         let active_marquee = self.selection.active_marquee();
         let selection_bounds = self.scene.selection_bounds(self.selection.selected_ids());
         let toolbar_layout = ruqa_render::toolbar_render::ToolbarLayout::new(logical_size.width);
+        let style_layout = self.style_panel_layout();
 
         let Some(presenter) = &mut self.presenter else {
             return;
@@ -295,6 +317,18 @@ impl WhiteboardApp {
             self.scale_factor,
             &ruqa_render::toolbar_render::ToolbarStyle::default(),
         );
+
+        if self.show_style_panel {
+            ruqa_render::style_panel_render::render_style_panel(
+                &mut presenter.pixmap_mut().as_mut(),
+                &style_layout,
+                &self.current_style.stroke_color,
+                self.current_style.stroke_width,
+                self.current_style.roughness,
+                self.scale_factor,
+                &ruqa_render::style_panel_render::StylePanelTheme::default(),
+            );
+        }
 
         if let Err(e) = presenter.present() {
             warn!(?e, "frame present failed");

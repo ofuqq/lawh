@@ -3,7 +3,6 @@
 use crate::shape_render::parse_hex_color;
 pub use crate::style_panel_layout::{StyleAction, StylePanelLayout};
 use crate::toolbar_icons::rounded_rect_path;
-use ruqa_core::geometry::Point;
 use ruqa_core::style::{RoughnessPreset, StrokeWidthPreset, PALETTE_COLORS};
 use tiny_skia::{Color, Paint, PathBuilder, PixmapMut, Stroke, Transform};
 
@@ -222,6 +221,7 @@ pub fn render_style_panel(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ruqa_core::geometry::Point;
 
     #[test]
     fn test_style_panel_layout_hit_testing() {

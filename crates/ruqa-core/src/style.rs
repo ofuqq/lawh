@@ -168,7 +168,10 @@ mod tests {
         assert_eq!(StrokeWidthPreset::Bold.width(), 4.0);
 
         assert_eq!(StrokeWidthPreset::from_width(1.0), StrokeWidthPreset::Thin);
-        assert_eq!(StrokeWidthPreset::from_width(2.5), StrokeWidthPreset::Medium);
+        assert_eq!(
+            StrokeWidthPreset::from_width(2.5),
+            StrokeWidthPreset::Medium
+        );
         assert_eq!(StrokeWidthPreset::from_width(4.0), StrokeWidthPreset::Bold);
     }
 

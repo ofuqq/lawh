@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Contextual styling HUD panel in `ruqa-render` and `ruqa-app` featuring 6 curated dark-theme color swatches (White, Coral, Yellow, Green, Cyan, Lavender), 3 stroke width presets (Thin 1.0, Medium 2.5, Bold 4.0), and roughness toggle (Clean 0.0 vs Sketchy 1.2) (fixes #28).
+- Selection-aware style mutations applying property changes to selected elements as undoable `Command::ModifyElements` history actions and updating default creation styles when nothing is selected (fixes #28).
+- Selection style synchronization (`sync_style_from_selection`) updating HUD panel indicators when shapes are selected (fixes #28).
 - Single-key keyboard shortcuts (`V`, `P`, `R`, `O`/`C`, `D`, `L`, `A`, `E`, `T`) in `ruqa-app` for instant drawing tool switching (fixes #27).
 - Text editing suppression logic (`is_editing_text`) preventing accidental tool switches while typing (fixes #27).
 - `Tool::from_shortcut` helper with alias support ('O' and 'C' for Ellipse) and `Tool::Text` variant in `ruqa-core` (fixes #27).

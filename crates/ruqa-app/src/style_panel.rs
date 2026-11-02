@@ -3,7 +3,6 @@
 use crate::window_app::WhiteboardApp;
 use ruqa_core::geometry::Point;
 use ruqa_core::history::Command;
-use ruqa_core::style::{RoughnessPreset, StrokeWidthPreset};
 use ruqa_render::style_panel_layout::{StyleAction, StylePanelLayout};
 
 impl WhiteboardApp {
@@ -101,5 +100,14 @@ impl WhiteboardApp {
 
         self.history.push(Command::ModifyElements { before, after });
         self.mark_dirty();
+    }
+
+    /// Synchronizes the active styling properties from the currently selected element, if any.
+    pub fn sync_style_from_selection(&mut self) {
+        if let Some(&id) = self.selection.selected_ids().iter().next() {
+            if let Some(elem) = self.scene.get(id) {
+                self.current_style = elem.style().clone();
+            }
+        }
     }
 }

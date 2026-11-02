@@ -51,8 +51,8 @@ fn test_app_click_selection_and_empty_canvas_deselect() {
     // Release Shift
     app.pointer.shift_held = false;
 
-    // Click empty canvas at screen (100, 100) -> world (-540, -300)
-    app.handle_cursor_moved(100.0, 100.0);
+    // Click empty canvas at screen (300, 300) -> world (-340, -100)
+    app.handle_cursor_moved(300.0, 300.0);
     app.handle_mouse_input(ElementState::Pressed, MouseButton::Left);
     app.handle_mouse_input(ElementState::Released, MouseButton::Left);
 
