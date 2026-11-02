@@ -188,27 +188,64 @@ impl WhiteboardApp {
             self.pointer.ctrl_held = pressed;
         }
 
-        if pressed && self.pointer.ctrl_held {
-            match key {
-                Key::Character(c) if c.eq_ignore_ascii_case("z") => {
-                    let changed = if self.pointer.shift_held {
-                        self.history.redo(&mut self.scene)
-                    } else {
-                        self.history.undo(&mut self.scene)
-                    };
-                    if changed {
-                        self.request_redraw();
+        if pressed {
+            if matches!(key, Key::Named(NamedKey::Delete | NamedKey::Backspace)) {
+                self.delete_selected();
+            } else if self.pointer.ctrl_held {
+                match key {
+                    Key::Character(c) if c.eq_ignore_ascii_case("z") => {
+                        let changed = if self.pointer.shift_held {
+                            self.history.redo(&mut self.scene)
+                        } else {
+                            self.history.undo(&mut self.scene)
+                        };
+                        if changed {
+                            self.request_redraw();
+                        }
                     }
-                }
-                Key::Character(c) if c.eq_ignore_ascii_case("y") => {
-                    let changed = self.history.redo(&mut self.scene);
-                    if changed {
-                        self.request_redraw();
+                    Key::Character(c) if c.eq_ignore_ascii_case("y") => {
+                        let changed = self.history.redo(&mut self.scene);
+                        if changed {
+                            self.request_redraw();
+                        }
                     }
+                    _ => {}
                 }
-                _ => {}
             }
         }
+    }
+
+    /// Deletes all currently selected elements from the scene and pushes an atomic command to history.
+    pub fn delete_selected(&mut self) -> bool {
+        if self.selection.is_empty() {
+            return false;
+        }
+
+        let mut to_delete = Vec::new();
+        for &id in self.selection.selected_ids() {
+            if let Some(pos) = self.scene.position(id) {
+                to_delete.push((pos, id));
+            }
+        }
+
+        if to_delete.is_empty() {
+            return false;
+        }
+
+        to_delete.sort_by_key(|a| std::cmp::Reverse(a.0));
+        let mut deleted_entries = Vec::with_capacity(to_delete.len());
+        for (pos, id) in to_delete {
+            if let Some(elem) = self.scene.remove(id) {
+                deleted_entries.push((pos, elem));
+            }
+        }
+        deleted_entries.sort_by_key(|(pos, _)| *pos);
+
+        self.history
+            .push(ruqa_core::history::Command::DeleteElements(deleted_entries));
+        self.selection.clear();
+        self.request_redraw();
+        true
     }
 
     /// Handles keyboard events (e.g. Spacebar held for panning, Shift for multi-selection, Ctrl+Z/Y for undo/redo).

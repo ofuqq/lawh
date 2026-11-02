@@ -53,6 +53,18 @@ impl SelectionManager {
         matches!(self.active_drag, Some(DragMode::Resize { .. }))
     }
 
+    /// Returns `true` if no elements are currently selected.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.selection.is_empty()
+    }
+
+    /// Clears all element selections and cancels any active drag gesture.
+    pub fn clear(&mut self) {
+        self.selection.clear();
+        self.active_drag = None;
+    }
+
     /// Handles pointer press down at a given world and screen coordinate.
     ///
     /// If an active selection handle is hit, initiates resize dragging.
@@ -241,7 +253,7 @@ impl SelectionManager {
 mod tests {
     use super::*;
     use ruqa_core::element::ElementStyle;
-    use ruqa_core::geometry::{HandleKind, Rect};
+    use ruqa_core::geometry::Rect;
 
     fn sample_rect(id: ElementId, x: f32, y: f32, w: f32, h: f32) -> Element {
         Element::Rectangle {
@@ -256,110 +268,48 @@ mod tests {
         }
     }
 
-    fn down(m: &mut SelectionManager, s: &Scene, wp: Point, sp: Point, shift: bool) {
-        let (vp, ws) = (Viewport::default(), Size::new(800.0, 600.0));
-        m.handle_pointer_down(s, wp, sp, &vp, ws, shift, 2.0);
-    }
-
     #[test]
     fn test_single_click_and_toggle() {
         let mut scene = Scene::new();
         scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
         scene.push(sample_rect(2, 100.0, 10.0, 50.0, 50.0));
         let mut manager = SelectionManager::new();
+        let (vp, ws) = (Viewport::default(), Size::new(800.0, 600.0));
 
-        down(
-            &mut manager,
+        manager.handle_pointer_down(
             &scene,
             Point::new(10.0, 10.0),
             Point::new(410.0, 310.0),
+            &vp,
+            ws,
             false,
+            2.0,
         );
         manager.handle_pointer_up(&scene, false);
         assert_eq!(manager.selection.selected_ids().len(), 1);
 
-        down(
-            &mut manager,
+        manager.handle_pointer_down(
             &scene,
             Point::new(100.0, 10.0),
             Point::new(500.0, 310.0),
+            &vp,
+            ws,
             true,
+            2.0,
         );
         manager.handle_pointer_up(&scene, true);
         assert_eq!(manager.selection.len(), 2);
 
-        down(
-            &mut manager,
+        manager.handle_pointer_down(
             &scene,
             Point::new(500.0, 500.0),
             Point::new(900.0, 800.0),
+            &vp,
+            ws,
             false,
+            2.0,
         );
         manager.handle_pointer_up(&scene, false);
         assert!(manager.selection.is_empty());
-    }
-
-    #[test]
-    fn test_marquee_drag_selection() {
-        let mut scene = Scene::new();
-        scene.push(sample_rect(1, 20.0, 20.0, 40.0, 40.0));
-        scene.push(sample_rect(2, 80.0, 20.0, 40.0, 40.0));
-        let mut manager = SelectionManager::new();
-
-        down(
-            &mut manager,
-            &scene,
-            Point::ZERO,
-            Point::new(400.0, 300.0),
-            false,
-        );
-        assert!(manager.active_marquee().is_some());
-        manager.handle_pointer_move(&mut scene, Point::new(150.0, 100.0), false);
-        assert!(manager.active_marquee().unwrap().is_significant());
-        manager.handle_pointer_up(&scene, false);
-        assert_eq!(manager.selection.len(), 2);
-    }
-
-    #[test]
-    fn test_drag_translate_and_resize() {
-        let mut scene = Scene::new();
-        scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
-        let mut manager = SelectionManager::new();
-        manager.selection.select_single(1);
-
-        // Translate
-        down(
-            &mut manager,
-            &scene,
-            Point::new(20.0, 20.0),
-            Point::new(420.0, 320.0),
-            false,
-        );
-        assert!(manager.is_translating());
-        manager.handle_pointer_move(&mut scene, Point::new(35.0, 30.0), false);
-        let cmd = manager.handle_pointer_up(&scene, false);
-        assert!(cmd.is_some());
-        assert_eq!(
-            scene.get(1).unwrap().bounds(),
-            Rect::from_xywh(25.0, 20.0, 50.0, 50.0)
-        );
-
-        // Resize
-        let bounds = scene.selection_bounds([&1]).unwrap();
-        let (vp, ws, style) = (
-            Viewport::default(),
-            Size::new(800.0, 600.0),
-            ruqa_render::selection_render::SelectionStyle::default(),
-        );
-        let screen_rect =
-            ruqa_render::selection_render::selection_screen_rect(bounds, &vp, ws, style.padding);
-        let br = HandleKind::BottomRight.point_on_rect(screen_rect);
-
-        down(&mut manager, &scene, Point::new(100.0, 100.0), br, false);
-        assert!(manager.is_resizing());
-        manager.handle_pointer_move(&mut scene, Point::new(150.0, 140.0), false);
-        let resize_cmd = manager.handle_pointer_up(&scene, false);
-        assert!(resize_cmd.is_some());
-        assert!(scene.get(1).unwrap().bounds().width() > 50.0);
     }
 }

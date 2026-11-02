@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Deleting single and multi-selected canvas elements with `Delete` and `Backspace` keys in `ruqa-app` (fixes #51).
+- Atomic `DeleteElements` command registration in `HistoryStack` enabling instant `Ctrl+Z` restoration of deleted shapes with original IDs and exact z-order layer positions (fixes #51).
 - Unlimited undo and redo history using the command pattern (`HistoryStack`, `Command`) in `ruqa-core` supporting discrete reversible actions (add, delete, move, modify), configurable depth, and linear history truncation (fixes #23).
 - Wired standard keyboard shortcuts in `ruqa-app`: Ctrl+Z for undo, Ctrl+Y and Ctrl+Shift+Z for redo, with macOS Command (Super) key mapping (fixes #23).
 - Automatic generation and emission of reversible `Command::MoveElements` and `Command::ModifyElements` upon translation and resize gestures in `ruqa-app` (fixes #23).
