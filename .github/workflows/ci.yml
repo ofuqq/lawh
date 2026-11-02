@@ -42,7 +42,7 @@ jobs:
         run: cargo test --workspace
 
       - name: Install xvfb for headless smoke test
-        run: sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dev
+        run: sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dev libxkbcommon-x11-0 libxkbcommon-dev
 
       - name: Smoke test — winit event loop starts and exits cleanly
         # Pumps 5 RedrawRequested frames through a real winit+softbuffer event
