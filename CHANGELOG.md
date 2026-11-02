@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-03
+
+### Highlights
+- Initial public MVP release of Ruqa: a lightweight, mouse-first open-source desktop whiteboard built in native Rust.
+- Hand-drawn vector aesthetics powered by `roughr` and pure CPU rendering via `tiny-skia` presented through `softbuffer`.
+- Full direct manipulation (selection, translation, 8-handle proportional resizing, continuous eraser, undo/redo).
+- File persistence in versioned `.ruqa` JSON format with atomic disk writing and automatic autosave.
+- Built-in multi-board organization with the local Study Vault sidebar (`Ctrl+B`) and Recent Files Welcome HUD (`Ctrl+O`).
+- Production-grade high-resolution PNG export (`Ctrl+E`) supporting tight selection bounds vs full board framing, transparent or dark backgrounds, and 1x/2x scale.
+- Validated performance: 60 FPS viewport rendering up to 10,000 shapes, sustained 34.2 MB peak memory footprint during continuous 2-hour dogfooding session with zero memory leaks.
+
+### Supported Platforms & System Requirements
+- **Linux**: x86_64 and aarch64 under X11 or Wayland (Ubuntu 22.04+ or equivalent glibc 2.35+ distro).
+  - Runtime & build dependencies: `libxkbcommon-dev`, `libxkbcommon-x11-dev`, `libgl1-mesa-dev`.
+- **macOS**: x86_64 (Intel macOS 12+) and aarch64 (Apple Silicon macOS 14+). Native Cocoa windowing without external display server dependencies.
+
+### Verified Keyboard & Mouse Shortcuts
+| Action / Tool | Shortcut | Description |
+|---|---|---|
+| **Select Tool** | `V` | Single click select, marquee drag multi-select |
+| **Pen Tool** | `P` | Freehand smooth variable-width ink |
+| **Rectangle Tool** | `R` | Hand-drawn sketchy rectangle |
+| **Ellipse Tool** | `O` or `C` | Hand-drawn sketchy ellipse |
+| **Diamond Tool** | `D` | Hand-drawn sketchy decision diamond |
+| **Line Tool** | `L` | Straight vector line |
+| **Arrow Tool** | `A` | Directed arrow connector with arrowhead barbs |
+| **Eraser Tool** | `E` | Continuous drag eraser removing contacted elements |
+| **Pan Canvas** | `Middle Mouse Drag` or `Space + Left Drag` | Infinite 2D pan |
+| **Zoom Canvas** | `Mouse Wheel` | Smooth cursor-anchored 2D zoom (0.1x to 10.0x) |
+| **Undo** | `Ctrl + Z` / `Cmd + Z` | Revert previous canvas action |
+| **Redo** | `Ctrl + Y` / `Ctrl + Shift + Z` | Reapply undone canvas action |
+| **Duplicate** | `Ctrl + D` | Clone selected elements offset by (+20, +20) |
+| **Copy / Paste** | `Ctrl + C` / `Ctrl + V` | Copy to clipboard and paste at cursor position |
+| **Delete** | `Delete` / `Backspace` | Delete active selection |
+| **Save Document** | `Ctrl + S` | Atomic crash-safe document save |
+| **Export PNG** | `Ctrl + E` | Export active selection or whole diagram to PNG |
+| **Study Vault** | `Ctrl + B` | Toggle collapsible local study vault sidebar |
+| **Recent Files HUD** | `Ctrl + O` | Toggle recent boards welcome overlay |
+| **Orientation Grid** | `Ctrl + '` | Toggle canvas dot/graph grid |
+| **Invert Theme** | `Ctrl + I` | Toggle between Dark and Light canvas themes |
+| **Quit** | `Ctrl + Q` / `Ctrl + W` | Intercept window close with prompt if unsaved |
+
+### File Format Specification (`.ruqa`)
+Ruqa documents persist as UTF-8 JSON files bearing the `.ruqa` extension with schema versioning:
+- **Format Identifier**: `"format": "ruqa"`
+- **Schema Version**: `"schema_version": 1`
+- **Canvas Metadata**: Viewport camera position (`camera_x`, `camera_y`), zoom factor (`zoom`), and background color.
+- **Scene Elements**: Ordered array of serialized elements (`type`, `id`, `z_index`, `roughness_seed`, `style`, geometry coordinates).
+- **Forward Compatibility**: Built-in document migration pipeline (`MigrationPipeline`) supporting seamless forward AST upgrades without data loss.
+
 ### Added
 - Unsaved changes quit confirmation dialog in `ruqa-render` and `ruqa-app` (`QuitDialogLayout`, `QuitDialogAction`, `render_quit_dialog`, `request_close`, `handle_quit_dialog_pointer_down`, `handle_quit_dialog_key`) intercepting window close requests and `Ctrl+Q`/`Ctrl+W` shortcuts to prompt with "Save", "Don't Save", or "Cancel" when modified, while cleanly exiting immediately when clean (fixes #35).
 - Modularized pointer input event dispatch into `pointer_input` in `ruqa-app` keeping application harness modules strictly under the module size limits (fixes #35).
