@@ -21,6 +21,11 @@ fn main() {
     // Parse simple CLI flags without pulling in a third-party arg parser.
     let args: Vec<String> = std::env::args().collect();
     let smoke_frames: Option<u32> = parse_smoke_test_flag(&args);
+    let initial_file = args
+        .iter()
+        .skip(1)
+        .find(|arg| !arg.starts_with('-'))
+        .cloned();
 
     let has_display = std::env::var("DISPLAY").is_ok() || std::env::var("WAYLAND_DISPLAY").is_ok();
 
@@ -36,6 +41,12 @@ fn main() {
         match EventLoop::new() {
             Ok(event_loop) => {
                 let mut app = WhiteboardApp::new();
+                app.load_recent_files();
+                if let Some(path) = initial_file {
+                    if let Err(e) = app.open_recent_file(&path) {
+                        warn!(?e, path = ?path, "could not open initial file argument");
+                    }
+                }
                 if let Err(err) = event_loop.run_app(&mut app) {
                     error!(?err, "event loop exited with error");
                 }

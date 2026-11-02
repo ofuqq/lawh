@@ -14,6 +14,7 @@ pub mod frame_render;
 pub mod keyboard;
 pub mod logging;
 pub mod presenter;
+pub mod recent_files_actions;
 pub mod selection;
 pub mod selection_state;
 pub mod style_panel;

@@ -73,6 +73,12 @@ pub struct WhiteboardApp {
     pub show_grid: bool,
     /// Canvas orientation grid configuration.
     pub grid_config: ruqa_render::grid_render::GridConfig,
+    /// Recently opened or saved document history.
+    pub recent_files: ruqa_core::recent_files::RecentFiles,
+    /// Whether the Recent Files / Welcome HUD modal overlay is visible.
+    pub show_welcome_hud: bool,
+    /// Currently hovered recent file path in the welcome HUD.
+    pub hovered_recent_file: Option<std::path::PathBuf>,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
     /// Current physical window size.
@@ -123,6 +129,9 @@ impl WhiteboardApp {
             theme_mode: ruqa_core::theme::ThemeMode::Dark,
             show_grid: true,
             grid_config: ruqa_render::grid_render::GridConfig::dark_mode(),
+            recent_files: ruqa_core::recent_files::RecentFiles::new(),
+            show_welcome_hud: false,
+            hovered_recent_file: None,
             is_editing_text: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
@@ -148,9 +157,10 @@ impl WhiteboardApp {
         let logical_y = physical_y / self.scale_factor;
         #[allow(clippy::cast_possible_truncation)]
         let screen_pt = Point::new(logical_x as f32, logical_y as f32);
+        self.handle_recent_files_cursor_moved(screen_pt);
         self.handle_toolbar_cursor_moved(screen_pt);
 
-        if self.toolbar_pressed || self.style_panel_pressed {
+        if self.show_welcome_hud || self.toolbar_pressed || self.style_panel_pressed {
             return;
         }
 
@@ -189,6 +199,13 @@ impl WhiteboardApp {
                 self.pointer.left_pressed = pressed;
                 if pressed {
                     self.pointer.panned_during_press = false;
+                    if let Some((cx, cy)) = self.pointer.cursor_pos {
+                        #[allow(clippy::cast_possible_truncation)]
+                        let screen_pt = Point::new(cx as f32, cy as f32);
+                        if self.handle_recent_files_pointer_down(screen_pt) {
+                            return;
+                        }
+                    }
                     if !self.pointer.is_panning() {
                         if let Some((cx, cy)) = self.pointer.cursor_pos {
                             #[allow(clippy::cast_possible_truncation)]

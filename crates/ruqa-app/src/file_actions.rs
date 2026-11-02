@@ -64,6 +64,7 @@ impl WhiteboardApp {
         self.is_dirty = false;
         self.last_dirty_time = None;
         self.update_window_title();
+        self.record_recent_file(path);
         info!(path = ?path, "saved whiteboard document");
         Ok(())
     }
@@ -124,6 +125,7 @@ impl WhiteboardApp {
         self.is_dirty = false;
         self.last_dirty_time = None;
         self.update_window_title();
+        self.record_recent_file(path);
         self.request_redraw();
         info!(path = ?path, "opened whiteboard document");
         Ok(())

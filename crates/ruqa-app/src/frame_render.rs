@@ -15,6 +15,11 @@ impl WhiteboardApp {
         let selection_bounds = self.scene.selection_bounds(self.selection.selected_ids());
         let toolbar_layout = ruqa_render::toolbar_render::ToolbarLayout::new(logical_size.width);
         let style_layout = self.style_panel_layout();
+        let recent_layout = if self.show_welcome_hud {
+            Some(self.recent_files_layout())
+        } else {
+            None
+        };
 
         let Some(presenter) = &mut self.presenter else {
             return;
@@ -82,6 +87,16 @@ impl WhiteboardApp {
                 self.current_style.roughness,
                 self.scale_factor,
                 &ruqa_render::style_panel_render::StylePanelTheme::default(),
+            );
+        }
+
+        if let Some(recent_layout) = recent_layout {
+            ruqa_render::recent_files_render::render_recent_files_hud(
+                &mut presenter.pixmap_mut().as_mut(),
+                &recent_layout,
+                &self.recent_files.entries,
+                self.hovered_recent_file.as_deref(),
+                &ruqa_render::recent_files_render::RecentFilesTheme::default(),
             );
         }
 

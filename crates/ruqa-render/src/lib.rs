@@ -8,6 +8,8 @@
 pub mod grid_render;
 pub mod offscreen;
 pub mod pen_render;
+pub mod recent_files_layout;
+pub mod recent_files_render;
 pub mod rough_convert;
 pub mod rough_options;
 pub mod selection_render;

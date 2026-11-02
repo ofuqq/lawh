@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Recent files list tracking and LRU management in `ruqa-core` (`RecentFiles`, `RecentFileEntry`, `MAX_RECENT_FILES: 10`) persisting to `~/.config/ruqa/recent_files.json` across platforms without external dependencies (fixes #55).
+- Recent Files / Welcome HUD modal overlay in `ruqa-render` (`render_recent_files_hud`, `RecentFilesLayout`, `RecentFilesTheme`) displaying recent boards, document icons, last modified timestamps, and quick "New Board" / dismiss buttons (fixes #55).
+- Interactive Welcome HUD interaction in `ruqa-app` (`recent_files_actions`) loading documents directly on click, isolating clicks from background canvas, updating hover states, toggling via `Ctrl+O`, and dismissing on `Escape` or backdrop click (fixes #55).
+- CLI initial file argument handling in `ruqa-app` opening specified `.ruqa` boards directly and bypassing the startup HUD (fixes #55).
 - Spatial axis-aligned bounding box (AABB) viewport culling in `ruqa-core` (`Scene::visible_elements`) with stroke width padding, arrowhead barb geometry, and rectangle bounds inflation (fixes #32).
 - Viewport culling rasterizer pass in `ruqa-render` (`render_scene_viewport`) skipping non-intersecting offscreen canvas shapes and returning rendered element counts (fixes #32).
 - Performance verification and benchmark suite in `ruqa-render` (`culling_tests`) proving rendering latency scales with on-screen visible elements rather than total board elements, sustaining $\ge 60\text{ FPS}$ on multi-thousand element boards (fixes #32).
