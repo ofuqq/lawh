@@ -118,6 +118,10 @@ pub fn generate_element_paths(element: &Element) -> Vec<Path> {
             }
             paths
         }
+        Element::Stroke { .. } => {
+            // Freehand pen strokes are rasterized as variable-width ink polygons in #16.
+            Vec::new()
+        }
     }
 }
 

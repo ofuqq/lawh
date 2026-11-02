@@ -109,6 +109,17 @@ pub enum Element {
         /// Visual appearance and rough parameters.
         style: ElementStyle,
     },
+    /// A continuous freehand smoothed ink stroke with dynamic pressure.
+    Stroke {
+        /// Unique monotonic element identifier.
+        id: ElementId,
+        /// Ordered sequence of smoothed path coordinates.
+        points: Vec<Point>,
+        /// Simulated or hardware pressure values (0.0 to 1.0) per point.
+        pressures: Vec<f32>,
+        /// Visual appearance and rough parameters.
+        style: ElementStyle,
+    },
 }
 
 impl Element {
@@ -120,7 +131,8 @@ impl Element {
             | Self::Ellipse { id, .. }
             | Self::Diamond { id, .. }
             | Self::Line { id, .. }
-            | Self::Arrow { id, .. } => id,
+            | Self::Arrow { id, .. }
+            | Self::Stroke { id, .. } => id,
         }
     }
 
@@ -132,7 +144,8 @@ impl Element {
             | Self::Ellipse { style, .. }
             | Self::Diamond { style, .. }
             | Self::Line { style, .. }
-            | Self::Arrow { style, .. } => style,
+            | Self::Arrow { style, .. }
+            | Self::Stroke { style, .. } => style,
         }
     }
 
@@ -144,19 +157,37 @@ impl Element {
             | Self::Ellipse { style, .. }
             | Self::Diamond { style, .. }
             | Self::Line { style, .. }
-            | Self::Arrow { style, .. } => style,
+            | Self::Arrow { style, .. }
+            | Self::Stroke { style, .. } => style,
         }
     }
 
     /// Computes the axis-aligned bounding box enclosing this element in world coordinates.
     #[must_use]
     pub fn bounds(&self) -> Rect {
-        match *self {
+        match self {
             Self::Rectangle { bounds, .. }
             | Self::Ellipse { bounds, .. }
-            | Self::Diamond { bounds, .. } => bounds,
+            | Self::Diamond { bounds, .. } => *bounds,
             Self::Line { start, end, .. } | Self::Arrow { start, end, .. } => {
-                Rect::from_min_max(start, end)
+                Rect::from_min_max(*start, *end)
+            }
+            Self::Stroke { points, .. } => {
+                if points.is_empty() {
+                    Rect::from_xywh(0.0, 0.0, 0.0, 0.0)
+                } else {
+                    let mut min_x = points[0].x;
+                    let mut max_x = points[0].x;
+                    let mut min_y = points[0].y;
+                    let mut max_y = points[0].y;
+                    for pt in &points[1..] {
+                        min_x = min_x.min(pt.x);
+                        max_x = max_x.max(pt.x);
+                        min_y = min_y.min(pt.y);
+                        max_y = max_y.max(pt.y);
+                    }
+                    Rect::from_min_max(Point::new(min_x, min_y), Point::new(max_x, max_y))
+                }
             }
         }
     }
@@ -207,6 +238,27 @@ mod tests {
         assert_eq!(line.id(), 2);
         assert_eq!(line.bounds().min, Point::new(50.0, 150.0));
         assert_eq!(line.bounds().max, Point::new(100.0, 200.0));
+
+        let stroke_empty = Element::Stroke {
+            id: 3,
+            points: Vec::new(),
+            pressures: Vec::new(),
+            style: style.clone(),
+        };
+        assert_eq!(stroke_empty.bounds(), Rect::from_xywh(0.0, 0.0, 0.0, 0.0));
+
+        let stroke = Element::Stroke {
+            id: 4,
+            points: vec![
+                Point::new(10.0, 50.0),
+                Point::new(30.0, 20.0),
+                Point::new(5.0, 40.0),
+            ],
+            pressures: vec![0.5, 0.6, 0.7],
+            style,
+        };
+        assert_eq!(stroke.bounds().min, Point::new(5.0, 20.0));
+        assert_eq!(stroke.bounds().max, Point::new(30.0, 50.0));
     }
 
     #[test]
@@ -249,6 +301,12 @@ mod tests {
                     seed: 9999,
                     ..ElementStyle::default()
                 },
+            },
+            Element::Stroke {
+                id: 106,
+                points: vec![Point::new(10.0, 15.0), Point::new(25.0, 40.0)],
+                pressures: vec![0.5, 0.8],
+                style: ElementStyle::default(),
             },
         ];
 
