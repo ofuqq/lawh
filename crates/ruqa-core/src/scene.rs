@@ -5,7 +5,7 @@
 //! spatial bounds and viewport visibility queries.
 
 use crate::element::{Element, ElementId};
-use crate::geometry::Rect;
+use crate::geometry::{Point, Rect};
 use serde::{Deserialize, Serialize};
 
 /// Document scene graph owning whiteboard elements in z-index order.
@@ -122,6 +122,24 @@ impl Scene {
         let mut iter = self.elements.iter();
         let first = iter.next()?.bounds();
         Some(iter.fold(first, |acc, elem| acc.union(&elem.bounds())))
+    }
+
+    /// Returns the topmost element (highest z-index) that hits the given world coordinate point.
+    #[must_use]
+    pub fn hit_test_topmost(&self, point: Point, tolerance: f32) -> Option<&Element> {
+        self.elements
+            .iter()
+            .rev()
+            .find(|elem| elem.hit_test(point, tolerance))
+    }
+
+    /// Returns an iterator of all elements that hit the given world coordinate point,
+    /// ordered from topmost (highest z-index) to bottommost.
+    pub fn hit_test_all(&self, point: Point, tolerance: f32) -> impl Iterator<Item = &Element> {
+        self.elements
+            .iter()
+            .rev()
+            .filter(move |elem| elem.hit_test(point, tolerance))
     }
 
     // ── Z-Index Layer Reordering ─────────────────────────────────────────────

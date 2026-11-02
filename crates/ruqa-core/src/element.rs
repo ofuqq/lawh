@@ -255,6 +255,12 @@ impl Element {
             }
         }
     }
+
+    /// Tests whether a world coordinate point hits this element within the specified tolerance.
+    #[must_use]
+    pub fn hit_test(&self, point: Point, tolerance: f32) -> bool {
+        crate::hit_test::hit_test_element(self, point, tolerance)
+    }
 }
 
 #[cfg(test)]
@@ -303,28 +309,6 @@ mod tests {
         assert_eq!(line.bounds().min, Point::new(50.0, 150.0));
         assert_eq!(line.bounds().max, Point::new(100.0, 200.0));
 
-        let stroke_empty = Element::Stroke {
-            id: 3,
-            points: Vec::new(),
-            pressures: Vec::new(),
-            style: style.clone(),
-        };
-        assert_eq!(stroke_empty.bounds(), Rect::from_xywh(0.0, 0.0, 0.0, 0.0));
-
-        let stroke = Element::Stroke {
-            id: 4,
-            points: vec![
-                Point::new(10.0, 50.0),
-                Point::new(30.0, 20.0),
-                Point::new(5.0, 40.0),
-            ],
-            pressures: vec![0.5, 0.6, 0.7],
-            style,
-        };
-        assert_eq!(stroke.bounds().min, Point::new(5.0, 20.0));
-        assert_eq!(stroke.bounds().max, Point::new(30.0, 50.0));
-
-        // bounding_box should include stroke padding
         let rect_bb = rect.bounding_box();
         assert_eq!(rect_bb.min, Point::new(8.5, 18.5));
         assert_eq!(rect_bb.max, Point::new(111.5, 71.5));

@@ -8,6 +8,7 @@
 pub mod element;
 pub mod error;
 pub mod geometry;
+pub mod hit_test;
 pub mod scene;
 pub mod stroke;
 

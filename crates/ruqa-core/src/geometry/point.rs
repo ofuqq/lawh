@@ -28,6 +28,22 @@ impl Point {
         let dy = self.y - other.y;
         dx.hypot(dy)
     }
+
+    /// Computes the minimum Euclidean distance from this point to a finite 2D line segment `[a, b]`.
+    #[must_use]
+    pub fn distance_to_segment(self, a: Self, b: Self) -> f32 {
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let l2 = dx * dx + dy * dy;
+
+        if l2 < 1e-6 {
+            return self.distance(a);
+        }
+
+        let t = (((self.x - a.x) * dx + (self.y - a.y) * dy) / l2).clamp(0.0, 1.0);
+        let proj = Self::new(a.x + t * dx, a.y + t * dy);
+        self.distance(proj)
+    }
 }
 
 impl Add for Point {
@@ -127,6 +143,16 @@ mod tests {
         assert_eq!(p2 * 2.5, Point::new(10.0, 30.0));
         assert_eq!(p1 / 2.0, Point::new(5.0, 10.0));
         assert!((p1.distance(p2) - 10.0).abs() < 1e-6);
+
+        // Point-to-segment distance
+        let a = Point::new(0.0, 0.0);
+        let b = Point::new(100.0, 0.0);
+        // Point above segment
+        assert!((Point::new(50.0, 15.0).distance_to_segment(a, b) - 15.0).abs() < 1e-6);
+        // Point before segment origin
+        assert!((Point::new(-10.0, 0.0).distance_to_segment(a, b) - 10.0).abs() < 1e-6);
+        // Point past segment end
+        assert!((Point::new(105.0, 0.0).distance_to_segment(a, b) - 5.0).abs() < 1e-6);
     }
 
     #[test]

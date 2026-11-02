@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Precise point and boundary distance hit-testing (`Element::hit_test`, `Scene::hit_test_topmost`) in `ruqa-core` distinguishing filled interiors from stroke perimeters (fixes #18).
 - Tight axis-aligned bounding box calculation (`Element::bounding_box`) in `ruqa-core` with stroke width padding, arrowhead barb geometry, and rectangle inflation (fixes #17).
 - Freehand variable-width ink polygon rasterizer in `ruqa-render` with rounded end caps and zero-allocation scratch buffers for 60 FPS drawing (fixes #16).
 - Freehand pen stroke smoothing in `ruqa-core` via Catmull-Rom spline interpolation and pointer velocity pressure modulation (fixes #15).
