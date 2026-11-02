@@ -46,6 +46,7 @@ docs/
 └── development/                  # Engineering processes and guides
     ├── setup.md                  # Local toolchain installation and build instructions
     ├── workflow.md               # Git branching, Conventional Commits, review cadence
+    ├── manual-test-checklist.md  # Comprehensive manual test checklist for releases
     ├── ai-assisted-development.md# Collaboration guidelines for AI agents
     └── glossary.md               # Plain-language Rust and whiteboard domain glossary
 ```
