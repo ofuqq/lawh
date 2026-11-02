@@ -21,6 +21,7 @@ pub enum FillStyle {
 
 /// Styling and roughness parameters for a whiteboard element.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ElementStyle {
     /// Stroke outline color in hex format (e.g. `"#E0E0E0"`).
     pub stroke_color: String,

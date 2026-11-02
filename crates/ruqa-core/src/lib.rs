@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod document;
 pub mod element;
 pub mod error;
 pub mod geometry;
@@ -14,6 +15,7 @@ pub mod scene;
 pub mod stroke;
 pub mod style;
 
+pub use document::RuqaDocument;
 pub use history::{Command, HistoryStack};
 
 /// Version indicator for the ruqa-core library.

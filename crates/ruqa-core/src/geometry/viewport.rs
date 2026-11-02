@@ -2,9 +2,10 @@
 
 use super::point::{Point, Size};
 use super::rect::Rect;
+use serde::{Deserialize, Serialize};
 
 /// 2D infinite canvas camera tracking world translation offset and scale factor.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Viewport {
     /// World coordinates currently visible at the center of the viewport window.
     pub pan: Point,

@@ -13,6 +13,4 @@ readme = "README.md"
 tracing = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
-
-[dev-dependencies]
 serde_json = { workspace = true }
