@@ -19,15 +19,25 @@ impl WhiteboardApp {
         }
 
         if pressed {
-            if matches!(key, Key::Named(NamedKey::Escape)) && self.show_welcome_hud {
-                self.show_welcome_hud = false;
-                self.request_redraw();
-                return;
+            if matches!(key, Key::Named(NamedKey::Escape)) {
+                if self.show_welcome_hud {
+                    self.show_welcome_hud = false;
+                    self.request_redraw();
+                    return;
+                }
+                if self.show_vault_sidebar {
+                    self.show_vault_sidebar = false;
+                    self.request_redraw();
+                    return;
+                }
             }
             if matches!(key, Key::Named(NamedKey::Delete | NamedKey::Backspace)) {
                 self.delete_selected();
             } else if self.pointer.ctrl_held {
                 match key {
+                    Key::Character(c) if c.eq_ignore_ascii_case("b") => {
+                        self.toggle_vault_sidebar();
+                    }
                     Key::Character(c) if c.eq_ignore_ascii_case("o") => {
                         self.show_welcome_hud = !self.show_welcome_hud;
                         self.request_redraw();

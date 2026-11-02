@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Local Study Vault hierarchy scanner and data model in `ruqa-core` (`StudyVault`, `FlatVaultItem`, `MAX_VAULT_DEPTH: 6`, `RUQA_EXTENSION: "ruqa"`) scanning folders and boards with expand/collapse tracking (fixes #56).
+- Study Vault drawer sidebar layout and rasterizer in `ruqa-render` (`VaultLayout`, `render_vault_sidebar`, `VaultTheme`) featuring left panel drawer, header actions, chevron toggles, folder icons, board icons, active board indicators, and hover highlights (fixes #56).
+- Study Vault sidebar integration in `ruqa-app` (`vault_actions`) toggling via `Ctrl+B`, expanding/collapsing subfolders, autosaving dirty documents when opening boards, and isolating clicks from canvas (fixes #56).
 - Recent files list tracking and LRU management in `ruqa-core` (`RecentFiles`, `RecentFileEntry`, `MAX_RECENT_FILES: 10`) persisting to `~/.config/ruqa/recent_files.json` across platforms without external dependencies (fixes #55).
 - Recent Files / Welcome HUD modal overlay in `ruqa-render` (`render_recent_files_hud`, `RecentFilesLayout`, `RecentFilesTheme`) displaying recent boards, document icons, last modified timestamps, and quick "New Board" / dismiss buttons (fixes #55).
 - Interactive Welcome HUD interaction in `ruqa-app` (`recent_files_actions`) loading documents directly on click, isolating clicks from background canvas, updating hover states, toggling via `Ctrl+O`, and dismissing on `Escape` or backdrop click (fixes #55).

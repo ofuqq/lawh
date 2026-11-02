@@ -19,6 +19,7 @@ pub mod selection;
 pub mod selection_state;
 pub mod style_panel;
 pub mod toolbar;
+pub mod vault_actions;
 pub mod window_app;
 pub mod window_handler;
 

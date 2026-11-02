@@ -18,6 +18,7 @@ pub mod stroke;
 pub mod style;
 pub mod theme;
 pub mod tool;
+pub mod vault;
 
 pub use document::RuqaDocument;
 pub use history::{Command, HistoryStack};
@@ -28,6 +29,7 @@ pub use theme::{
     LIGHT_BACKGROUND_COLOR, LIGHT_PEN_INK,
 };
 pub use tool::Tool;
+pub use vault::{FlatVaultItem, StudyVault};
 
 /// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

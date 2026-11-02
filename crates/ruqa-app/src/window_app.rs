@@ -79,6 +79,14 @@ pub struct WhiteboardApp {
     pub show_welcome_hud: bool,
     /// Currently hovered recent file path in the welcome HUD.
     pub hovered_recent_file: Option<std::path::PathBuf>,
+    /// Study Vault folder tree manager.
+    pub vault: ruqa_core::vault::StudyVault,
+    /// Whether the Study Vault drawer sidebar is visible.
+    pub show_vault_sidebar: bool,
+    /// Cached list of visible entries in the Study Vault.
+    pub vault_entries: Vec<ruqa_core::vault::FlatVaultItem>,
+    /// Currently hovered entry path in the Study Vault sidebar.
+    pub hovered_vault_item: Option<std::path::PathBuf>,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
     /// Current physical window size.
@@ -132,6 +140,12 @@ impl WhiteboardApp {
             recent_files: ruqa_core::recent_files::RecentFiles::new(),
             show_welcome_hud: false,
             hovered_recent_file: None,
+            vault: ruqa_core::vault::StudyVault::new(
+                ruqa_core::vault::StudyVault::default_vault_dir(),
+            ),
+            show_vault_sidebar: false,
+            vault_entries: Vec::new(),
+            hovered_vault_item: None,
             is_editing_text: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
@@ -158,9 +172,14 @@ impl WhiteboardApp {
         #[allow(clippy::cast_possible_truncation)]
         let screen_pt = Point::new(logical_x as f32, logical_y as f32);
         self.handle_recent_files_cursor_moved(screen_pt);
+        self.handle_vault_cursor_moved(screen_pt);
         self.handle_toolbar_cursor_moved(screen_pt);
 
-        if self.show_welcome_hud || self.toolbar_pressed || self.style_panel_pressed {
+        if self.show_welcome_hud
+            || (self.show_vault_sidebar && self.vault_layout().contains(screen_pt))
+            || self.toolbar_pressed
+            || self.style_panel_pressed
+        {
             return;
         }
 
@@ -202,7 +221,9 @@ impl WhiteboardApp {
                     if let Some((cx, cy)) = self.pointer.cursor_pos {
                         #[allow(clippy::cast_possible_truncation)]
                         let screen_pt = Point::new(cx as f32, cy as f32);
-                        if self.handle_recent_files_pointer_down(screen_pt) {
+                        if self.handle_recent_files_pointer_down(screen_pt)
+                            || self.handle_vault_pointer_down(screen_pt)
+                        {
                             return;
                         }
                     }

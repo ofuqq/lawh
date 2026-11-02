@@ -20,6 +20,8 @@ pub mod style_panel_render;
 pub mod text_layout;
 pub mod toolbar_icons;
 pub mod toolbar_render;
+pub mod vault_layout;
+pub mod vault_render;
 
 pub use grid_render::{render_grid, GridConfig, GridStyle};
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};

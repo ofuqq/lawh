@@ -20,6 +20,11 @@ impl WhiteboardApp {
         } else {
             None
         };
+        let vault_layout = if self.show_vault_sidebar {
+            Some(self.vault_layout())
+        } else {
+            None
+        };
 
         let Some(presenter) = &mut self.presenter else {
             return;
@@ -97,6 +102,16 @@ impl WhiteboardApp {
                 &self.recent_files.entries,
                 self.hovered_recent_file.as_deref(),
                 &ruqa_render::recent_files_render::RecentFilesTheme::default(),
+            );
+        }
+
+        if let Some(vault_layout) = vault_layout {
+            ruqa_render::vault_render::render_vault_sidebar(
+                &mut presenter.pixmap_mut().as_mut(),
+                &vault_layout,
+                self.file_path.as_deref(),
+                self.hovered_vault_item.as_deref(),
+                &ruqa_render::vault_render::VaultTheme::default(),
             );
         }
 
