@@ -25,6 +25,8 @@ pub const DEFAULT_HEIGHT: u32 = 800;
 pub const MIN_WIDTH: u32 = 640;
 /// Minimum logical window height in CSS pixels.
 pub const MIN_HEIGHT: u32 = 480;
+/// Default inactivity duration before autosave triggers for dirty documents.
+pub const DEFAULT_AUTOSAVE_INTERVAL: std::time::Duration = std::time::Duration::from_secs(30);
 
 /// Desktop whiteboard application — the top-level winit [`ApplicationHandler`].
 ///
@@ -50,6 +52,10 @@ pub struct WhiteboardApp {
     pub file_path: Option<std::path::PathBuf>,
     /// Whether the canvas has unsaved modifications.
     pub is_dirty: bool,
+    /// Inactivity interval after which an autosave triggers.
+    pub autosave_interval: std::time::Duration,
+    /// Timestamp of the most recent modification while dirty.
+    pub last_dirty_time: Option<std::time::Instant>,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -81,6 +87,8 @@ impl WhiteboardApp {
             history: ruqa_core::history::HistoryStack::new(),
             file_path: None,
             is_dirty: false,
+            autosave_interval: DEFAULT_AUTOSAVE_INTERVAL,
+            last_dirty_time: None,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,

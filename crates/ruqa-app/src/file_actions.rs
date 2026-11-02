@@ -29,6 +29,7 @@ impl WhiteboardApp {
 
     /// Marks the active document as having unsaved modifications and updates window title.
     pub fn mark_dirty(&mut self) {
+        self.last_dirty_time = Some(std::time::Instant::now());
         if !self.is_dirty {
             self.is_dirty = true;
             self.update_window_title();
@@ -37,6 +38,7 @@ impl WhiteboardApp {
 
     /// Marks the active document as saved and updates window title.
     pub fn mark_clean(&mut self) {
+        self.last_dirty_time = None;
         if self.is_dirty {
             self.is_dirty = false;
             self.update_window_title();
@@ -60,9 +62,52 @@ impl WhiteboardApp {
         doc.save_to_file(path)?;
         self.file_path = Some(path.to_path_buf());
         self.is_dirty = false;
+        self.last_dirty_time = None;
         self.update_window_title();
         info!(path = ?path, "saved whiteboard document");
         Ok(())
+    }
+
+    /// Triggers an atomic autosave to disk if the document is dirty and has an assigned file path.
+    ///
+    /// Returns `Ok(true)` if autosave was performed, or `Ok(false)` if clean or untitled.
+    pub fn autosave(&mut self) -> Result<bool, DocumentError> {
+        if self.is_dirty {
+            if let Some(path) = self.file_path.clone() {
+                let doc = RuqaDocument::new(&self.scene, self.viewport);
+                doc.save_to_file(&path)?;
+                self.is_dirty = false;
+                self.last_dirty_time = None;
+                self.update_window_title();
+                info!(path = ?path, "atomic autosave succeeded");
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    /// Checks whether the autosave inactivity timeout has elapsed and triggers autosave if needed.
+    ///
+    /// Returns `Ok(true)` if an autosave occurred, or `Ok(false)` otherwise.
+    pub fn maybe_autosave(&mut self, now: std::time::Instant) -> Result<bool, DocumentError> {
+        if self.is_dirty && self.file_path.is_some() {
+            if let Some(dirty_time) = self.last_dirty_time {
+                if now.duration_since(dirty_time) >= self.autosave_interval {
+                    return self.autosave();
+                }
+            }
+        }
+        Ok(false)
+    }
+
+    /// Computes the next scheduled deadline when an autosave should fire, if currently dirty and titled.
+    #[must_use]
+    pub fn next_autosave_deadline(&self) -> Option<std::time::Instant> {
+        if self.is_dirty && self.file_path.is_some() {
+            self.last_dirty_time.map(|t| t + self.autosave_interval)
+        } else {
+            None
+        }
     }
 
     /// Opens a document file from disk, replacing the current scene and viewport.
@@ -77,6 +122,7 @@ impl WhiteboardApp {
         self.history.clear();
         self.file_path = Some(path.to_path_buf());
         self.is_dirty = false;
+        self.last_dirty_time = None;
         self.update_window_title();
         self.request_redraw();
         info!(path = ?path, "opened whiteboard document");
@@ -91,6 +137,7 @@ impl WhiteboardApp {
         self.history.clear();
         self.file_path = None;
         self.is_dirty = false;
+        self.last_dirty_time = None;
         self.update_window_title();
         self.request_redraw();
     }

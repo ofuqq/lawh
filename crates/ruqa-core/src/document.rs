@@ -171,7 +171,26 @@ impl RuqaDocument {
         Self::from_json_str_with_path(&contents, path)
     }
 
-    /// Saves this document to disk as formatted UTF-8 JSON.
+    /// Returns the sibling temporary file path used during atomic saving.
+    ///
+    /// For a target path like `diagram.ruqa` or `/path/to/diagram.ruqa`, this returns
+    /// `.diagram.ruqa.tmp` or `/path/to/.diagram.ruqa.tmp` in the same directory.
+    #[must_use]
+    pub fn temp_file_path(path: &Path) -> PathBuf {
+        let parent = path.parent().unwrap_or_else(|| Path::new(""));
+        let file_name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("document.ruqa");
+        parent.join(format!(".{file_name}.tmp"))
+    }
+
+    /// Saves this document to disk as formatted UTF-8 JSON atomically with crash safety.
+    ///
+    /// The document payload is first written to a temporary sibling file (`.<filename>.tmp`)
+    /// in the same directory, flushed and synced to storage media, and then atomically renamed
+    /// over the target file path (`std::fs::rename`). This guarantees the file on disk is never
+    /// left partially written or corrupted in the event of an unexpected crash or power loss.
     pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), DocumentError> {
         let path = path.as_ref();
         let json = self.to_json_string().map_err(|mut e| {
@@ -183,10 +202,27 @@ impl RuqaDocument {
             }
             e
         })?;
-        std::fs::write(path, json).map_err(|e| DocumentError::Io {
-            path: path.to_path_buf(),
-            source: e,
-        })
+
+        let temp_path = Self::temp_file_path(path);
+        let write_result = (|| -> Result<(), std::io::Error> {
+            use std::io::Write;
+            let mut file = std::fs::File::create(&temp_path)?;
+            file.write_all(json.as_bytes())?;
+            file.sync_all()?;
+            drop(file);
+            std::fs::rename(&temp_path, path)?;
+            Ok(())
+        })();
+
+        if let Err(e) = write_result {
+            let _ = std::fs::remove_file(&temp_path);
+            return Err(DocumentError::Io {
+                path: path.to_path_buf(),
+                source: e,
+            });
+        }
+
+        Ok(())
     }
 }
 

@@ -134,4 +134,16 @@ impl ApplicationHandler for WhiteboardApp {
             _ => {}
         }
     }
+
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if let Err(e) = self.maybe_autosave(std::time::Instant::now()) {
+            warn!(?e, "autosave failed");
+        }
+
+        if let Some(deadline) = self.next_autosave_deadline() {
+            event_loop.set_control_flow(winit::event_loop::ControlFlow::WaitUntil(deadline));
+        } else {
+            event_loop.set_control_flow(winit::event_loop::ControlFlow::Wait);
+        }
+    }
 }
