@@ -124,6 +124,23 @@ impl Scene {
         Some(iter.fold(first, |acc, elem| acc.union(&elem.bounds())))
     }
 
+    /// Computes the aggregate bounding box enclosing the specified element IDs.
+    ///
+    /// Uses [`Element::bounding_box`] to include stroke width padding and arrowhead geometry.
+    /// Returns `None` if `ids` is empty or none of the elements are in the scene.
+    #[must_use]
+    pub fn selection_bounds<'a, I>(&self, ids: I) -> Option<Rect>
+    where
+        I: IntoIterator<Item = &'a ElementId>,
+    {
+        let mut iter = ids
+            .into_iter()
+            .filter_map(|id| self.get(*id))
+            .map(|elem| elem.bounding_box());
+        let first = iter.next()?;
+        Some(iter.fold(first, |acc, b| acc.union(&b)))
+    }
+
     /// Returns the topmost element (highest z-index) that hits the given world coordinate point.
     #[must_use]
     pub fn hit_test_topmost(&self, point: Point, tolerance: f32) -> Option<&Element> {

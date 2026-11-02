@@ -8,6 +8,7 @@
 pub mod offscreen;
 pub mod pen_render;
 pub mod rough_convert;
+pub mod selection_render;
 pub mod shape_render;
 pub mod spike_benchmark;
 pub mod text_layout;

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Selection outline and 8 resize handles rasterizer (`render_selection`) in `ruqa-render` with constant 8x8 screen-pixel handle size regardless of camera zoom (fixes #20).
+- Multi-selection aggregate bounding box calculation (`Scene::selection_bounds`) in `ruqa-core` enclosing single and multiple selected elements (fixes #20).
+- Modularized OS window event handling in `ruqa-app` via dedicated `window_handler` keeping all source modules under ~350 LOC (fixes #20).
 - Selection tool interaction in `ruqa-app` supporting single-click select, Shift-click toggle, empty canvas deselect, and drag-marquee intersection selection (fixes #19).
 - Semi-transparent selection marquee overlay rasterization (`render_marquee`) in `ruqa-render` (fixes #19).
 - Precise point and boundary distance hit-testing (`Element::hit_test`, `Scene::hit_test_topmost`) in `ruqa-core` distinguishing filled interiors from stroke perimeters (fixes #18).

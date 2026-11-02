@@ -123,6 +123,12 @@ impl SelectionManager {
         Self::default()
     }
 
+    /// Returns a reference to the set of currently selected element IDs.
+    #[must_use]
+    pub fn selected_ids(&self) -> &HashSet<ElementId> {
+        self.selection.selected_ids()
+    }
+
     /// Handles pointer press down at a world coordinate.
     ///
     /// If an element is hit, updates selection immediately.

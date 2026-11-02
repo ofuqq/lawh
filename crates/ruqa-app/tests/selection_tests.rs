@@ -109,3 +109,34 @@ fn test_space_pan_does_not_trigger_marquee() {
     assert!(app.selection.selection.is_empty());
     assert!(app.pointer.panned_during_press);
 }
+
+#[test]
+fn test_selection_bounds_aggregation_in_app() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
+    app.scene.push(sample_rect(2, 100.0, 100.0, 50.0, 50.0));
+
+    // Initially none selected
+    assert!(app
+        .scene
+        .selection_bounds(app.selection.selected_ids())
+        .is_none());
+
+    // Select element 1
+    app.selection.selection.select_single(1);
+    let bounds1 = app
+        .scene
+        .selection_bounds(app.selection.selected_ids())
+        .expect("element 1 bounds exist");
+    assert!(bounds1.contains(ruqa_core::geometry::Point::new(10.0, 10.0)));
+    assert!(!bounds1.contains(ruqa_core::geometry::Point::new(100.0, 100.0)));
+
+    // Multi-select elements 1 and 2
+    app.selection.selection.extend([2]);
+    let multi_bounds = app
+        .scene
+        .selection_bounds(app.selection.selected_ids())
+        .expect("multi-selection bounds exist");
+    assert!(multi_bounds.contains(ruqa_core::geometry::Point::new(10.0, 10.0)));
+    assert!(multi_bounds.contains(ruqa_core::geometry::Point::new(150.0, 150.0)));
+}

@@ -10,6 +10,7 @@ pub mod logging;
 pub mod presenter;
 pub mod selection;
 pub mod window_app;
+pub mod window_handler;
 
 /// Application version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

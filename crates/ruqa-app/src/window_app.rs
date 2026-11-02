@@ -11,22 +11,20 @@ use ruqa_core::geometry::{Point, Size, Viewport};
 use ruqa_core::scene::Scene;
 use std::sync::Arc;
 use tiny_skia::Transform;
-use tracing::{debug, info, warn};
-use winit::application::ApplicationHandler;
-use winit::dpi::{LogicalSize, PhysicalPosition, PhysicalSize};
-use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
-use winit::event_loop::ActiveEventLoop;
+use tracing::warn;
+use winit::dpi::PhysicalSize;
+use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta};
 use winit::keyboard::{Key, NamedKey};
-use winit::window::{Window, WindowAttributes, WindowId};
+use winit::window::Window;
 
 /// Default logical window width in CSS pixels.
-const DEFAULT_WIDTH: u32 = 1280;
+pub const DEFAULT_WIDTH: u32 = 1280;
 /// Default logical window height in CSS pixels.
-const DEFAULT_HEIGHT: u32 = 800;
+pub const DEFAULT_HEIGHT: u32 = 800;
 /// Minimum logical window width in CSS pixels.
-const MIN_WIDTH: u32 = 640;
+pub const MIN_WIDTH: u32 = 640;
 /// Minimum logical window height in CSS pixels.
-const MIN_HEIGHT: u32 = 480;
+pub const MIN_HEIGHT: u32 = 480;
 
 /// Desktop whiteboard application — the top-level winit [`ApplicationHandler`].
 ///
@@ -156,9 +154,11 @@ impl WhiteboardApp {
         if let Some((cx, cy)) = self.pointer.cursor_pos {
             let logical_size = self.logical_size();
             #[allow(clippy::cast_possible_truncation)]
-            let anchor = Point::new(cx as f32, cy as f32);
-            #[allow(clippy::cast_possible_truncation)]
-            self.viewport.zoom_at(anchor, factor as f32, logical_size);
+            self.viewport.zoom_at(
+                Point::new(cx as f32, cy as f32),
+                factor as f32,
+                logical_size,
+            );
         }
     }
 
@@ -182,7 +182,7 @@ impl WhiteboardApp {
     }
 
     /// Asks the window to schedule a redraw, if the window exists.
-    fn request_redraw(&self) {
+    pub fn request_redraw(&self) {
         if let Some(w) = &self.window {
             w.request_redraw();
         }
@@ -195,6 +195,7 @@ impl WhiteboardApp {
         let zoom = self.viewport.zoom;
         let pan = self.viewport.pan;
         let active_marquee = self.selection.active_marquee;
+        let selection_bounds = self.scene.selection_bounds(self.selection.selected_ids());
 
         let Some(presenter) = &mut self.presenter else {
             return;
@@ -207,6 +208,16 @@ impl WhiteboardApp {
             logical_size,
             &mut presenter.pixmap_mut().as_mut(),
         );
+
+        if let Some(bounds) = selection_bounds {
+            ruqa_render::selection_render::render_selection(
+                bounds,
+                &self.viewport,
+                logical_size,
+                &mut presenter.pixmap_mut().as_mut(),
+                &ruqa_render::selection_render::SelectionStyle::default(),
+            );
+        }
 
         if let Some(marquee) = active_marquee {
             let transform = Transform::from_row(
@@ -228,123 +239,6 @@ impl WhiteboardApp {
             warn!(?e, "frame present failed");
         } else {
             self.frames_presented += 1;
-        }
-    }
-}
-
-impl ApplicationHandler for WhiteboardApp {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        if self.window.is_some() {
-            return;
-        }
-
-        let mut attrs = WindowAttributes::default()
-            .with_title("Ruqa")
-            .with_inner_size(LogicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT))
-            .with_min_inner_size(LogicalSize::new(MIN_WIDTH, MIN_HEIGHT));
-
-        if let Some(monitor) = event_loop
-            .primary_monitor()
-            .or_else(|| event_loop.available_monitors().next())
-        {
-            let monitor_size = monitor.size();
-            let scale = monitor.scale_factor();
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let win_w = (f64::from(DEFAULT_WIDTH) * scale).round() as u32;
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let win_h = (f64::from(DEFAULT_HEIGHT) * scale).round() as u32;
-            let x = monitor_size.width.saturating_sub(win_w) / 2;
-            let y = monitor_size.height.saturating_sub(win_h) / 2;
-            attrs = attrs.with_position(PhysicalPosition::new(x, y));
-        }
-
-        match event_loop.create_window(attrs) {
-            Ok(w) => {
-                let window = Arc::new(w);
-                self.scale_factor = window.scale_factor();
-                self.physical_size = window.inner_size();
-
-                match Presenter::new(window.clone()) {
-                    Some(presenter) => {
-                        info!(
-                            scale_factor = self.scale_factor,
-                            width = self.physical_size.width,
-                            height = self.physical_size.height,
-                            "window and presenter ready"
-                        );
-                        self.presenter = Some(presenter);
-                        self.window = Some(window);
-                    }
-                    None => {
-                        warn!("softbuffer presenter unavailable; window will not render");
-                        self.window = Some(window);
-                    }
-                }
-            }
-            Err(e) => {
-                warn!(?e, "failed to create window");
-            }
-        }
-    }
-
-    fn window_event(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        event: WindowEvent,
-    ) {
-        match event {
-            WindowEvent::CloseRequested => {
-                info!(frames = self.frames_presented, "close requested; exiting");
-                event_loop.exit();
-            }
-            WindowEvent::Resized(new_size) => {
-                debug!(width = new_size.width, height = new_size.height, "resized");
-                self.physical_size = new_size;
-                if let Some(p) = &mut self.presenter {
-                    if let Err(e) = p.resize(new_size.width, new_size.height) {
-                        warn!(?e, "presenter resize failed");
-                    }
-                }
-                self.request_redraw();
-            }
-            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                debug!(scale_factor, "scale factor changed");
-                self.scale_factor = scale_factor;
-                if let Some(w) = &self.window {
-                    let new_size = w.inner_size();
-                    if new_size != self.physical_size {
-                        self.physical_size = new_size;
-                        if let Some(p) = &mut self.presenter {
-                            if let Err(e) = p.resize(new_size.width, new_size.height) {
-                                warn!(?e, "presenter resize on scale factor change failed");
-                            }
-                        }
-                    }
-                }
-                self.request_redraw();
-            }
-            WindowEvent::CursorMoved { position, .. } => {
-                self.handle_cursor_moved(position.x, position.y);
-                self.request_redraw();
-            }
-            WindowEvent::MouseInput { state, button, .. } => {
-                self.handle_mouse_input(state, button);
-            }
-            WindowEvent::MouseWheel { delta, .. } => {
-                self.handle_mouse_wheel(delta);
-                self.request_redraw();
-            }
-            WindowEvent::KeyboardInput { event, .. } => {
-                self.handle_keyboard_input(&event);
-            }
-            WindowEvent::Focused(focused) => {
-                self.handle_focused(focused);
-            }
-            WindowEvent::RedrawRequested => {
-                self.render_frame();
-            }
-            _ => {}
         }
     }
 }
