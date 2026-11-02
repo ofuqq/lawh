@@ -4,6 +4,8 @@
 //! or [`ViewportCamera::pan`] / [`ViewportCamera::zoom_at`]. Those run every mouse-move event
 //! (up to 1000 Hz on gaming mice) and must stay allocation-free and branch-minimal.
 
+use winit::event::MouseScrollDelta;
+
 /// State of mouse pointers and modifier keys.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PointerState {
@@ -15,6 +17,8 @@ pub struct PointerState {
     pub middle_pressed: bool,
     /// Whether the Space key is held down (for panning with left click).
     pub space_held: bool,
+    /// Whether current press was used for panning, preventing phantom clicks upon release.
+    pub panned_during_press: bool,
 }
 
 impl PointerState {
@@ -26,6 +30,7 @@ impl PointerState {
             left_pressed: false,
             middle_pressed: false,
             space_held: false,
+            panned_during_press: false,
         }
     }
 
@@ -40,6 +45,39 @@ impl PointerState {
     #[must_use]
     pub const fn is_panning(&self) -> bool {
         self.middle_pressed || (self.space_held && self.left_pressed)
+    }
+
+    /// Resets all pressed state (called when window loses focus to avoid stuck modifiers).
+    pub fn reset_inputs(&mut self) {
+        self.left_pressed = false;
+        self.middle_pressed = false;
+        self.space_held = false;
+        self.panned_during_press = false;
+    }
+}
+
+/// Maps a mouse-scroll delta to a zoom factor.
+#[must_use]
+pub fn scroll_zoom_factor(delta: MouseScrollDelta) -> f64 {
+    match delta {
+        MouseScrollDelta::LineDelta(_x, y) => {
+            if y > 0.0 {
+                1.15
+            } else if y < 0.0 {
+                1.0 / 1.15
+            } else {
+                1.0
+            }
+        }
+        MouseScrollDelta::PixelDelta(pos) => {
+            if pos.y > 0.0 {
+                1.05
+            } else if pos.y < 0.0 {
+                1.0 / 1.05
+            } else {
+                1.0
+            }
+        }
     }
 }
 
@@ -179,16 +217,49 @@ mod tests {
         let cursor_x = 400.0;
         let cursor_y = 300.0;
 
-        // Canvas point under cursor at 1.0x
         let (w_before_x, w_before_y) = camera.screen_to_world(cursor_x, cursor_y);
 
-        // Zoom in by 2.0x
         camera.zoom_at(cursor_x, cursor_y, 2.0);
         assert_eq!(camera.zoom, 2.0);
 
-        // Canvas point under cursor after zoom should be identical
         let (w_after_x, w_after_y) = camera.screen_to_world(cursor_x, cursor_y);
         assert!((w_before_x - w_after_x).abs() < 1e-6);
         assert!((w_before_y - w_after_y).abs() < 1e-6);
+    }
+
+    #[test]
+    fn scroll_zoom_factor_line_delta_up() {
+        let f = scroll_zoom_factor(MouseScrollDelta::LineDelta(0.0, 1.0));
+        assert!((f - 1.15).abs() < 1e-9);
+    }
+
+    #[test]
+    fn scroll_zoom_factor_line_delta_down() {
+        let f = scroll_zoom_factor(MouseScrollDelta::LineDelta(0.0, -1.0));
+        assert!((f - 1.0 / 1.15).abs() < 1e-9);
+    }
+
+    #[test]
+    fn scroll_zoom_factor_zero_is_identity() {
+        let f = scroll_zoom_factor(MouseScrollDelta::LineDelta(0.0, 0.0));
+        assert_eq!(f, 1.0);
+    }
+
+    #[test]
+    fn scroll_zoom_factor_pixel_delta() {
+        let f_up = scroll_zoom_factor(MouseScrollDelta::PixelDelta(
+            winit::dpi::PhysicalPosition::new(0.0, 15.0),
+        ));
+        assert!((f_up - 1.05).abs() < 1e-9);
+
+        let f_down = scroll_zoom_factor(MouseScrollDelta::PixelDelta(
+            winit::dpi::PhysicalPosition::new(0.0, -15.0),
+        ));
+        assert!((f_down - 1.0 / 1.05).abs() < 1e-9);
+
+        let f_zero = scroll_zoom_factor(MouseScrollDelta::PixelDelta(
+            winit::dpi::PhysicalPosition::new(0.0, 0.0),
+        ));
+        assert_eq!(f_zero, 1.0);
     }
 }

@@ -4,14 +4,16 @@
 //! events. Frame presentation is delegated to [`Presenter`], which owns the
 //! softbuffer surface and the tiny-skia pixmap.
 
-use crate::event_dispatch::{PointerState, ViewportCamera};
+use crate::event_dispatch::{scroll_zoom_factor, PointerState};
 use crate::presenter::Presenter;
+use ruqa_core::geometry::{Point, Size, Viewport};
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalSize, PhysicalPosition, PhysicalSize};
-use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
+use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::event_loop::ActiveEventLoop;
+use winit::keyboard::{Key, NamedKey};
 use winit::window::{Window, WindowAttributes, WindowId};
 
 /// Default logical window width in CSS pixels.
@@ -25,8 +27,7 @@ const MIN_HEIGHT: u32 = 480;
 
 /// Desktop whiteboard application — the top-level winit [`ApplicationHandler`].
 ///
-/// Owns window state, the frame presenter, pointer state, and viewport camera.
-/// For headless/smoke-test runs see the `--smoke-test` flag in `main.rs`.
+/// Owns window state, the frame presenter, pointer state, and the canvas viewport.
 pub struct WhiteboardApp {
     /// Window handle; set in [`resumed`](ApplicationHandler::resumed).
     pub window: Option<Arc<Window>>,
@@ -34,8 +35,8 @@ pub struct WhiteboardApp {
     pub presenter: Option<Presenter>,
     /// Mouse pointer tracking (zero-allocation).
     pub pointer: PointerState,
-    /// Viewport camera (pan + zoom).
-    pub camera: ViewportCamera,
+    /// Infinite canvas viewport camera.
+    pub viewport: Viewport,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -60,11 +61,86 @@ impl WhiteboardApp {
             window: None,
             presenter: None,
             pointer: PointerState::new(),
-            camera: ViewportCamera::new(),
+            viewport: Viewport::default(),
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,
             motion_events_count: 0,
+        }
+    }
+
+    /// Handles mouse motion in physical window coordinates.
+    pub fn handle_cursor_moved(&mut self, physical_x: f64, physical_y: f64) {
+        self.motion_events_count += 1;
+        let logical_x = physical_x / self.scale_factor;
+        let logical_y = physical_y / self.scale_factor;
+        if let Some((dx, dy)) = self.pointer.update_cursor(logical_x, logical_y) {
+            if self.pointer.is_panning() {
+                self.pointer.panned_during_press = true;
+                #[allow(clippy::cast_possible_truncation)]
+                let world_dx = -(dx as f32) / self.viewport.zoom;
+                #[allow(clippy::cast_possible_truncation)]
+                let world_dy = -(dy as f32) / self.viewport.zoom;
+                self.viewport.pan_by(Point::new(world_dx, world_dy));
+            }
+        }
+    }
+
+    /// Handles mouse button input state changes.
+    pub fn handle_mouse_input(&mut self, state: ElementState, button: MouseButton) {
+        let pressed = state == ElementState::Pressed;
+        match button {
+            MouseButton::Left => {
+                self.pointer.left_pressed = pressed;
+                if pressed {
+                    self.pointer.panned_during_press = false;
+                }
+            }
+            MouseButton::Middle => {
+                self.pointer.middle_pressed = pressed;
+                if pressed {
+                    self.pointer.panned_during_press = false;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// Handles mouse wheel scroll events for anchored zooming.
+    pub fn handle_mouse_wheel(&mut self, delta: MouseScrollDelta) {
+        let factor = scroll_zoom_factor(delta);
+        if let Some((cx, cy)) = self.pointer.cursor_pos {
+            #[allow(clippy::cast_possible_truncation)]
+            let logical_size = Size::new(
+                (f64::from(self.physical_size.width) / self.scale_factor) as f32,
+                (f64::from(self.physical_size.height) / self.scale_factor) as f32,
+            );
+            #[allow(clippy::cast_possible_truncation)]
+            let anchor = Point::new(cx as f32, cy as f32);
+            #[allow(clippy::cast_possible_truncation)]
+            self.viewport.zoom_at(anchor, factor as f32, logical_size);
+        }
+    }
+
+    /// Handles keyboard events (e.g. Spacebar held for panning).
+    pub fn handle_keyboard_input(&mut self, event: &KeyEvent) {
+        let pressed = event.state == ElementState::Pressed;
+        if matches!(event.logical_key, Key::Named(NamedKey::Space)) {
+            self.pointer.space_held = pressed;
+        }
+    }
+
+    /// Handles window focus changes (clearing held inputs on focus loss).
+    pub fn handle_focused(&mut self, focused: bool) {
+        if !focused {
+            self.pointer.reset_inputs();
+        }
+    }
+
+    /// Asks the window to schedule a redraw, if the window exists.
+    fn request_redraw(&self) {
+        if let Some(w) = &self.window {
+            w.request_redraw();
         }
     }
 }
@@ -131,13 +207,10 @@ impl ApplicationHandler for WhiteboardApp {
         event: WindowEvent,
     ) {
         match event {
-            // ── Lifecycle ────────────────────────────────────────────────────
             WindowEvent::CloseRequested => {
                 info!(frames = self.frames_presented, "close requested; exiting");
                 event_loop.exit();
             }
-
-            // ── Resize & HiDPI ───────────────────────────────────────────────
             WindowEvent::Resized(new_size) => {
                 debug!(width = new_size.width, height = new_size.height, "resized");
                 self.physical_size = new_size;
@@ -148,7 +221,6 @@ impl ApplicationHandler for WhiteboardApp {
                 }
                 self.request_redraw();
             }
-
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 debug!(scale_factor, "scale factor changed");
                 self.scale_factor = scale_factor;
@@ -165,37 +237,23 @@ impl ApplicationHandler for WhiteboardApp {
                 }
                 self.request_redraw();
             }
-
-            // ── Pointer ──────────────────────────────────────────────────────
             WindowEvent::CursorMoved { position, .. } => {
-                self.motion_events_count += 1;
-                let logical_pos = position.to_logical::<f64>(self.scale_factor);
-                if let Some((dx, dy)) = self.pointer.update_cursor(logical_pos.x, logical_pos.y) {
-                    if self.pointer.is_panning() {
-                        self.camera.pan(dx, dy);
-                    }
-                }
+                self.handle_cursor_moved(position.x, position.y);
                 self.request_redraw();
             }
-
             WindowEvent::MouseInput { state, button, .. } => {
-                let pressed = state == ElementState::Pressed;
-                match button {
-                    MouseButton::Left => self.pointer.left_pressed = pressed,
-                    MouseButton::Middle => self.pointer.middle_pressed = pressed,
-                    _ => {}
-                }
+                self.handle_mouse_input(state, button);
             }
-
             WindowEvent::MouseWheel { delta, .. } => {
-                let factor = scroll_zoom_factor(delta);
-                if let Some((cx, cy)) = self.pointer.cursor_pos {
-                    self.camera.zoom_at(cx, cy, factor);
-                }
+                self.handle_mouse_wheel(delta);
                 self.request_redraw();
             }
-
-            // ── Rendering ────────────────────────────────────────────────────
+            WindowEvent::KeyboardInput { event, .. } => {
+                self.handle_keyboard_input(&event);
+            }
+            WindowEvent::Focused(focused) => {
+                self.handle_focused(focused);
+            }
             WindowEvent::RedrawRequested => {
                 if let Some(presenter) = &mut self.presenter {
                     presenter.clear_dark();
@@ -206,41 +264,7 @@ impl ApplicationHandler for WhiteboardApp {
                     }
                 }
             }
-
             _ => {}
-        }
-    }
-}
-
-impl WhiteboardApp {
-    /// Asks the window to schedule a redraw, if the window exists.
-    fn request_redraw(&self) {
-        if let Some(w) = &self.window {
-            w.request_redraw();
-        }
-    }
-}
-
-/// Maps a mouse-scroll delta to a zoom factor.
-fn scroll_zoom_factor(delta: MouseScrollDelta) -> f64 {
-    match delta {
-        MouseScrollDelta::LineDelta(_x, y) => {
-            if y > 0.0 {
-                1.15
-            } else if y < 0.0 {
-                1.0 / 1.15
-            } else {
-                1.0
-            }
-        }
-        MouseScrollDelta::PixelDelta(pos) => {
-            if pos.y > 0.0 {
-                1.05
-            } else if pos.y < 0.0 {
-                1.0 / 1.05
-            } else {
-                1.0
-            }
         }
     }
 }
@@ -248,43 +272,6 @@ fn scroll_zoom_factor(delta: MouseScrollDelta) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use winit::event::MouseScrollDelta;
-
-    #[test]
-    fn scroll_zoom_factor_line_delta_up() {
-        let f = scroll_zoom_factor(MouseScrollDelta::LineDelta(0.0, 1.0));
-        assert!((f - 1.15).abs() < 1e-9);
-    }
-
-    #[test]
-    fn scroll_zoom_factor_line_delta_down() {
-        let f = scroll_zoom_factor(MouseScrollDelta::LineDelta(0.0, -1.0));
-        assert!((f - 1.0 / 1.15).abs() < 1e-9);
-    }
-
-    #[test]
-    fn scroll_zoom_factor_zero_is_identity() {
-        let f = scroll_zoom_factor(MouseScrollDelta::LineDelta(0.0, 0.0));
-        assert_eq!(f, 1.0);
-    }
-
-    #[test]
-    fn scroll_zoom_factor_pixel_delta() {
-        let f_up = scroll_zoom_factor(MouseScrollDelta::PixelDelta(
-            winit::dpi::PhysicalPosition::new(0.0, 15.0),
-        ));
-        assert!((f_up - 1.05).abs() < 1e-9);
-
-        let f_down = scroll_zoom_factor(MouseScrollDelta::PixelDelta(
-            winit::dpi::PhysicalPosition::new(0.0, -15.0),
-        ));
-        assert!((f_down - 1.0 / 1.05).abs() < 1e-9);
-
-        let f_zero = scroll_zoom_factor(MouseScrollDelta::PixelDelta(
-            winit::dpi::PhysicalPosition::new(0.0, 0.0),
-        ));
-        assert_eq!(f_zero, 1.0);
-    }
 
     #[test]
     fn whiteboard_app_initial_state() {
@@ -295,6 +282,7 @@ mod tests {
         assert_eq!(app.scale_factor, 1.0);
         assert_eq!(app.physical_size.width, DEFAULT_WIDTH);
         assert_eq!(app.physical_size.height, DEFAULT_HEIGHT);
+        assert_eq!(app.viewport, Viewport::default());
     }
 
     #[test]
