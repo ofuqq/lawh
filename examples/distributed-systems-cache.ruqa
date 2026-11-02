@@ -1,0 +1,164 @@
+{
+  "format": "ruqa",
+  "schema_version": 1,
+  "app_version": "0.1.0",
+  "created_at": "2026-11-03T00:00:00Z",
+  "updated_at": "2026-11-03T00:00:00Z",
+  "canvas": {
+    "background_color": "#121212",
+    "viewport": {
+      "pan": { "x": -40.0, "y": -30.0 },
+      "zoom": 1.0
+    }
+  },
+  "elements": [
+    {
+      "type": "rectangle",
+      "id": 1,
+      "bounds": { "min": { "x": 80.0, "y": 80.0 }, "max": { "x": 240.0, "y": 160.0 } },
+      "style": {
+        "stroke_color": "#38BDF8",
+        "stroke_width": 2.5,
+        "fill_color": "#38BDF8",
+        "fill_style": "semi_transparent",
+        "roughness": 1.2,
+        "seed": 101
+      }
+    },
+    {
+      "type": "rectangle",
+      "id": 2,
+      "bounds": { "min": { "x": 80.0, "y": 240.0 }, "max": { "x": 240.0, "y": 320.0 } },
+      "style": {
+        "stroke_color": "#38BDF8",
+        "stroke_width": 2.5,
+        "fill_color": "#38BDF8",
+        "fill_style": "semi_transparent",
+        "roughness": 1.2,
+        "seed": 102
+      }
+    },
+    {
+      "type": "rectangle",
+      "id": 3,
+      "bounds": { "min": { "x": 340.0, "y": 150.0 }, "max": { "x": 500.0, "y": 250.0 } },
+      "style": {
+        "stroke_color": "#FFD166",
+        "stroke_width": 2.5,
+        "fill_color": "#FFD166",
+        "fill_style": "hachure",
+        "roughness": 1.2,
+        "seed": 103
+      }
+    },
+    {
+      "type": "diamond",
+      "id": 4,
+      "bounds": { "min": { "x": 340.0, "y": 320.0 }, "max": { "x": 500.0, "y": 420.0 } },
+      "style": {
+        "stroke_color": "#FF6B6B",
+        "stroke_width": 2.5,
+        "fill_color": "#FF6B6B",
+        "fill_style": "semi_transparent",
+        "roughness": 1.2,
+        "seed": 104
+      }
+    },
+    {
+      "type": "rectangle",
+      "id": 5,
+      "bounds": { "min": { "x": 600.0, "y": 150.0 }, "max": { "x": 760.0, "y": 250.0 } },
+      "style": {
+        "stroke_color": "#06D6A0",
+        "stroke_width": 2.5,
+        "fill_color": "#06D6A0",
+        "fill_style": "semi_transparent",
+        "roughness": 1.2,
+        "seed": 105
+      }
+    },
+    {
+      "type": "arrow",
+      "id": 10,
+      "start": { "x": 240.0, "y": 120.0 },
+      "end": { "x": 340.0, "y": 190.0 },
+      "style": {
+        "stroke_color": "#ECEFF4",
+        "stroke_width": 2.0,
+        "fill_color": null,
+        "fill_style": "none",
+        "roughness": 1.2,
+        "seed": 201
+      }
+    },
+    {
+      "type": "arrow",
+      "id": 11,
+      "start": { "x": 240.0, "y": 280.0 },
+      "end": { "x": 340.0, "y": 370.0 },
+      "style": {
+        "stroke_color": "#ECEFF4",
+        "stroke_width": 2.0,
+        "fill_color": null,
+        "fill_style": "none",
+        "roughness": 1.2,
+        "seed": 202
+      }
+    },
+    {
+      "type": "arrow",
+      "id": 12,
+      "start": { "x": 420.0, "y": 320.0 },
+      "end": { "x": 420.0, "y": 250.0 },
+      "style": {
+        "stroke_color": "#FF6B6B",
+        "stroke_width": 2.5,
+        "fill_color": null,
+        "fill_style": "none",
+        "roughness": 1.2,
+        "seed": 203
+      }
+    },
+    {
+      "type": "arrow",
+      "id": 13,
+      "start": { "x": 500.0, "y": 200.0 },
+      "end": { "x": 600.0, "y": 200.0 },
+      "style": {
+        "stroke_color": "#06D6A0",
+        "stroke_width": 2.5,
+        "fill_color": null,
+        "fill_style": "none",
+        "roughness": 1.2,
+        "seed": 204
+      }
+    },
+    {
+      "type": "arrow",
+      "id": 14,
+      "start": { "x": 500.0, "y": 370.0 },
+      "end": { "x": 680.0, "y": 250.0 },
+      "style": {
+        "stroke_color": "#A78BFA",
+        "stroke_width": 2.0,
+        "fill_color": null,
+        "fill_style": "none",
+        "roughness": 1.2,
+        "seed": 205
+      }
+    },
+    {
+      "type": "rectangle",
+      "id": 20,
+      "bounds": { "min": { "x": 40.0, "y": 40.0 }, "max": { "x": 820.0, "y": 470.0 } },
+      "style": {
+        "stroke_color": "#A78BFA",
+        "stroke_width": 1.0,
+        "fill_color": null,
+        "fill_style": "none",
+        "roughness": 0.4,
+        "seed": 301
+      }
+    }
+  ]
+}
