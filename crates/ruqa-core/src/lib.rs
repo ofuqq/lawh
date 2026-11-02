@@ -8,10 +8,13 @@
 pub mod element;
 pub mod error;
 pub mod geometry;
+pub mod history;
 pub mod hit_test;
 pub mod scene;
 pub mod stroke;
 pub mod style;
+
+pub use history::{Command, HistoryStack};
 
 /// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

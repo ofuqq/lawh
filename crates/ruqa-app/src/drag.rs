@@ -37,8 +37,10 @@ impl MarqueeDrag {
 pub enum DragMode {
     /// Rectangular marquee selection drag.
     Marquee(MarqueeDrag),
-    /// Translating selected elements by tracking the previous world position.
+    /// Translating selected elements by tracking start and previous world positions.
     Translate {
+        /// World coordinates where translation drag initiated.
+        start_world_pos: Point,
         /// World coordinates of the last pointer position during this drag.
         last_world_pos: Point,
     },

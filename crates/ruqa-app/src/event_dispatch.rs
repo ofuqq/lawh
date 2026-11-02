@@ -19,6 +19,8 @@ pub struct PointerState {
     pub space_held: bool,
     /// Whether the Shift key is held down (for multi-selection toggling).
     pub shift_held: bool,
+    /// Whether the Control or Command key is held down (for undo/redo and shortcuts).
+    pub ctrl_held: bool,
     /// Whether current press was used for panning, preventing phantom clicks upon release.
     pub panned_during_press: bool,
 }
@@ -33,6 +35,7 @@ impl PointerState {
             middle_pressed: false,
             space_held: false,
             shift_held: false,
+            ctrl_held: false,
             panned_during_press: false,
         }
     }
@@ -56,6 +59,7 @@ impl PointerState {
         self.middle_pressed = false;
         self.space_held = false;
         self.shift_held = false;
+        self.ctrl_held = false;
         self.panned_during_press = false;
     }
 }

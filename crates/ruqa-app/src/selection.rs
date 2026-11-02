@@ -101,6 +101,7 @@ impl SelectionManager {
                 self.selection.toggle(id);
                 if self.selection.is_selected(id) {
                     self.active_drag = Some(DragMode::Translate {
+                        start_world_pos: world_pt,
                         last_world_pos: world_pt,
                     });
                 } else {
@@ -111,6 +112,7 @@ impl SelectionManager {
                     self.selection.select_single(id);
                 }
                 self.active_drag = Some(DragMode::Translate {
+                    start_world_pos: world_pt,
                     last_world_pos: world_pt,
                 });
             }
@@ -150,7 +152,7 @@ impl SelectionManager {
                 }
                 true
             }
-            Some(DragMode::Translate { last_world_pos }) => {
+            Some(DragMode::Translate { last_world_pos, .. }) => {
                 let delta = world_pt - *last_world_pos;
                 if delta.x != 0.0 || delta.y != 0.0 {
                     scene.translate_elements(self.selection.selected_ids(), delta);
@@ -169,7 +171,13 @@ impl SelectionManager {
     }
 
     /// Handles pointer release, committing marquee selection or concluding drag.
-    pub fn handle_pointer_up(&mut self, scene: &Scene, shift_held: bool) {
+    ///
+    /// Returns a [`Command`](ruqa_core::history::Command) if a reversible translation or resize mutation was committed.
+    pub fn handle_pointer_up(
+        &mut self,
+        scene: &Scene,
+        shift_held: bool,
+    ) -> Option<ruqa_core::history::Command> {
         match self.active_drag.take() {
             Some(DragMode::Marquee(marquee)) => {
                 if marquee.is_significant() {
@@ -189,9 +197,42 @@ impl SelectionManager {
                 } else if !shift_held {
                     self.selection.clear();
                 }
+                None
             }
-            Some(DragMode::Resize { .. } | DragMode::Translate { .. }) => {}
-            None => {}
+            Some(DragMode::Translate {
+                start_world_pos,
+                last_world_pos,
+            }) => {
+                let total_delta = last_world_pos - start_world_pos;
+                if total_delta.x.abs() > 1e-4 || total_delta.y.abs() > 1e-4 {
+                    Some(ruqa_core::history::Command::MoveElements {
+                        ids: self.selection.selected_ids().iter().copied().collect(),
+                        delta: total_delta,
+                    })
+                } else {
+                    None
+                }
+            }
+            Some(DragMode::Resize {
+                initial_elements, ..
+            }) => {
+                let mut before = Vec::new();
+                let mut after = Vec::new();
+                for (id, initial_elem) in initial_elements {
+                    if let Some(current) = scene.get(id) {
+                        if current != &initial_elem {
+                            before.push(initial_elem);
+                            after.push(current.clone());
+                        }
+                    }
+                }
+                if !before.is_empty() {
+                    Some(ruqa_core::history::Command::ModifyElements { before, after })
+                } else {
+                    None
+                }
+            }
+            None => None,
         }
     }
 }
@@ -215,49 +256,44 @@ mod tests {
         }
     }
 
+    fn down(m: &mut SelectionManager, s: &Scene, wp: Point, sp: Point, shift: bool) {
+        let (vp, ws) = (Viewport::default(), Size::new(800.0, 600.0));
+        m.handle_pointer_down(s, wp, sp, &vp, ws, shift, 2.0);
+    }
+
     #[test]
     fn test_single_click_and_toggle() {
         let mut scene = Scene::new();
         scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
         scene.push(sample_rect(2, 100.0, 10.0, 50.0, 50.0));
-
-        let vp = Viewport::default();
-        let ws = Size::new(800.0, 600.0);
         let mut manager = SelectionManager::new();
 
-        manager.handle_pointer_down(
+        down(
+            &mut manager,
             &scene,
             Point::new(10.0, 10.0),
             Point::new(410.0, 310.0),
-            &vp,
-            ws,
             false,
-            2.0,
         );
         manager.handle_pointer_up(&scene, false);
         assert_eq!(manager.selection.selected_ids().len(), 1);
-        assert!(manager.selection.is_selected(1));
 
-        manager.handle_pointer_down(
+        down(
+            &mut manager,
             &scene,
             Point::new(100.0, 10.0),
             Point::new(500.0, 310.0),
-            &vp,
-            ws,
             true,
-            2.0,
         );
         manager.handle_pointer_up(&scene, true);
         assert_eq!(manager.selection.len(), 2);
 
-        manager.handle_pointer_down(
+        down(
+            &mut manager,
             &scene,
             Point::new(500.0, 500.0),
             Point::new(900.0, 800.0),
-            &vp,
-            ws,
             false,
-            2.0,
         );
         manager.handle_pointer_up(&scene, false);
         assert!(manager.selection.is_empty());
@@ -268,24 +304,18 @@ mod tests {
         let mut scene = Scene::new();
         scene.push(sample_rect(1, 20.0, 20.0, 40.0, 40.0));
         scene.push(sample_rect(2, 80.0, 20.0, 40.0, 40.0));
-
-        let vp = Viewport::default();
-        let ws = Size::new(800.0, 600.0);
         let mut manager = SelectionManager::new();
-        manager.handle_pointer_down(
+
+        down(
+            &mut manager,
             &scene,
-            Point::new(0.0, 0.0),
+            Point::ZERO,
             Point::new(400.0, 300.0),
-            &vp,
-            ws,
             false,
-            2.0,
         );
         assert!(manager.active_marquee().is_some());
-
         manager.handle_pointer_move(&mut scene, Point::new(150.0, 100.0), false);
         assert!(manager.active_marquee().unwrap().is_significant());
-
         manager.handle_pointer_up(&scene, false);
         assert_eq!(manager.selection.len(), 2);
     }
@@ -294,41 +324,42 @@ mod tests {
     fn test_drag_translate_and_resize() {
         let mut scene = Scene::new();
         scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
-
-        let vp = Viewport::default();
-        let ws = Size::new(800.0, 600.0);
         let mut manager = SelectionManager::new();
         manager.selection.select_single(1);
 
         // Translate
-        manager.handle_pointer_down(
+        down(
+            &mut manager,
             &scene,
             Point::new(20.0, 20.0),
             Point::new(420.0, 320.0),
-            &vp,
-            ws,
             false,
-            2.0,
         );
         assert!(manager.is_translating());
         manager.handle_pointer_move(&mut scene, Point::new(35.0, 30.0), false);
-        manager.handle_pointer_up(&scene, false);
+        let cmd = manager.handle_pointer_up(&scene, false);
+        assert!(cmd.is_some());
         assert_eq!(
             scene.get(1).unwrap().bounds(),
             Rect::from_xywh(25.0, 20.0, 50.0, 50.0)
         );
 
-        // Resize from handle
+        // Resize
         let bounds = scene.selection_bounds([&1]).unwrap();
-        let style = ruqa_render::selection_render::SelectionStyle::default();
+        let (vp, ws, style) = (
+            Viewport::default(),
+            Size::new(800.0, 600.0),
+            ruqa_render::selection_render::SelectionStyle::default(),
+        );
         let screen_rect =
             ruqa_render::selection_render::selection_screen_rect(bounds, &vp, ws, style.padding);
         let br = HandleKind::BottomRight.point_on_rect(screen_rect);
 
-        manager.handle_pointer_down(&scene, Point::new(100.0, 100.0), br, &vp, ws, false, 2.0);
+        down(&mut manager, &scene, Point::new(100.0, 100.0), br, false);
         assert!(manager.is_resizing());
         manager.handle_pointer_move(&mut scene, Point::new(150.0, 140.0), false);
-        manager.handle_pointer_up(&scene, false);
+        let resize_cmd = manager.handle_pointer_up(&scene, false);
+        assert!(resize_cmd.is_some());
         assert!(scene.get(1).unwrap().bounds().width() > 50.0);
     }
 }

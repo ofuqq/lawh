@@ -58,6 +58,21 @@ impl Scene {
         self.elements.push(element);
     }
 
+    /// Inserts an element at a specific index clamped to `0..=len()`.
+    pub fn insert(&mut self, index: usize, element: Element) {
+        if element.id() >= self.next_id {
+            self.next_id = element.id().saturating_add(1);
+        }
+        let clamped = index.min(self.elements.len());
+        self.elements.insert(clamped, element);
+    }
+
+    /// Finds the z-index position of an element by ID.
+    #[must_use]
+    pub fn position(&self, id: ElementId) -> Option<usize> {
+        self.elements.iter().position(|e| e.id() == id)
+    }
+
     /// Retrieves an immutable reference to an element by its unique identifier.
     #[must_use]
     pub fn get(&self, id: ElementId) -> Option<&Element> {

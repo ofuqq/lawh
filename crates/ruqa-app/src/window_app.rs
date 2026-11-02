@@ -42,6 +42,8 @@ pub struct WhiteboardApp {
     pub scene: Scene,
     /// Selection tool controller and state.
     pub selection: SelectionManager,
+    /// Undo/redo history stack using the command pattern.
+    pub history: ruqa_core::history::HistoryStack,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -69,6 +71,7 @@ impl WhiteboardApp {
             viewport: Viewport::default(),
             scene: Scene::new(),
             selection: SelectionManager::new(),
+            history: ruqa_core::history::HistoryStack::new(),
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,
@@ -140,8 +143,12 @@ impl WhiteboardApp {
                         }
                     }
                 } else if !self.pointer.panned_during_press {
-                    self.selection
-                        .handle_pointer_up(&self.scene, self.pointer.shift_held);
+                    if let Some(cmd) = self
+                        .selection
+                        .handle_pointer_up(&self.scene, self.pointer.shift_held)
+                    {
+                        self.history.push(cmd);
+                    }
                 }
             }
             MouseButton::Middle => {
@@ -168,15 +175,45 @@ impl WhiteboardApp {
         }
     }
 
-    /// Handles keyboard events (e.g. Spacebar held for panning, Shift for multi-selection).
-    pub fn handle_keyboard_input(&mut self, event: &KeyEvent) {
-        let pressed = event.state == ElementState::Pressed;
-        if matches!(event.logical_key, Key::Named(NamedKey::Space)) {
+    /// Handles key state changes directly by logical key and element state.
+    pub fn handle_key(&mut self, key: &Key, state: ElementState) {
+        let pressed = state == ElementState::Pressed;
+        if matches!(key, Key::Named(NamedKey::Space)) {
             self.pointer.space_held = pressed;
         }
-        if matches!(event.logical_key, Key::Named(NamedKey::Shift)) {
+        if matches!(key, Key::Named(NamedKey::Shift)) {
             self.pointer.shift_held = pressed;
         }
+        if matches!(key, Key::Named(NamedKey::Control | NamedKey::Super)) {
+            self.pointer.ctrl_held = pressed;
+        }
+
+        if pressed && self.pointer.ctrl_held {
+            match key {
+                Key::Character(c) if c.eq_ignore_ascii_case("z") => {
+                    let changed = if self.pointer.shift_held {
+                        self.history.redo(&mut self.scene)
+                    } else {
+                        self.history.undo(&mut self.scene)
+                    };
+                    if changed {
+                        self.request_redraw();
+                    }
+                }
+                Key::Character(c) if c.eq_ignore_ascii_case("y") => {
+                    let changed = self.history.redo(&mut self.scene);
+                    if changed {
+                        self.request_redraw();
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    /// Handles keyboard events (e.g. Spacebar held for panning, Shift for multi-selection, Ctrl+Z/Y for undo/redo).
+    pub fn handle_keyboard_input(&mut self, event: &KeyEvent) {
+        self.handle_key(&event.logical_key, event.state);
     }
 
     /// Handles window focus changes (clearing held inputs on focus loss).

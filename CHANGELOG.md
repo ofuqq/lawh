@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Unlimited undo and redo history using the command pattern (`HistoryStack`, `Command`) in `ruqa-core` supporting discrete reversible actions (add, delete, move, modify), configurable depth, and linear history truncation (fixes #23).
+- Wired standard keyboard shortcuts in `ruqa-app`: Ctrl+Z for undo, Ctrl+Y and Ctrl+Shift+Z for redo, with macOS Command (Super) key mapping (fixes #23).
+- Automatic generation and emission of reversible `Command::MoveElements` and `Command::ModifyElements` upon translation and resize gestures in `ruqa-app` (fixes #23).
 - Interactive scaling and resizing of selected canvas elements from 8 selection handles in `ruqa-app` with opposite-corner anchor pinning, single-axis edge dragging, Shift aspect ratio constraint, and 5x5 px minimum dimension clamping (fixes #22).
 - Resize geometry math (`compute_resized_bounds`, `HandleKind`, `MIN_RESIZE_DIMENSION`) and proportional element scaling (`Element::scale_from_bounds`) in `ruqa-core` (fixes #22).
 - Extracted `SelectionState` and `DragMode` submodules in `ruqa-app` and `style` module in `ruqa-core` keeping all source modules under ~350 LOC (fixes #22).
