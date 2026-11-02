@@ -118,28 +118,44 @@ pub fn generate_element_paths(element: &Element) -> Vec<Path> {
             }
             paths
         }
-        Element::Stroke { .. } => {
-            // Freehand pen strokes are rasterized as variable-width ink polygons in #16.
-            Vec::new()
-        }
+        Element::Stroke {
+            points,
+            pressures,
+            style,
+            ..
+        } => crate::pen_render::stroke_to_outline_polygon(points, pressures, style.stroke_width)
+            .into_iter()
+            .collect(),
     }
 }
 
 /// Renders a single whiteboard element to a pixmap surface with a 2D coordinate transform.
 pub fn render_element(element: &Element, pixmap: &mut PixmapMut<'_>, transform: Transform) {
-    let style = element.style();
-    let color = parse_hex_color(&style.stroke_color)
-        .unwrap_or_else(|| Color::from_rgba8(224, 224, 224, 255));
+    match element {
+        Element::Stroke {
+            points,
+            pressures,
+            style,
+            ..
+        } => {
+            crate::pen_render::render_pen_stroke(points, pressures, style, pixmap, transform);
+        }
+        _ => {
+            let style = element.style();
+            let color = parse_hex_color(&style.stroke_color)
+                .unwrap_or_else(|| Color::from_rgba8(224, 224, 224, 255));
 
-    let mut paint = Paint::default();
-    paint.set_color(color);
-    paint.anti_alias = true;
+            let mut paint = Paint::default();
+            paint.set_color(color);
+            paint.anti_alias = true;
 
-    let stroke = default_rough_stroke(style.stroke_width);
-    let paths = generate_element_paths(element);
+            let stroke = default_rough_stroke(style.stroke_width);
+            let paths = generate_element_paths(element);
 
-    for path in &paths {
-        pixmap.stroke_path(path, &paint, &stroke, transform, None);
+            for path in &paths {
+                pixmap.stroke_path(path, &paint, &stroke, transform, None);
+            }
+        }
     }
 }
 
