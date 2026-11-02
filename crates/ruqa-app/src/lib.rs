@@ -7,6 +7,7 @@
 
 pub mod event_dispatch;
 pub mod logging;
+pub mod presenter;
 pub mod window_app;
 
 /// Application version.
