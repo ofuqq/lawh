@@ -4,14 +4,13 @@
 //! events. Frame presentation is delegated to [`Presenter`], which owns the
 //! softbuffer surface and the tiny-skia pixmap.
 
-use crate::event_dispatch::{scroll_zoom_factor, PointerState};
+use crate::event_dispatch::PointerState;
 use crate::presenter::Presenter;
 use crate::selection::SelectionManager;
-use ruqa_core::geometry::{Point, Size, Viewport};
+use ruqa_core::geometry::{Size, Viewport};
 use ruqa_core::scene::Scene;
 use std::sync::Arc;
 use winit::dpi::PhysicalSize;
-use winit::event::{ElementState, MouseButton, MouseScrollDelta};
 use winit::window::Window;
 
 /// Default logical window width in CSS pixels.
@@ -89,6 +88,12 @@ pub struct WhiteboardApp {
     pub hovered_vault_item: Option<std::path::PathBuf>,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
+    /// Whether the unsaved changes quit confirmation dialog is visible.
+    pub show_quit_dialog: bool,
+    /// Currently hovered action button in the quit confirmation dialog.
+    pub hovered_quit_action: Option<ruqa_render::QuitDialogAction>,
+    /// Flag signaling the event loop to exit on the next event cycle.
+    pub should_exit: bool,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -147,6 +152,9 @@ impl WhiteboardApp {
             vault_entries: Vec::new(),
             hovered_vault_item: None,
             is_editing_text: false,
+            show_quit_dialog: false,
+            hovered_quit_action: None,
+            should_exit: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,
@@ -162,156 +170,6 @@ impl WhiteboardApp {
             (f64::from(self.physical_size.width) / self.scale_factor) as f32,
             (f64::from(self.physical_size.height) / self.scale_factor) as f32,
         )
-    }
-
-    /// Handles mouse motion in physical window coordinates.
-    pub fn handle_cursor_moved(&mut self, physical_x: f64, physical_y: f64) {
-        self.motion_events_count += 1;
-        let logical_x = physical_x / self.scale_factor;
-        let logical_y = physical_y / self.scale_factor;
-        #[allow(clippy::cast_possible_truncation)]
-        let screen_pt = Point::new(logical_x as f32, logical_y as f32);
-        self.handle_recent_files_cursor_moved(screen_pt);
-        self.handle_vault_cursor_moved(screen_pt);
-        self.handle_toolbar_cursor_moved(screen_pt);
-
-        if self.show_welcome_hud
-            || (self.show_vault_sidebar && self.vault_layout().contains(screen_pt))
-            || self.toolbar_pressed
-            || self.style_panel_pressed
-        {
-            return;
-        }
-
-        if let Some((dx, dy)) = self.pointer.update_cursor(logical_x, logical_y) {
-            if self.pointer.is_panning() {
-                self.pointer.panned_during_press = true;
-                #[allow(clippy::cast_possible_truncation)]
-                let world_dx = -(dx as f32) / self.viewport.zoom;
-                #[allow(clippy::cast_possible_truncation)]
-                let world_dy = -(dy as f32) / self.viewport.zoom;
-                self.viewport.pan_by(Point::new(world_dx, world_dy));
-            } else if self.pointer.left_pressed {
-                #[allow(clippy::cast_possible_truncation)]
-                let world_pt = self.viewport.screen_to_world(
-                    Point::new(logical_x as f32, logical_y as f32),
-                    self.logical_size(),
-                );
-                if self.active_tool == ruqa_core::tool::Tool::Eraser {
-                    self.handle_eraser_pointer_move(world_pt);
-                } else {
-                    self.selection.handle_pointer_move(
-                        &mut self.scene,
-                        world_pt,
-                        self.pointer.shift_held,
-                    );
-                }
-            }
-        }
-    }
-
-    /// Handles mouse button input state changes.
-    pub fn handle_mouse_input(&mut self, state: ElementState, button: MouseButton) {
-        let pressed = state == ElementState::Pressed;
-        match button {
-            MouseButton::Left => {
-                self.pointer.left_pressed = pressed;
-                if pressed {
-                    self.pointer.panned_during_press = false;
-                    if let Some((cx, cy)) = self.pointer.cursor_pos {
-                        #[allow(clippy::cast_possible_truncation)]
-                        let screen_pt = Point::new(cx as f32, cy as f32);
-                        if self.handle_recent_files_pointer_down(screen_pt)
-                            || self.handle_vault_pointer_down(screen_pt)
-                        {
-                            return;
-                        }
-                    }
-                    if !self.pointer.is_panning() {
-                        if let Some((cx, cy)) = self.pointer.cursor_pos {
-                            #[allow(clippy::cast_possible_truncation)]
-                            let screen_pt = Point::new(cx as f32, cy as f32);
-                            if self.handle_toolbar_pointer_down(screen_pt)
-                                || self.handle_style_panel_pointer_down(screen_pt)
-                            {
-                                return;
-                            }
-                        }
-                    }
-                    if !self.pointer.is_panning() {
-                        if let Some((cx, cy)) = self.pointer.cursor_pos {
-                            #[allow(clippy::cast_possible_truncation)]
-                            let screen_pt = Point::new(cx as f32, cy as f32);
-                            let logical_size = self.logical_size();
-                            let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
-                            if self.active_tool == ruqa_core::tool::Tool::Eraser {
-                                self.handle_eraser_pointer_down(world_pt);
-                            } else {
-                                self.selection.handle_pointer_down(
-                                    &self.scene,
-                                    world_pt,
-                                    screen_pt,
-                                    &self.viewport,
-                                    logical_size,
-                                    self.pointer.shift_held,
-                                    ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
-                                );
-                            }
-                        }
-                    }
-                } else {
-                    let mut consumed = self.handle_toolbar_pointer_up();
-                    consumed |= self.handle_style_panel_pointer_up();
-                    if consumed {
-                        return;
-                    }
-                    if self.active_tool == ruqa_core::tool::Tool::Eraser {
-                        self.handle_eraser_pointer_up();
-                        return;
-                    }
-                    if !self.pointer.panned_during_press {
-                        if let Some(cmd) = self
-                            .selection
-                            .handle_pointer_up(&self.scene, self.pointer.shift_held)
-                        {
-                            self.history.push(cmd);
-                            self.mark_dirty();
-                        }
-                        self.sync_style_from_selection();
-                    }
-                }
-            }
-            MouseButton::Middle => {
-                self.pointer.middle_pressed = pressed;
-                if pressed {
-                    self.pointer.panned_during_press = false;
-                }
-            }
-            _ => {}
-        }
-    }
-
-    /// Handles mouse wheel scroll events for anchored zooming.
-    pub fn handle_mouse_wheel(&mut self, delta: MouseScrollDelta) {
-        let factor = scroll_zoom_factor(delta);
-        if let Some((cx, cy)) = self.pointer.cursor_pos {
-            let logical_size = self.logical_size();
-            #[allow(clippy::cast_possible_truncation)]
-            self.viewport.zoom_at(
-                Point::new(cx as f32, cy as f32),
-                factor as f32,
-                logical_size,
-            );
-        }
-    }
-
-    /// Handles window focus changes (clearing held inputs on focus loss).
-    pub fn handle_focused(&mut self, focused: bool) {
-        if !focused {
-            self.pointer.reset_inputs();
-            self.selection.active_drag = None;
-            self.eraser.reset();
-        }
     }
 
     /// Asks the window to schedule a redraw, if the window exists.

@@ -19,6 +19,9 @@ impl WhiteboardApp {
         }
 
         if pressed {
+            if self.show_quit_dialog && self.handle_quit_dialog_key(key) {
+                return;
+            }
             if matches!(key, Key::Named(NamedKey::Escape)) {
                 if self.show_welcome_hud {
                     self.show_welcome_hud = false;
@@ -74,6 +77,11 @@ impl WhiteboardApp {
                     }
                     Key::Character(c) if c.eq_ignore_ascii_case("e") => {
                         let _ = self.export_high_res_png_default();
+                    }
+                    Key::Character(c)
+                        if c.eq_ignore_ascii_case("q") || c.eq_ignore_ascii_case("w") =>
+                    {
+                        self.request_close();
                     }
                     Key::Character(c) if c == "'" || c == "\"" => {
                         self.toggle_grid();

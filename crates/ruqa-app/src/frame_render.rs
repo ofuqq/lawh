@@ -25,6 +25,11 @@ impl WhiteboardApp {
         } else {
             None
         };
+        let quit_layout = if self.show_quit_dialog {
+            Some(self.quit_dialog_layout())
+        } else {
+            None
+        };
 
         let Some(presenter) = &mut self.presenter else {
             return;
@@ -112,6 +117,15 @@ impl WhiteboardApp {
                 self.file_path.as_deref(),
                 self.hovered_vault_item.as_deref(),
                 &ruqa_render::vault_render::VaultTheme::default(),
+            );
+        }
+
+        if let Some(quit_layout) = quit_layout {
+            ruqa_render::render_quit_dialog(
+                &mut presenter.pixmap_mut().as_mut(),
+                &quit_layout,
+                self.hovered_quit_action,
+                &ruqa_render::QuitDialogTheme::default(),
             );
         }
 

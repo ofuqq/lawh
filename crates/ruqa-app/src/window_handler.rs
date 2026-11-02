@@ -82,8 +82,14 @@ impl ApplicationHandler for WhiteboardApp {
     ) {
         match event {
             WindowEvent::CloseRequested => {
-                info!(frames = self.frames_presented, "close requested; exiting");
-                event_loop.exit();
+                self.request_close();
+                if self.should_exit {
+                    info!(
+                        frames = self.frames_presented,
+                        "close requested and clean; exiting"
+                    );
+                    event_loop.exit();
+                }
             }
             WindowEvent::Resized(new_size) => {
                 debug!(width = new_size.width, height = new_size.height, "resized");
@@ -133,9 +139,19 @@ impl ApplicationHandler for WhiteboardApp {
             }
             _ => {}
         }
+
+        if self.should_exit {
+            info!("application marked to exit; exiting event loop");
+            event_loop.exit();
+        }
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if self.should_exit {
+            info!("application marked to exit; exiting event loop");
+            event_loop.exit();
+            return;
+        }
         if let Err(e) = self.maybe_autosave(std::time::Instant::now()) {
             warn!(?e, "autosave failed");
         }

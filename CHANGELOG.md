@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Unsaved changes quit confirmation dialog in `ruqa-render` and `ruqa-app` (`QuitDialogLayout`, `QuitDialogAction`, `render_quit_dialog`, `request_close`, `handle_quit_dialog_pointer_down`, `handle_quit_dialog_key`) intercepting window close requests and `Ctrl+Q`/`Ctrl+W` shortcuts to prompt with "Save", "Don't Save", or "Cancel" when modified, while cleanly exiting immediately when clean (fixes #35).
+- Modularized pointer input event dispatch into `pointer_input` in `ruqa-app` keeping application harness modules strictly under the module size limits (fixes #35).
 - Selection vs full diagram bounds export support in `ruqa-render` and `ruqa-app` (`export_elements_to_pixmap`, `export_elements_to_png`, `export_elements_to_png_file`, `has_active_selection`, `export_elements`) isolating selected elements with tight bounding boxes plus padding, or enclosing all scene elements when no selection is active, avoiding empty canvas margins (fixes #34).
 - Headless high-resolution PNG image export pipeline in `ruqa-render` (`export_png`, `PngExportOptions`, `export_scene_to_pixmap`, `export_scene_to_png`, `export_scene_to_png_file`) supporting custom resolution scale multipliers (1x, 2x HiDPI), transparent vs dark backgrounds, outer padding margins, and standard PNG encoding (fixes #33).
 - PNG export operations and shortcuts in `ruqa-app` (`export_actions`, `Ctrl+E`) computing aggregate board bounds and exporting crisp diagrams directly to disk (fixes #33).

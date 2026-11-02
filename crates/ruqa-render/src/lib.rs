@@ -9,6 +9,8 @@ pub mod export_png;
 pub mod grid_render;
 pub mod offscreen;
 pub mod pen_render;
+pub mod quit_dialog_layout;
+pub mod quit_dialog_render;
 pub mod recent_files_layout;
 pub mod recent_files_render;
 pub mod rough_convert;
@@ -29,6 +31,9 @@ pub use export_png::{
     export_scene_to_pixmap, export_scene_to_png, export_scene_to_png_file, PngExportOptions,
 };
 pub use grid_render::{render_grid, GridConfig, GridStyle};
+pub use quit_dialog_render::{
+    render_quit_dialog, QuitDialogAction, QuitDialogLayout, QuitDialogTheme,
+};
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};
 
