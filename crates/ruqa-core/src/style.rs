@@ -2,14 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
-/// Curated dark-theme color palette: White, Coral, Yellow, Green, Cyan, Lavender.
+/// Curated dark-theme color palette: Crisp Off-White, Coral, Yellow, Green, Cyan, Lavender.
 pub const PALETTE_COLORS: [&str; 6] = [
-    "#ECECEC", // White
-    "#FF6B6B", // Coral
-    "#FFD166", // Yellow
-    "#06D6A0", // Green
-    "#38BDF8", // Cyan
-    "#A78BFA", // Lavender
+    crate::theme::DARK_PEN_INK, // Crisp Off-White (#ECEFF4)
+    "#FF6B6B",                  // Coral
+    "#FFD166",                  // Yellow
+    "#06D6A0",                  // Green
+    "#38BDF8",                  // Cyan
+    "#A78BFA",                  // Lavender
 ];
 
 /// Standard stroke width presets for whiteboard elements.
@@ -155,7 +155,7 @@ pub struct ElementStyle {
 impl Default for ElementStyle {
     fn default() -> Self {
         Self {
-            stroke_color: "#E0E0E0".to_string(),
+            stroke_color: crate::theme::DARK_PEN_INK.to_string(),
             stroke_width: 2.0,
             fill_color: None,
             fill_style: FillStyle::None,
@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn test_element_style_defaults() {
         let style = ElementStyle::default();
-        assert_eq!(style.stroke_color, "#E0E0E0");
+        assert_eq!(style.stroke_color, crate::theme::DARK_PEN_INK);
         assert_eq!(style.stroke_width, 2.0);
         assert!(style.fill_color.is_none());
         assert_eq!(style.fill_style, FillStyle::None);

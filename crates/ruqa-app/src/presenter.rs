@@ -116,6 +116,15 @@ impl Presenter {
         self.pixmap.fill(Color::from_rgba8(0x12, 0x12, 0x12, 0xFF));
     }
 
+    /// Fills the pixmap with a specified hex background color.
+    pub fn clear_color_hex(&mut self, hex: &str) {
+        if let Some((r, g, b, a)) = ruqa_core::theme::parse_hex_color(hex) {
+            self.pixmap.fill(Color::from_rgba8(r, g, b, a));
+        } else {
+            self.clear_dark();
+        }
+    }
+
     /// Blits the pixmap to the softbuffer surface and presents it to the OS.
     ///
     /// **Pixel format conversion**: tiny-skia stores premultiplied RGBA.

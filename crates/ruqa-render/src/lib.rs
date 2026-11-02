@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod grid_render;
 pub mod offscreen;
 pub mod pen_render;
 pub mod rough_convert;
@@ -18,6 +19,7 @@ pub mod text_layout;
 pub mod toolbar_icons;
 pub mod toolbar_render;
 
+pub use grid_render::{render_grid, GridConfig, GridStyle};
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};
 

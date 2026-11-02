@@ -114,6 +114,11 @@ impl Scene {
         &self.elements
     }
 
+    /// Returns a mutable slice of all elements in ascending z-index order.
+    pub fn elements_mut(&mut self) -> &mut [Element] {
+        &mut self.elements
+    }
+
     /// Returns an iterator over all elements in ascending z-index order.
     pub fn iter(&self) -> std::slice::Iter<'_, Element> {
         self.elements.iter()

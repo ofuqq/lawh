@@ -20,7 +20,17 @@ impl WhiteboardApp {
             return;
         };
 
-        presenter.clear_dark();
+        presenter.clear_color_hex(self.theme_mode.background_color());
+
+        if self.show_grid {
+            ruqa_render::grid_render::render_grid(
+                &mut presenter.pixmap_mut().as_mut(),
+                &self.viewport,
+                logical_size,
+                &self.grid_config,
+            );
+        }
+
         ruqa_render::shape_render::render_scene_viewport(
             &self.scene,
             &self.viewport,

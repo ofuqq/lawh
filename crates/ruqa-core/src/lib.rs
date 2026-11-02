@@ -15,11 +15,16 @@ pub mod migration;
 pub mod scene;
 pub mod stroke;
 pub mod style;
+pub mod theme;
 pub mod tool;
 
 pub use document::RuqaDocument;
 pub use history::{Command, HistoryStack};
 pub use style::{ElementStyle, FillStyle, RoughnessPreset, StrokeWidthPreset, PALETTE_COLORS};
+pub use theme::{
+    invert_color, invert_element, invert_scene, ThemeMode, DARK_BACKGROUND_COLOR, DARK_PEN_INK,
+    LIGHT_BACKGROUND_COLOR, LIGHT_PEN_INK,
+};
 pub use tool::Tool;
 
 /// Version indicator for the ruqa-core library.

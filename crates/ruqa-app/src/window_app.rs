@@ -67,6 +67,12 @@ pub struct WhiteboardApp {
     pub style_panel_pressed: bool,
     /// Active continuous eraser drag state.
     pub eraser: crate::eraser::EraserState,
+    /// Active display theme mode (Dark by default).
+    pub theme_mode: ruqa_core::theme::ThemeMode,
+    /// Whether background orientation grid dots/lines are visible.
+    pub show_grid: bool,
+    /// Canvas orientation grid configuration.
+    pub grid_config: ruqa_render::grid_render::GridConfig,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
     /// Current physical window size.
@@ -114,6 +120,9 @@ impl WhiteboardApp {
             show_style_panel: true,
             style_panel_pressed: false,
             eraser: crate::eraser::EraserState::new(),
+            theme_mode: ruqa_core::theme::ThemeMode::Dark,
+            show_grid: true,
+            grid_config: ruqa_render::grid_render::GridConfig::dark_mode(),
             is_editing_text: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
@@ -272,5 +281,29 @@ impl WhiteboardApp {
         if let Some(w) = &self.window {
             w.request_redraw();
         }
+    }
+
+    /// Toggles visibility of the background canvas orientation grid.
+    pub fn toggle_grid(&mut self) {
+        self.show_grid = !self.show_grid;
+        self.request_redraw();
+    }
+
+    /// Toggles between dark and light theme modes, updating canvas background, grid, and inverting existing elements.
+    pub fn toggle_theme(&mut self) {
+        self.theme_mode = self.theme_mode.toggle();
+        match self.theme_mode {
+            ruqa_core::theme::ThemeMode::Dark => {
+                self.grid_config = ruqa_render::grid_render::GridConfig::dark_mode();
+            }
+            ruqa_core::theme::ThemeMode::Light => {
+                self.grid_config = ruqa_render::grid_render::GridConfig::light_mode();
+            }
+        }
+        self.current_style.stroke_color =
+            ruqa_core::theme::invert_color(&self.current_style.stroke_color);
+        ruqa_core::theme::invert_scene(&mut self.scene);
+        self.mark_dirty();
+        self.request_redraw();
     }
 }

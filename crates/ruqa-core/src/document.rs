@@ -19,8 +19,8 @@ pub const FORMAT_MAGIC: &str = "ruqa";
 /// Supported schema version.
 pub const CURRENT_SCHEMA_VERSION: u32 = 1;
 
-/// Default canvas background color (dark theme).
-pub const DEFAULT_BACKGROUND_COLOR: &str = "#121212";
+/// Default canvas background color (matte dark theme).
+pub const DEFAULT_BACKGROUND_COLOR: &str = crate::theme::DARK_BACKGROUND_COLOR;
 
 /// Metadata describing the canvas environment (background, viewport).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

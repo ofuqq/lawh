@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Default dark theme palette and color constants in `ruqa-core` (`DARK_BACKGROUND_COLOR: "#121212"`, `DARK_PEN_INK: "#ECEFF4"`, `LIGHT_BACKGROUND_COLOR: "#FFFFFF"`, `LIGHT_PEN_INK: "#1E1E1E"`, `ThemeMode`) (fixes #31).
+- Perceptual color luminance, HSV saturation, and selective color inversion helpers (`invert_color`, `invert_element_style`, `invert_element`, `invert_scene`) inverting monochrome ink while strictly preserving chromatic accent colors (fixes #31).
+- Zero-allocation canvas orientation grid renderer in `ruqa-render` (`render_grid`, `GridConfig`, `GridStyle`) supporting adaptive zoom-scaled dot and graph line rendering directly into pixmaps (fixes #31).
+- Canvas background grid toggling via `Ctrl+'` keyboard shortcut in `ruqa-app` and seamless `toggle_theme` workspace support (fixes #31).
 - Continuous stroke and element eraser tool in `ruqa-app` (`EraserState`, `handle_eraser_pointer_down`, `handle_eraser_pointer_move`, `handle_eraser_pointer_up`) removing touched shapes and freehand ink paths immediately upon contact (fixes #30).
 - Drag trail segment interpolation sampling at 75% tolerance intervals to prevent missed strokes during fast cursor swipes (fixes #30).
 - Atomic gesture deletion committing all erased elements as a single `Command::DeleteElements` on pointer release, restoring all erased shapes with preserved z-order on Ctrl+Z (fixes #30).
