@@ -14,3 +14,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+================================================================================
+Bundled Fonts and Third-Party Assets
+================================================================================
+
+This product bundles the following font software:
+
+1. Aref Ruqaa (assets/fonts/ArefRuqaa-Regular.ttf)
+   Copyright (c) 2015-2021 The Aref Ruqaa Project Authors (Khaled Hosny).
+   Licensed under the SIL Open Font License, Version 1.1 (assets/fonts/OFL.txt).
+   https://github.com/alif-type/aref-ruqaa
+
+2. Roboto (assets/fonts/Roboto-Regular.ttf)
+   Copyright (c) 2015 Google Inc. (Christian Robertson).
+   Licensed under the Apache License, Version 2.0 (assets/fonts/LICENSE.apache).
+   https://github.com/googlefonts/roboto
