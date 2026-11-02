@@ -65,6 +65,11 @@ impl SelectionManager {
         self.active_drag = None;
     }
 
+    /// Deselects an element if it is currently selected.
+    pub fn deselect(&mut self, id: ElementId) {
+        self.selection.deselect(id);
+    }
+
     /// Sets the selection to the specified element IDs and cancels any active drag gesture.
     pub fn set_selection(&mut self, ids: impl IntoIterator<Item = ElementId>) {
         self.selection.set_selection(ids);

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Continuous stroke and element eraser tool in `ruqa-app` (`EraserState`, `handle_eraser_pointer_down`, `handle_eraser_pointer_move`, `handle_eraser_pointer_up`) removing touched shapes and freehand ink paths immediately upon contact (fixes #30).
+- Drag trail segment interpolation sampling at 75% tolerance intervals to prevent missed strokes during fast cursor swipes (fixes #30).
+- Atomic gesture deletion committing all erased elements as a single `Command::DeleteElements` on pointer release, restoring all erased shapes with preserved z-order on Ctrl+Z (fixes #30).
+- Modularized frame rendering pass (`frame_render`) keeping `window_app` well under the ~350 LOC limit (fixes #30).
 - Organic fill pattern rendering in `ruqa-render` supporting `Solid`, `SemiTransparent` (50% opacity), `Hachure` (hand-drawn parallel angled sketch lines), and `CrossHatch` (intersecting hatching) for closed shapes (rectangles, ellipses, diamonds) (fixes #29).
 - Hand-drawn fill jitter generation matching stroke roughness and deterministic seed stability across rendering frames (fixes #29).
 - Separated fill path rasterization (`OpSetType::FillPath`) and sketch hatching rasterization (`OpSetType::FillSketch`) from outline strokes (`OpSetType::Path`) in `shape_render` and `rough_options` (fixes #29).

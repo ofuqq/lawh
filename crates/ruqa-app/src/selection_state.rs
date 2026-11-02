@@ -39,6 +39,11 @@ impl SelectionState {
         }
     }
 
+    /// Deselects an element if it is currently selected.
+    pub fn deselect(&mut self, id: ElementId) {
+        self.selected_ids.remove(&id);
+    }
+
     /// Clears all selected elements.
     pub fn clear(&mut self) {
         self.selected_ids.clear();

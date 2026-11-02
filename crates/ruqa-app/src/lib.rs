@@ -7,8 +7,10 @@
 
 pub mod clipboard;
 pub mod drag;
+pub mod eraser;
 pub mod event_dispatch;
 pub mod file_actions;
+pub mod frame_render;
 pub mod keyboard;
 pub mod logging;
 pub mod presenter;

@@ -10,8 +10,6 @@ use crate::selection::SelectionManager;
 use ruqa_core::geometry::{Point, Size, Viewport};
 use ruqa_core::scene::Scene;
 use std::sync::Arc;
-use tiny_skia::Transform;
-use tracing::warn;
 use winit::dpi::PhysicalSize;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta};
 use winit::window::Window;
@@ -67,6 +65,8 @@ pub struct WhiteboardApp {
     pub show_style_panel: bool,
     /// Whether the pointer was pressed inside the style HUD panel.
     pub style_panel_pressed: bool,
+    /// Active continuous eraser drag state.
+    pub eraser: crate::eraser::EraserState,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
     /// Current physical window size.
@@ -113,6 +113,7 @@ impl WhiteboardApp {
             },
             show_style_panel: true,
             style_panel_pressed: false,
+            eraser: crate::eraser::EraserState::new(),
             is_editing_text: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
@@ -158,11 +159,15 @@ impl WhiteboardApp {
                     Point::new(logical_x as f32, logical_y as f32),
                     self.logical_size(),
                 );
-                self.selection.handle_pointer_move(
-                    &mut self.scene,
-                    world_pt,
-                    self.pointer.shift_held,
-                );
+                if self.active_tool == ruqa_core::tool::Tool::Eraser {
+                    self.handle_eraser_pointer_move(world_pt);
+                } else {
+                    self.selection.handle_pointer_move(
+                        &mut self.scene,
+                        world_pt,
+                        self.pointer.shift_held,
+                    );
+                }
             }
         }
     }
@@ -192,21 +197,29 @@ impl WhiteboardApp {
                             let screen_pt = Point::new(cx as f32, cy as f32);
                             let logical_size = self.logical_size();
                             let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
-                            self.selection.handle_pointer_down(
-                                &self.scene,
-                                world_pt,
-                                screen_pt,
-                                &self.viewport,
-                                logical_size,
-                                self.pointer.shift_held,
-                                ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
-                            );
+                            if self.active_tool == ruqa_core::tool::Tool::Eraser {
+                                self.handle_eraser_pointer_down(world_pt);
+                            } else {
+                                self.selection.handle_pointer_down(
+                                    &self.scene,
+                                    world_pt,
+                                    screen_pt,
+                                    &self.viewport,
+                                    logical_size,
+                                    self.pointer.shift_held,
+                                    ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
+                                );
+                            }
                         }
                     }
                 } else {
                     let mut consumed = self.handle_toolbar_pointer_up();
                     consumed |= self.handle_style_panel_pointer_up();
                     if consumed {
+                        return;
+                    }
+                    if self.active_tool == ruqa_core::tool::Tool::Eraser {
+                        self.handle_eraser_pointer_up();
                         return;
                     }
                     if !self.pointer.panned_during_press {
@@ -250,6 +263,7 @@ impl WhiteboardApp {
         if !focused {
             self.pointer.reset_inputs();
             self.selection.active_drag = None;
+            self.eraser.reset();
         }
     }
 
@@ -257,83 +271,6 @@ impl WhiteboardApp {
     pub fn request_redraw(&self) {
         if let Some(w) = &self.window {
             w.request_redraw();
-        }
-    }
-
-    /// Renders the scene and interactive overlays into the presenter surface.
-    pub fn render_frame(&mut self) {
-        let logical_size = self.logical_size();
-        let center = logical_size.center();
-        let zoom = self.viewport.zoom;
-        let pan = self.viewport.pan;
-        let active_marquee = self.selection.active_marquee();
-        let selection_bounds = self.scene.selection_bounds(self.selection.selected_ids());
-        let toolbar_layout = ruqa_render::toolbar_render::ToolbarLayout::new(logical_size.width);
-        let style_layout = self.style_panel_layout();
-
-        let Some(presenter) = &mut self.presenter else {
-            return;
-        };
-
-        presenter.clear_dark();
-        ruqa_render::shape_render::render_scene_viewport(
-            &self.scene,
-            &self.viewport,
-            logical_size,
-            &mut presenter.pixmap_mut().as_mut(),
-        );
-
-        if let Some(bounds) = selection_bounds {
-            ruqa_render::selection_render::render_selection(
-                bounds,
-                &self.viewport,
-                logical_size,
-                &mut presenter.pixmap_mut().as_mut(),
-                &ruqa_render::selection_render::SelectionStyle::default(),
-            );
-        }
-
-        if let Some(marquee) = active_marquee {
-            let transform = Transform::from_row(
-                zoom,
-                0.0,
-                0.0,
-                zoom,
-                center.x - pan.x * zoom,
-                center.y - pan.y * zoom,
-            );
-            ruqa_render::shape_render::render_marquee(
-                marquee.rect(),
-                &mut presenter.pixmap_mut().as_mut(),
-                transform,
-            );
-        }
-
-        ruqa_render::toolbar_render::render_toolbar(
-            &mut presenter.pixmap_mut().as_mut(),
-            &toolbar_layout,
-            self.active_tool,
-            self.hovered_tool,
-            self.scale_factor,
-            &ruqa_render::toolbar_render::ToolbarStyle::default(),
-        );
-
-        if self.show_style_panel {
-            ruqa_render::style_panel_render::render_style_panel(
-                &mut presenter.pixmap_mut().as_mut(),
-                &style_layout,
-                &self.current_style.stroke_color,
-                self.current_style.stroke_width,
-                self.current_style.roughness,
-                self.scale_factor,
-                &ruqa_render::style_panel_render::StylePanelTheme::default(),
-            );
-        }
-
-        if let Err(e) = presenter.present() {
-            warn!(?e, "frame present failed");
-        } else {
-            self.frames_presented += 1;
         }
     }
 }
