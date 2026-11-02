@@ -45,6 +45,7 @@ impl WhiteboardApp {
         let dup_ids: Vec<_> = duplicates.iter().map(Element::id).collect();
         self.history.push(Command::AddElements(duplicates));
         self.selection.set_selection(dup_ids);
+        self.mark_dirty();
         self.request_redraw();
         true
     }
@@ -124,6 +125,41 @@ impl WhiteboardApp {
         let pasted_ids: Vec<_> = pasted.iter().map(Element::id).collect();
         self.history.push(Command::AddElements(pasted));
         self.selection.set_selection(pasted_ids);
+        self.mark_dirty();
+        self.request_redraw();
+        true
+    }
+
+    /// Deletes all currently selected elements from the scene, registers undo command, and marks dirty.
+    pub fn delete_selected(&mut self) -> bool {
+        if self.selection.is_empty() {
+            return false;
+        }
+
+        let mut to_delete = Vec::new();
+        for &id in self.selection.selected_ids() {
+            if let Some(pos) = self.scene.position(id) {
+                to_delete.push((pos, id));
+            }
+        }
+
+        if to_delete.is_empty() {
+            return false;
+        }
+
+        to_delete.sort_by_key(|a| std::cmp::Reverse(a.0));
+        let mut deleted_entries = Vec::with_capacity(to_delete.len());
+        for (pos, id) in to_delete {
+            if let Some(elem) = self.scene.remove(id) {
+                deleted_entries.push((pos, elem));
+            }
+        }
+        deleted_entries.sort_by_key(|(pos, _)| *pos);
+
+        self.history
+            .push(ruqa_core::history::Command::DeleteElements(deleted_entries));
+        self.selection.clear();
+        self.mark_dirty();
         self.request_redraw();
         true
     }

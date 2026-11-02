@@ -13,9 +13,9 @@ use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::{WindowAttributes, WindowId};
 
-fn build_window_attrs(event_loop: &ActiveEventLoop) -> WindowAttributes {
+fn build_window_attrs(event_loop: &ActiveEventLoop, title: &str) -> WindowAttributes {
     let mut attrs = WindowAttributes::default()
-        .with_title("Ruqa")
+        .with_title(title)
         .with_inner_size(LogicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT))
         .with_min_inner_size(LogicalSize::new(MIN_WIDTH, MIN_HEIGHT));
 
@@ -44,7 +44,7 @@ impl ApplicationHandler for WhiteboardApp {
             return;
         }
 
-        let attrs = build_window_attrs(event_loop);
+        let attrs = build_window_attrs(event_loop, &self.window_title());
         match event_loop.create_window(attrs) {
             Ok(w) => {
                 let window = Arc::new(w);

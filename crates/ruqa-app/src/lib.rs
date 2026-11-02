@@ -8,6 +8,7 @@
 pub mod clipboard;
 pub mod drag;
 pub mod event_dispatch;
+pub mod file_actions;
 pub mod logging;
 pub mod presenter;
 pub mod selection;
