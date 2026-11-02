@@ -73,6 +73,28 @@ impl Rect {
             max: Point::new(self.max.x.max(other.max.x), self.max.y.max(other.max.y)),
         }
     }
+
+    /// Returns a new rectangle expanded symmetrically on all sides by `padding`.
+    ///
+    /// If `padding` is negative, the rectangle shrinks (insets). If shrinking would cause
+    /// bounds to invert (`min > max`), returns a zero-area point rectangle at the center.
+    #[must_use]
+    pub fn inflate(&self, padding: f32) -> Self {
+        let min_x = self.min.x - padding;
+        let max_x = self.max.x + padding;
+        let min_y = self.min.y - padding;
+        let max_y = self.max.y + padding;
+
+        if min_x > max_x || min_y > max_y {
+            let c = self.center();
+            Self::from_min_max(c, c)
+        } else {
+            Self {
+                min: Point::new(min_x, min_y),
+                max: Point::new(max_x, max_y),
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -99,5 +121,13 @@ mod tests {
         let u = r1.union(&r3);
         assert_eq!(u.min, Point::new(10.0, 20.0));
         assert_eq!(u.max, Point::new(230.0, 230.0));
+
+        let inflated = r1.inflate(5.0);
+        assert_eq!(inflated.min, Point::new(5.0, 15.0));
+        assert_eq!(inflated.max, Point::new(115.0, 75.0));
+
+        let over_shrunk = r1.inflate(-100.0);
+        assert_eq!(over_shrunk.width(), 0.0);
+        assert_eq!(over_shrunk.height(), 0.0);
     }
 }

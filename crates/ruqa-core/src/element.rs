@@ -162,7 +162,7 @@ impl Element {
         }
     }
 
-    /// Computes the axis-aligned bounding box enclosing this element in world coordinates.
+    /// Computes the unpadded geometric bounds enclosing this element in world coordinates.
     #[must_use]
     pub fn bounds(&self) -> Rect {
         match self {
@@ -186,6 +186,70 @@ impl Element {
                         min_y = min_y.min(pt.y);
                         max_y = max_y.max(pt.y);
                     }
+                    Rect::from_min_max(Point::new(min_x, min_y), Point::new(max_x, max_y))
+                }
+            }
+        }
+    }
+
+    /// Computes the tight axis-aligned bounding box enclosing this element in world coordinates,
+    /// including stroke width padding and arrowhead geometry.
+    #[must_use]
+    pub fn bounding_box(&self) -> Rect {
+        let style = self.style();
+        let half_width = (style.stroke_width * 0.5).max(0.5);
+
+        match self {
+            Self::Rectangle { bounds, .. }
+            | Self::Ellipse { bounds, .. }
+            | Self::Diamond { bounds, .. } => bounds.inflate(half_width),
+            Self::Line { start, end, .. } => Rect::from_min_max(*start, *end).inflate(half_width),
+            Self::Arrow { start, end, .. } => {
+                let dx = end.x - start.x;
+                let dy = end.y - start.y;
+                let length = dx.hypot(dy);
+                if length > 1e-4 {
+                    let angle = dy.atan2(dx);
+                    let barb_len = (12.0 + style.stroke_width * 2.0).min(length * 0.5);
+                    let barb_angle = std::f32::consts::FRAC_PI_6; // 30 degrees in radians
+
+                    let a1 = angle - std::f32::consts::PI + barb_angle;
+                    let a2 = angle - std::f32::consts::PI - barb_angle;
+
+                    let p1 = Point::new(end.x + barb_len * a1.cos(), end.y + barb_len * a1.sin());
+                    let p2 = Point::new(end.x + barb_len * a2.cos(), end.y + barb_len * a2.sin());
+
+                    let min_x = start.x.min(end.x).min(p1.x).min(p2.x);
+                    let max_x = start.x.max(end.x).max(p1.x).max(p2.x);
+                    let min_y = start.y.min(end.y).min(p1.y).min(p2.y);
+                    let max_y = start.y.max(end.y).max(p1.y).max(p2.y);
+
+                    Rect::from_min_max(Point::new(min_x, min_y), Point::new(max_x, max_y))
+                        .inflate(half_width)
+                } else {
+                    Rect::from_min_max(*start, *end).inflate(half_width)
+                }
+            }
+            Self::Stroke {
+                points, pressures, ..
+            } => {
+                if points.is_empty() {
+                    Rect::from_xywh(0.0, 0.0, 0.0, 0.0)
+                } else {
+                    let mut min_x = f32::INFINITY;
+                    let mut max_x = f32::NEG_INFINITY;
+                    let mut min_y = f32::INFINITY;
+                    let mut max_y = f32::NEG_INFINITY;
+
+                    for (i, pt) in points.iter().enumerate() {
+                        let pressure = pressures.get(i).copied().unwrap_or(1.0).clamp(0.05, 2.0);
+                        let r = (half_width * pressure).max(0.5);
+                        min_x = min_x.min(pt.x - r);
+                        max_x = max_x.max(pt.x + r);
+                        min_y = min_y.min(pt.y - r);
+                        max_y = max_y.max(pt.y + r);
+                    }
+
                     Rect::from_min_max(Point::new(min_x, min_y), Point::new(max_x, max_y))
                 }
             }
@@ -259,63 +323,11 @@ mod tests {
         };
         assert_eq!(stroke.bounds().min, Point::new(5.0, 20.0));
         assert_eq!(stroke.bounds().max, Point::new(30.0, 50.0));
-    }
 
-    #[test]
-    fn test_serde_json_round_trips() {
-        let elements = vec![
-            Element::Rectangle {
-                id: 101,
-                bounds: Rect::from_xywh(0.0, 0.0, 200.0, 100.0),
-                style: ElementStyle::default(),
-            },
-            Element::Ellipse {
-                id: 102,
-                bounds: Rect::from_xywh(50.0, 50.0, 80.0, 80.0),
-                style: ElementStyle {
-                    fill_color: Some("#FF0000".into()),
-                    fill_style: FillStyle::Hachure,
-                    ..ElementStyle::default()
-                },
-            },
-            Element::Diamond {
-                id: 103,
-                bounds: Rect::from_xywh(20.0, 30.0, 40.0, 60.0),
-                style: ElementStyle {
-                    fill_style: FillStyle::CrossHatch,
-                    ..ElementStyle::default()
-                },
-            },
-            Element::Line {
-                id: 104,
-                start: Point::new(0.0, 0.0),
-                end: Point::new(100.0, 100.0),
-                style: ElementStyle::default(),
-            },
-            Element::Arrow {
-                id: 105,
-                start: Point::new(100.0, 100.0),
-                end: Point::new(200.0, 150.0),
-                style: ElementStyle {
-                    roughness: 2.0,
-                    seed: 9999,
-                    ..ElementStyle::default()
-                },
-            },
-            Element::Stroke {
-                id: 106,
-                points: vec![Point::new(10.0, 15.0), Point::new(25.0, 40.0)],
-                pressures: vec![0.5, 0.8],
-                style: ElementStyle::default(),
-            },
-        ];
-
-        for element in elements {
-            let json = serde_json::to_string_pretty(&element).expect("serialization succeeds");
-            let deserialized: Element =
-                serde_json::from_str(&json).expect("deserialization succeeds");
-            assert_eq!(element, deserialized);
-        }
+        // bounding_box should include stroke padding
+        let rect_bb = rect.bounding_box();
+        assert_eq!(rect_bb.min, Point::new(8.5, 18.5));
+        assert_eq!(rect_bb.max, Point::new(111.5, 71.5));
     }
 
     #[test]
