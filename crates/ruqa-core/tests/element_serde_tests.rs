@@ -58,3 +58,18 @@ fn test_serde_json_round_trips_all_variants() {
         assert_eq!(element, deserialized);
     }
 }
+
+#[test]
+fn test_tagged_json_representation() {
+    let rect = Element::Rectangle {
+        id: 42,
+        bounds: Rect::from_xywh(10.0, 10.0, 20.0, 20.0),
+        style: ElementStyle::default(),
+    };
+    let json_value: serde_json::Value =
+        serde_json::to_value(&rect).expect("to_value should succeed");
+
+    assert_eq!(json_value["type"], "rectangle");
+    assert_eq!(json_value["id"], 42);
+    assert_eq!(json_value["bounds"]["min"]["x"], 10.0);
+}

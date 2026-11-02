@@ -162,6 +162,24 @@ impl Element {
         }
     }
 
+    /// Translates the element by `delta` in world coordinates.
+    pub fn translate(&mut self, delta: Point) {
+        match self {
+            Self::Rectangle { bounds, .. }
+            | Self::Ellipse { bounds, .. }
+            | Self::Diamond { bounds, .. } => *bounds = bounds.translate(delta),
+            Self::Line { start, end, .. } | Self::Arrow { start, end, .. } => {
+                *start = *start + delta;
+                *end = *end + delta;
+            }
+            Self::Stroke { points, .. } => {
+                for p in points {
+                    *p = *p + delta;
+                }
+            }
+        }
+    }
+
     /// Computes the unpadded geometric bounds enclosing this element in world coordinates.
     #[must_use]
     pub fn bounds(&self) -> Rect {
@@ -315,17 +333,13 @@ mod tests {
     }
 
     #[test]
-    fn test_tagged_json_representation() {
-        let rect = Element::Rectangle {
-            id: 42,
-            bounds: Rect::from_xywh(10.0, 10.0, 20.0, 20.0),
+    fn test_element_translation() {
+        let mut rect = Element::Rectangle {
+            id: 1,
+            bounds: Rect::from_xywh(10.0, 20.0, 30.0, 40.0),
             style: ElementStyle::default(),
         };
-        let json_value: serde_json::Value =
-            serde_json::to_value(&rect).expect("to_value should succeed");
-
-        assert_eq!(json_value["type"], "rectangle");
-        assert_eq!(json_value["id"], 42);
-        assert_eq!(json_value["bounds"]["min"]["x"], 10.0);
+        rect.translate(Point::new(5.0, -10.0));
+        assert_eq!(rect.bounds(), Rect::from_xywh(15.0, 10.0, 30.0, 40.0));
     }
 }

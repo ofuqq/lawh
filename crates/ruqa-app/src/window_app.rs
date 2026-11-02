@@ -99,13 +99,14 @@ impl WhiteboardApp {
                 #[allow(clippy::cast_possible_truncation)]
                 let world_dy = -(dy as f32) / self.viewport.zoom;
                 self.viewport.pan_by(Point::new(world_dx, world_dy));
-            } else if self.pointer.left_pressed && self.selection.active_marquee.is_some() {
+            } else if self.pointer.left_pressed {
                 #[allow(clippy::cast_possible_truncation)]
                 let world_pt = self.viewport.screen_to_world(
                     Point::new(logical_x as f32, logical_y as f32),
                     self.logical_size(),
                 );
-                self.selection.handle_pointer_move(world_pt);
+                self.selection
+                    .handle_pointer_move(&mut self.scene, world_pt);
             }
         }
     }
@@ -177,7 +178,7 @@ impl WhiteboardApp {
     pub fn handle_focused(&mut self, focused: bool) {
         if !focused {
             self.pointer.reset_inputs();
-            self.selection.active_marquee = None;
+            self.selection.active_drag = None;
         }
     }
 
@@ -194,7 +195,7 @@ impl WhiteboardApp {
         let center = logical_size.center();
         let zoom = self.viewport.zoom;
         let pan = self.viewport.pan;
-        let active_marquee = self.selection.active_marquee;
+        let active_marquee = self.selection.active_marquee();
         let selection_bounds = self.scene.selection_bounds(self.selection.selected_ids());
 
         let Some(presenter) = &mut self.presenter else {

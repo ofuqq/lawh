@@ -95,6 +95,15 @@ impl Rect {
             }
         }
     }
+
+    /// Returns a new rectangle translated by `delta`.
+    #[must_use]
+    pub fn translate(&self, delta: Point) -> Self {
+        Self {
+            min: self.min + delta,
+            max: self.max + delta,
+        }
+    }
 }
 
 #[cfg(test)]

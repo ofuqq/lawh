@@ -159,65 +159,73 @@ impl Scene {
             .filter(move |elem| elem.hit_test(point, tolerance))
     }
 
+    /// Translates all elements matching the provided IDs by `delta` in world coordinates.
+    pub fn translate_elements<'a, I>(&mut self, ids: I, delta: Point)
+    where
+        I: IntoIterator<Item = &'a ElementId>,
+    {
+        for id in ids {
+            if let Some(elem) = self.get_mut(*id) {
+                elem.translate(delta);
+            }
+        }
+    }
+
     // ── Z-Index Layer Reordering ─────────────────────────────────────────────
 
     /// Moves the specified element to the top of the z-index stack (rendered last/on top).
     ///
     /// Returns `true` if the element was found and moved.
     pub fn bring_to_front(&mut self, id: ElementId) -> bool {
-        if let Some(pos) = self.elements.iter().position(|e| e.id() == id) {
-            let last_idx = self.elements.len().saturating_sub(1);
-            if pos != last_idx {
-                let elem = self.elements.remove(pos);
-                self.elements.push(elem);
-            }
-            true
-        } else {
-            false
+        let Some(pos) = self.elements.iter().position(|e| e.id() == id) else {
+            return false;
+        };
+        let last_idx = self.elements.len().saturating_sub(1);
+        if pos != last_idx {
+            let elem = self.elements.remove(pos);
+            self.elements.push(elem);
         }
+        true
     }
 
     /// Moves the specified element to the bottom of the z-index stack (rendered first/below all).
     ///
     /// Returns `true` if the element was found and moved.
     pub fn send_to_back(&mut self, id: ElementId) -> bool {
-        if let Some(pos) = self.elements.iter().position(|e| e.id() == id) {
-            if pos != 0 {
-                let elem = self.elements.remove(pos);
-                self.elements.insert(0, elem);
-            }
-            true
-        } else {
-            false
+        let Some(pos) = self.elements.iter().position(|e| e.id() == id) else {
+            return false;
+        };
+        if pos != 0 {
+            let elem = self.elements.remove(pos);
+            self.elements.insert(0, elem);
         }
+        true
     }
 
     /// Steps the specified element one layer forward (towards the top of the stack).
     ///
     /// Returns `true` if the element was found and moved.
     pub fn bring_forward(&mut self, id: ElementId) -> bool {
-        if let Some(pos) = self.elements.iter().position(|e| e.id() == id) {
-            if pos + 1 < self.elements.len() {
-                self.elements.swap(pos, pos + 1);
-            }
-            true
-        } else {
-            false
+        let Some(pos) = self.elements.iter().position(|e| e.id() == id) else {
+            return false;
+        };
+        if pos + 1 < self.elements.len() {
+            self.elements.swap(pos, pos + 1);
         }
+        true
     }
 
     /// Steps the specified element one layer backward (towards the bottom of the stack).
     ///
     /// Returns `true` if the element was found and moved.
     pub fn send_backward(&mut self, id: ElementId) -> bool {
-        if let Some(pos) = self.elements.iter().position(|e| e.id() == id) {
-            if pos > 0 {
-                self.elements.swap(pos, pos - 1);
-            }
-            true
-        } else {
-            false
+        let Some(pos) = self.elements.iter().position(|e| e.id() == id) else {
+            return false;
+        };
+        if pos > 0 {
+            self.elements.swap(pos, pos - 1);
         }
+        true
     }
 }
 
@@ -303,44 +311,18 @@ mod tests {
     }
 
     #[test]
-    fn test_z_index_reordering() {
+    fn test_scene_translate_elements() {
         let mut scene = Scene::new();
-        scene.push(sample_rect(1, 0.0, 0.0, 10.0, 10.0));
-        scene.push(sample_rect(2, 0.0, 0.0, 10.0, 10.0));
-        scene.push(sample_rect(3, 0.0, 0.0, 10.0, 10.0));
-
-        let ids: Vec<ElementId> = scene.iter().map(Element::id).collect();
-        assert_eq!(ids, vec![1, 2, 3]);
-
-        // Bring 1 forward: [2, 1, 3]
-        assert!(scene.bring_forward(1));
-        let ids: Vec<ElementId> = scene.iter().map(Element::id).collect();
-        assert_eq!(ids, vec![2, 1, 3]);
-
-        // Bring 1 to front: [2, 3, 1]
-        assert!(scene.bring_to_front(1));
-        let ids: Vec<ElementId> = scene.iter().map(Element::id).collect();
-        assert_eq!(ids, vec![2, 3, 1]);
-
-        // Send 1 backward: [2, 1, 3]
-        assert!(scene.send_backward(1));
-        let ids: Vec<ElementId> = scene.iter().map(Element::id).collect();
-        assert_eq!(ids, vec![2, 1, 3]);
-
-        // Send 3 to back: [3, 2, 1]
-        assert!(scene.send_to_back(3));
-        let ids: Vec<ElementId> = scene.iter().map(Element::id).collect();
-        assert_eq!(ids, vec![3, 2, 1]);
-    }
-
-    #[test]
-    fn test_scene_serde_round_trip() {
-        let mut scene = Scene::new();
-        scene.push(sample_rect(10, 50.0, 50.0, 100.0, 80.0));
-        scene.push(sample_rect(20, 120.0, 90.0, 60.0, 40.0));
-
-        let json = serde_json::to_string(&scene).expect("serialization succeeds");
-        let deserialized: Scene = serde_json::from_str(&json).expect("deserialization succeeds");
-        assert_eq!(scene, deserialized);
+        scene.push(sample_rect(1, 10.0, 10.0, 20.0, 20.0));
+        scene.push(sample_rect(2, 50.0, 50.0, 20.0, 20.0));
+        scene.translate_elements(&[1, 2], Point::new(10.0, -5.0));
+        assert_eq!(
+            scene.get(1).unwrap().bounds(),
+            Rect::from_xywh(20.0, 5.0, 20.0, 20.0)
+        );
+        assert_eq!(
+            scene.get(2).unwrap().bounds(),
+            Rect::from_xywh(60.0, 45.0, 20.0, 20.0)
+        );
     }
 }

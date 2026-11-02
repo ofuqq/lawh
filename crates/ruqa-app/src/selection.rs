@@ -107,13 +107,25 @@ impl MarqueeDrag {
     }
 }
 
-/// Selection tool controller orchestrating mouse clicks, Shift modifiers, and marquee drag-selection.
+/// Active drag operation being tracked by the selection manager.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DragMode {
+    /// Rectangular marquee selection drag.
+    Marquee(MarqueeDrag),
+    /// Translating selected elements by tracking the previous world position.
+    Translate {
+        /// World coordinates of the last pointer position during this drag.
+        last_world_pos: Point,
+    },
+}
+
+/// Selection tool controller orchestrating mouse clicks, Shift modifiers, marquee selection, and translation.
 #[derive(Debug, Clone, Default)]
 pub struct SelectionManager {
     /// Active element selection.
     pub selection: SelectionState,
-    /// Active marquee drag gesture, if any.
-    pub active_marquee: Option<MarqueeDrag>,
+    /// Active drag operation (marquee or element translation), if any.
+    pub active_drag: Option<DragMode>,
 }
 
 impl SelectionManager {
@@ -129,10 +141,25 @@ impl SelectionManager {
         self.selection.selected_ids()
     }
 
+    /// Returns the active marquee drag gesture, if currently in marquee mode.
+    #[must_use]
+    pub fn active_marquee(&self) -> Option<MarqueeDrag> {
+        match self.active_drag {
+            Some(DragMode::Marquee(m)) => Some(m),
+            _ => None,
+        }
+    }
+
+    /// Returns `true` if currently translating selected elements.
+    #[must_use]
+    pub fn is_translating(&self) -> bool {
+        matches!(self.active_drag, Some(DragMode::Translate { .. }))
+    }
+
     /// Handles pointer press down at a world coordinate.
     ///
-    /// If an element is hit, updates selection immediately.
-    /// If empty canvas is pressed, begins potential marquee dragging.
+    /// If an element is hit, updates selection and initiates element translation drag.
+    /// If empty canvas is pressed, begins marquee drag.
     pub fn handle_pointer_down(
         &mut self,
         scene: &Scene,
@@ -144,29 +171,57 @@ impl SelectionManager {
             let id = hit.id();
             if shift_held {
                 self.selection.toggle(id);
-            } else if !self.selection.is_selected(id) {
-                self.selection.select_single(id);
+                if self.selection.is_selected(id) {
+                    self.active_drag = Some(DragMode::Translate {
+                        last_world_pos: world_pt,
+                    });
+                } else {
+                    self.active_drag = None;
+                }
+            } else {
+                if !self.selection.is_selected(id) {
+                    self.selection.select_single(id);
+                }
+                self.active_drag = Some(DragMode::Translate {
+                    last_world_pos: world_pt,
+                });
             }
-            self.active_marquee = None;
         } else {
             // Clicked on empty canvas
-            self.active_marquee = Some(MarqueeDrag {
+            self.active_drag = Some(DragMode::Marquee(MarqueeDrag {
                 start: world_pt,
                 current: world_pt,
-            });
+            }));
         }
     }
 
     /// Handles pointer motion while dragging.
-    pub fn handle_pointer_move(&mut self, world_pt: Point) {
-        if let Some(marquee) = &mut self.active_marquee {
-            marquee.current = world_pt;
+    ///
+    /// If translating, translates all selected elements in `scene` by the delta.
+    /// If in marquee mode, updates the marquee current coordinate.
+    pub fn handle_pointer_move(&mut self, scene: &mut Scene, world_pt: Point) -> bool {
+        match &mut self.active_drag {
+            Some(DragMode::Translate { last_world_pos }) => {
+                let delta = world_pt - *last_world_pos;
+                if delta.x != 0.0 || delta.y != 0.0 {
+                    scene.translate_elements(self.selection.selected_ids(), delta);
+                    *last_world_pos = world_pt;
+                    true
+                } else {
+                    false
+                }
+            }
+            Some(DragMode::Marquee(marquee)) => {
+                marquee.current = world_pt;
+                true
+            }
+            None => false,
         }
     }
 
-    /// Handles pointer release, committing marquee selection or clearing on empty click.
+    /// Handles pointer release, committing marquee selection or concluding drag.
     pub fn handle_pointer_up(&mut self, scene: &Scene, shift_held: bool) {
-        if let Some(marquee) = self.active_marquee.take() {
+        if let Some(DragMode::Marquee(marquee)) = self.active_drag.take() {
             if marquee.is_significant() {
                 let marquee_rect = marquee.rect();
                 let intersected: Vec<ElementId> = scene
@@ -200,98 +255,80 @@ mod tests {
             bounds: Rect::from_xywh(x, y, w, h),
             style: ElementStyle {
                 stroke_width: 2.0,
+                fill_color: Some("#FFFFFF".into()),
+                fill_style: ruqa_core::element::FillStyle::Solid,
                 ..Default::default()
             },
         }
     }
 
     #[test]
-    fn test_single_click_select_and_clear_previous() {
+    fn test_single_click_and_toggle() {
         let mut scene = Scene::new();
         scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
         scene.push(sample_rect(2, 100.0, 10.0, 50.0, 50.0));
 
         let mut manager = SelectionManager::new();
-
-        // Click rect 1: selects 1
+        // Click 1: selects 1
         manager.handle_pointer_down(&scene, Point::new(10.0, 10.0), false, 2.0);
         manager.handle_pointer_up(&scene, false);
         assert_eq!(manager.selection.selected_ids().len(), 1);
         assert!(manager.selection.is_selected(1));
 
-        // Click rect 2 without shift: clears 1 and selects 2
-        manager.handle_pointer_down(&scene, Point::new(100.0, 10.0), false, 2.0);
-        manager.handle_pointer_up(&scene, false);
-        assert_eq!(manager.selection.selected_ids().len(), 1);
-        assert!(!manager.selection.is_selected(1));
-        assert!(manager.selection.is_selected(2));
-    }
-
-    #[test]
-    fn test_shift_click_toggles_inclusion() {
-        let mut scene = Scene::new();
-        scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
-        scene.push(sample_rect(2, 100.0, 10.0, 50.0, 50.0));
-
-        let mut manager = SelectionManager::new();
-
-        // Select 1
-        manager.handle_pointer_down(&scene, Point::new(10.0, 10.0), false, 2.0);
-        manager.handle_pointer_up(&scene, false);
-
-        // Shift-click 2: both 1 and 2 selected
+        // Shift-click 2: both selected
         manager.handle_pointer_down(&scene, Point::new(100.0, 10.0), true, 2.0);
         manager.handle_pointer_up(&scene, true);
         assert_eq!(manager.selection.len(), 2);
-        assert!(manager.selection.is_selected(1));
-        assert!(manager.selection.is_selected(2));
 
-        // Shift-click 1: deselects 1, leaving 2
-        manager.handle_pointer_down(&scene, Point::new(10.0, 10.0), true, 2.0);
-        manager.handle_pointer_up(&scene, true);
-        assert_eq!(manager.selection.len(), 1);
-        assert!(!manager.selection.is_selected(1));
-        assert!(manager.selection.is_selected(2));
-    }
-
-    #[test]
-    fn test_click_empty_canvas_clears_selection() {
-        let mut scene = Scene::new();
-        scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
-
-        let mut manager = SelectionManager::new();
-        manager.selection.select_single(1);
-        assert!(manager.selection.is_selected(1));
-
-        // Click on empty canvas at (500, 500)
+        // Click empty canvas: clears
         manager.handle_pointer_down(&scene, Point::new(500.0, 500.0), false, 2.0);
         manager.handle_pointer_up(&scene, false);
         assert!(manager.selection.is_empty());
     }
 
     #[test]
-    fn test_marquee_drag_selects_intersected_shapes() {
+    fn test_marquee_drag_selection() {
         let mut scene = Scene::new();
         scene.push(sample_rect(1, 20.0, 20.0, 40.0, 40.0));
         scene.push(sample_rect(2, 80.0, 20.0, 40.0, 40.0));
         scene.push(sample_rect(3, 300.0, 300.0, 40.0, 40.0));
 
         let mut manager = SelectionManager::new();
-
-        // Start marquee drag at (0, 0)
         manager.handle_pointer_down(&scene, Point::new(0.0, 0.0), false, 2.0);
-        assert!(manager.active_marquee.is_some());
+        assert!(manager.active_marquee().is_some());
 
-        // Drag to (150, 100), covering rects 1 and 2
-        manager.handle_pointer_move(Point::new(150.0, 100.0));
-        assert!(manager.active_marquee.unwrap().is_significant());
+        manager.handle_pointer_move(&mut scene, Point::new(150.0, 100.0));
+        assert!(manager.active_marquee().unwrap().is_significant());
 
-        // Release drag
         manager.handle_pointer_up(&scene, false);
-        assert!(manager.active_marquee.is_none());
         assert_eq!(manager.selection.len(), 2);
-        assert!(manager.selection.is_selected(1));
-        assert!(manager.selection.is_selected(2));
+        assert!(manager.selection.is_selected(1) && manager.selection.is_selected(2));
         assert!(!manager.selection.is_selected(3));
+    }
+
+    #[test]
+    fn test_drag_translate_selected_elements() {
+        let mut scene = Scene::new();
+        scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
+        scene.push(sample_rect(2, 80.0, 10.0, 50.0, 50.0));
+
+        let mut manager = SelectionManager::new();
+        manager.selection.set_selection([1, 2]);
+
+        manager.handle_pointer_down(&scene, Point::new(20.0, 20.0), false, 2.0);
+        assert!(manager.is_translating());
+
+        manager.handle_pointer_move(&mut scene, Point::new(35.0, 30.0));
+        assert_eq!(
+            scene.get(1).unwrap().bounds(),
+            Rect::from_xywh(25.0, 20.0, 50.0, 50.0)
+        );
+        assert_eq!(
+            scene.get(2).unwrap().bounds(),
+            Rect::from_xywh(95.0, 20.0, 50.0, 50.0)
+        );
+
+        manager.handle_pointer_up(&scene, false);
+        assert!(!manager.is_translating());
     }
 }

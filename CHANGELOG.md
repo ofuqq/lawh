@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Interactive drag translation of single and multi-selected canvas elements in `ruqa-app` tracking cursor motion smoothly across viewport zoom levels (fixes #21).
+- Translation methods on geometric primitives and scene graph (`Element::translate`, `Rect::translate`, `Scene::translate_elements`) in `ruqa-core` (fixes #21).
 - Selection outline and 8 resize handles rasterizer (`render_selection`) in `ruqa-render` with constant 8x8 screen-pixel handle size regardless of camera zoom (fixes #20).
 - Multi-selection aggregate bounding box calculation (`Scene::selection_bounds`) in `ruqa-core` enclosing single and multiple selected elements (fixes #20).
 - Modularized OS window event handling in `ruqa-app` via dedicated `window_handler` keeping all source modules under ~350 LOC (fixes #20).

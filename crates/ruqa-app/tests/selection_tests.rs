@@ -73,15 +73,15 @@ fn test_app_marquee_drag_selection() {
     // Start marquee drag at world (-150, -150) -> screen (490, 250)
     app.handle_cursor_moved(490.0, 250.0);
     app.handle_mouse_input(ElementState::Pressed, MouseButton::Left);
-    assert!(app.selection.active_marquee.is_some());
+    assert!(app.selection.active_marquee().is_some());
 
     // Drag to world (0, -50) -> screen (640, 350)
     app.handle_cursor_moved(640.0, 350.0);
-    assert!(app.selection.active_marquee.unwrap().is_significant());
+    assert!(app.selection.active_marquee().unwrap().is_significant());
 
     // Release mouse
     app.handle_mouse_input(ElementState::Released, MouseButton::Left);
-    assert!(app.selection.active_marquee.is_none());
+    assert!(app.selection.active_marquee().is_none());
 
     // Both rects 10 and 20 selected, rect 30 not selected
     assert_eq!(app.selection.selection.len(), 2);
@@ -105,9 +105,40 @@ fn test_space_pan_does_not_trigger_marquee() {
     app.handle_mouse_input(ElementState::Released, MouseButton::Left);
 
     // Marquee should NOT be active and selection should remain empty
-    assert!(app.selection.active_marquee.is_none());
+    assert!(app.selection.active_marquee().is_none());
     assert!(app.selection.selection.is_empty());
     assert!(app.pointer.panned_during_press);
+}
+
+#[test]
+fn test_drag_translate_selected_shapes_in_app() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, -50.0, -50.0, 100.0, 100.0));
+    app.scene.push(sample_rect(2, 100.0, -50.0, 100.0, 100.0));
+
+    app.selection.selection.set_selection([1, 2]);
+
+    // Click on boundary of rect 1 at world (-50, 0) -> screen (590, 400)
+    app.handle_cursor_moved(590.0, 400.0);
+    app.handle_mouse_input(ElementState::Pressed, MouseButton::Left);
+    assert!(app.selection.is_translating());
+
+    // Drag 50px right and 30px down -> screen (640, 430)
+    app.handle_cursor_moved(640.0, 430.0);
+
+    // Both shapes translated by (+50, +30)
+    assert_eq!(
+        app.scene.get(1).unwrap().bounds(),
+        Rect::from_xywh(0.0, -20.0, 100.0, 100.0)
+    );
+    assert_eq!(
+        app.scene.get(2).unwrap().bounds(),
+        Rect::from_xywh(150.0, -20.0, 100.0, 100.0)
+    );
+
+    // Release mouse
+    app.handle_mouse_input(ElementState::Released, MouseButton::Left);
+    assert!(!app.selection.is_translating());
 }
 
 #[test]
