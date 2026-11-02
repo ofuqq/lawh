@@ -4,6 +4,7 @@ use crate::event_dispatch::{PointerState, ViewportCamera};
 use softbuffer::{Context, Surface};
 use std::num::NonZeroU32;
 use std::sync::Arc;
+use tracing::{debug, info, warn};
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalSize;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
@@ -67,11 +68,22 @@ impl ApplicationHandler for WhiteboardApp {
             let window = Arc::new(w);
             if let Ok(context) = Context::new(window.clone()) {
                 if let Ok(surface) = Surface::new(&context, window.clone()) {
+                    info!(
+                        width = self.size.width,
+                        height = self.size.height,
+                        "window created"
+                    );
                     self.context = Some(context);
                     self.surface = Some(surface);
                     self.window = Some(window);
+                } else {
+                    warn!("failed to create softbuffer surface");
                 }
+            } else {
+                warn!("failed to create softbuffer context");
             }
+        } else {
+            warn!("failed to create winit window");
         }
     }
 
@@ -83,9 +95,19 @@ impl ApplicationHandler for WhiteboardApp {
     ) {
         match event {
             WindowEvent::CloseRequested => {
+                info!(
+                    frames = self.frames_presented,
+                    motion_events = self.motion_events_count,
+                    "window close requested; exiting"
+                );
                 event_loop.exit();
             }
             WindowEvent::Resized(new_size) => {
+                debug!(
+                    width = new_size.width,
+                    height = new_size.height,
+                    "window resized"
+                );
                 self.size = new_size;
                 if let (Some(surface), Some(w), Some(h)) = (
                     &mut self.surface,

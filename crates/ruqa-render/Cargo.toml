@@ -14,6 +14,8 @@ ruqa-core = { path = "../ruqa-core" }
 tiny-skia = "0.11"
 roughr = "0.14"
 parley = { version = "0.12", default-features = false, features = ["std"] }
+tracing = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 

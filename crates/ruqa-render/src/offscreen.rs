@@ -2,6 +2,7 @@
 
 use std::path::Path;
 use tiny_skia::{Color, Paint, Path as SkiaPath, Pixmap, PremultipliedColorU8, Stroke, Transform};
+use tracing::debug;
 
 /// Offscreen canvas for headless rendering and visual regression verification.
 pub struct OffscreenCanvas {
@@ -63,8 +64,10 @@ impl OffscreenCanvas {
 
     /// Encodes canvas to PNG file.
     pub fn save_png(&self, path: impl AsRef<Path>) -> Result<(), std::io::Error> {
+        let path_ref = path.as_ref();
+        debug!(path = %path_ref.display(), width = self.width(), height = self.height(), "saving PNG");
         self.pixmap
-            .save_png(path)
+            .save_png(path_ref)
             .map_err(|e| std::io::Error::other(e.to_string()))
     }
 }

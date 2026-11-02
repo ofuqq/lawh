@@ -10,5 +10,7 @@ description = "Core geometry, data models, and document serialization for Ruqa w
 readme = "README.md"
 
 [dependencies]
+tracing = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]

@@ -5,6 +5,8 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod error;
+
 /// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

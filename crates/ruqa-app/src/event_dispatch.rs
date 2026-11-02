@@ -1,4 +1,8 @@
 //! Mouse event dispatch, viewport transformations, and zero-allocation pointer tracking.
+//!
+//! **Hot-path guarantee**: No `tracing` calls are made inside [`PointerState::update_cursor`]
+//! or [`ViewportCamera::pan`] / [`ViewportCamera::zoom_at`]. Those run every mouse-move event
+//! (up to 1000 Hz on gaming mice) and must stay allocation-free and branch-minimal.
 
 /// State of mouse pointers and modifier keys.
 #[derive(Debug, Clone, Copy, Default)]

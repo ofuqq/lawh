@@ -6,6 +6,11 @@ members = [
   "crates/ruqa-app",
 ]
 
+[workspace.dependencies]
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "env-filter", "ansi"] }
+thiserror = "2"
+
 [workspace.package]
 version = "0.0.1"
 edition = "2021"
