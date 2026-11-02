@@ -1,0 +1,35 @@
+# Weekly cargo-deny audit
+#
+# Runs every Monday at 00:00 UTC against the live advisory database to catch
+# newly published vulnerabilities in existing dependencies that the per-PR check
+# would miss (because Cargo.lock is only updated on explicit dependency bumps).
+#
+# Permissions: least-privilege (contents: read only).
+# All action steps are pinned to full commit SHAs; version comments are included.
+
+name: Scheduled Dependency Audit
+
+on:
+  schedule:
+    # Monday 00:00 UTC
+    - cron: "0 0 * * 1"
+  # Allow manual triggering from the Actions tab for ad-hoc audits.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: cargo-deny weekly audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run cargo-deny (licenses, bans, sources)
+        uses: EmbarkStudios/cargo-deny-action@c3bbe7e4e3f7baeee1a3dd9aec0a3b2aded580fb # v2.0.11
+        with:
+          command: check
+          arguments: --all-features
+          command-arguments: licenses bans sources
