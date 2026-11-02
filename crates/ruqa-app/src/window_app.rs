@@ -105,8 +105,11 @@ impl WhiteboardApp {
                     Point::new(logical_x as f32, logical_y as f32),
                     self.logical_size(),
                 );
-                self.selection
-                    .handle_pointer_move(&mut self.scene, world_pt);
+                self.selection.handle_pointer_move(
+                    &mut self.scene,
+                    world_pt,
+                    self.pointer.shift_held,
+                );
             }
         }
     }
@@ -122,13 +125,15 @@ impl WhiteboardApp {
                     if !self.pointer.is_panning() {
                         if let Some((cx, cy)) = self.pointer.cursor_pos {
                             #[allow(clippy::cast_possible_truncation)]
-                            let world_pt = self.viewport.screen_to_world(
-                                Point::new(cx as f32, cy as f32),
-                                self.logical_size(),
-                            );
+                            let screen_pt = Point::new(cx as f32, cy as f32);
+                            let logical_size = self.logical_size();
+                            let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
                             self.selection.handle_pointer_down(
                                 &self.scene,
                                 world_pt,
+                                screen_pt,
+                                &self.viewport,
+                                logical_size,
                                 self.pointer.shift_held,
                                 ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
                             );

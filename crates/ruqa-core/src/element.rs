@@ -4,57 +4,11 @@
 //! representing whiteboard vector shapes (rectangles, ellipses, diamonds, lines, arrows).
 
 use crate::geometry::{Point, Rect};
+pub use crate::style::{ElementStyle, FillStyle};
 use serde::{Deserialize, Serialize};
 
 /// Unique identifier for an element in the whiteboard scene.
 pub type ElementId = u64;
-
-/// Fill pattern style for closed whiteboard shapes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FillStyle {
-    /// No fill (transparent interior).
-    #[default]
-    None,
-    /// Solid single-color fill.
-    Solid,
-    /// Hand-drawn parallel hachure lines.
-    Hachure,
-    /// Crossed hand-drawn hatch lines.
-    CrossHatch,
-    /// Stippled dot pattern fill.
-    Dots,
-}
-
-/// Styling and roughness parameters for a whiteboard element.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ElementStyle {
-    /// Stroke outline color in hex format (e.g. `"#E0E0E0"`).
-    pub stroke_color: String,
-    /// Stroke outline width in world units (standard presets: 1.5, 3.0, 5.0).
-    pub stroke_width: f32,
-    /// Optional fill color in hex format (e.g. `"#1E88E5"`).
-    pub fill_color: Option<String>,
-    /// Fill pattern style.
-    pub fill_style: FillStyle,
-    /// Roughness factor (0.0 for crisp straight lines, 1.2 for hand-drawn, 2.5 for very sketchy).
-    pub roughness: f32,
-    /// Deterministic PRNG seed for reproducible rough lines across renders.
-    pub seed: u64,
-}
-
-impl Default for ElementStyle {
-    fn default() -> Self {
-        Self {
-            stroke_color: "#E0E0E0".to_string(),
-            stroke_width: 2.0,
-            fill_color: None,
-            fill_style: FillStyle::None,
-            roughness: 1.2,
-            seed: 0,
-        }
-    }
-}
 
 /// Algebraic enum representing any geometric whiteboard primitive.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -175,6 +129,43 @@ impl Element {
             Self::Stroke { points, .. } => {
                 for p in points {
                     *p = *p + delta;
+                }
+            }
+        }
+    }
+
+    /// Remaps the element geometry proportionally from `old_bounds` into `new_bounds`.
+    pub fn scale_from_bounds(&mut self, old_bounds: Rect, new_bounds: Rect) {
+        let old_w = old_bounds.width();
+        let old_h = old_bounds.height();
+        if old_w < 1e-4 || old_h < 1e-4 {
+            return;
+        }
+
+        let remap_point = |p: Point| -> Point {
+            let u = (p.x - old_bounds.min.x) / old_w;
+            let v = (p.y - old_bounds.min.y) / old_h;
+            Point::new(
+                new_bounds.min.x + (u * new_bounds.width()),
+                new_bounds.min.y + (v * new_bounds.height()),
+            )
+        };
+
+        match self {
+            Self::Rectangle { bounds, .. }
+            | Self::Ellipse { bounds, .. }
+            | Self::Diamond { bounds, .. } => {
+                let p1 = remap_point(bounds.min);
+                let p2 = remap_point(bounds.max);
+                *bounds = Rect::from_min_max(p1, p2);
+            }
+            Self::Line { start, end, .. } | Self::Arrow { start, end, .. } => {
+                *start = remap_point(*start);
+                *end = remap_point(*end);
+            }
+            Self::Stroke { points, .. } => {
+                for p in points {
+                    *p = remap_point(*p);
                 }
             }
         }

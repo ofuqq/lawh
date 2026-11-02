@@ -5,10 +5,12 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod drag;
 pub mod event_dispatch;
 pub mod logging;
 pub mod presenter;
 pub mod selection;
+pub mod selection_state;
 pub mod window_app;
 pub mod window_handler;
 

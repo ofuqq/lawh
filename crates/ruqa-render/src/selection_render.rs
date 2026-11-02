@@ -4,74 +4,9 @@
 //! bounding box and 8 perimeter resize handles that maintain a constant screen-pixel
 //! dimension regardless of camera zoom.
 
+pub use ruqa_core::geometry::{compute_resized_bounds, HandleKind, MIN_RESIZE_DIMENSION};
 use ruqa_core::geometry::{Point, Rect, Size, Viewport};
 use tiny_skia::{Color, Paint, PixmapMut, Transform};
-
-/// The 8 resize handles positioned along a selection perimeter.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum HandleKind {
-    /// Top-left corner handle (North-West).
-    TopLeft,
-    /// Top-center edge midpoint handle (North).
-    TopCenter,
-    /// Top-right corner handle (North-East).
-    TopRight,
-    /// Right-center edge midpoint handle (East).
-    RightCenter,
-    /// Bottom-right corner handle (South-East).
-    BottomRight,
-    /// Bottom-center edge midpoint handle (South).
-    BottomCenter,
-    /// Bottom-left corner handle (South-West).
-    BottomLeft,
-    /// Left-center edge midpoint handle (West).
-    LeftCenter,
-}
-
-impl HandleKind {
-    /// All 8 handles in clockwise order starting from Top-Left.
-    pub const ALL: [Self; 8] = [
-        Self::TopLeft,
-        Self::TopCenter,
-        Self::TopRight,
-        Self::RightCenter,
-        Self::BottomRight,
-        Self::BottomCenter,
-        Self::BottomLeft,
-        Self::LeftCenter,
-    ];
-
-    /// Returns `true` if this handle is one of the four corner handles.
-    #[must_use]
-    pub const fn is_corner(&self) -> bool {
-        matches!(
-            self,
-            Self::TopLeft | Self::TopRight | Self::BottomRight | Self::BottomLeft
-        )
-    }
-
-    /// Returns `true` if this handle is one of the four edge midpoint handles.
-    #[must_use]
-    pub const fn is_edge(&self) -> bool {
-        !self.is_corner()
-    }
-
-    /// Computes the anchor position of this handle on the given rectangle perimeter.
-    #[must_use]
-    pub fn point_on_rect(&self, rect: Rect) -> Point {
-        let center = rect.center();
-        match self {
-            Self::TopLeft => rect.min,
-            Self::TopCenter => Point::new(center.x, rect.min.y),
-            Self::TopRight => Point::new(rect.max.x, rect.min.y),
-            Self::RightCenter => Point::new(rect.max.x, center.y),
-            Self::BottomRight => rect.max,
-            Self::BottomCenter => Point::new(center.x, rect.max.y),
-            Self::BottomLeft => Point::new(rect.min.x, rect.max.y),
-            Self::LeftCenter => Point::new(rect.min.x, center.y),
-        }
-    }
-}
 
 /// A selection handle placed at a specific screen position with bounding box.
 #[derive(Debug, Clone, Copy, PartialEq)]

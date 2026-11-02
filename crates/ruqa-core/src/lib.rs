@@ -11,6 +11,7 @@ pub mod geometry;
 pub mod hit_test;
 pub mod scene;
 pub mod stroke;
+pub mod style;
 
 /// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

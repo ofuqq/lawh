@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Interactive scaling and resizing of selected canvas elements from 8 selection handles in `ruqa-app` with opposite-corner anchor pinning, single-axis edge dragging, Shift aspect ratio constraint, and 5x5 px minimum dimension clamping (fixes #22).
+- Resize geometry math (`compute_resized_bounds`, `HandleKind`, `MIN_RESIZE_DIMENSION`) and proportional element scaling (`Element::scale_from_bounds`) in `ruqa-core` (fixes #22).
+- Extracted `SelectionState` and `DragMode` submodules in `ruqa-app` and `style` module in `ruqa-core` keeping all source modules under ~350 LOC (fixes #22).
 - Interactive drag translation of single and multi-selected canvas elements in `ruqa-app` tracking cursor motion smoothly across viewport zoom levels (fixes #21).
 - Translation methods on geometric primitives and scene graph (`Element::translate`, `Rect::translate`, `Scene::translate_elements`) in `ruqa-core` (fixes #21).
 - Selection outline and 8 resize handles rasterizer (`render_selection`) in `ruqa-render` with constant 8x8 screen-pixel handle size regardless of camera zoom (fixes #20).
