@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Selection vs full diagram bounds export support in `ruqa-render` and `ruqa-app` (`export_elements_to_pixmap`, `export_elements_to_png`, `export_elements_to_png_file`, `has_active_selection`, `export_elements`) isolating selected elements with tight bounding boxes plus padding, or enclosing all scene elements when no selection is active, avoiding empty canvas margins (fixes #34).
 - Headless high-resolution PNG image export pipeline in `ruqa-render` (`export_png`, `PngExportOptions`, `export_scene_to_pixmap`, `export_scene_to_png`, `export_scene_to_png_file`) supporting custom resolution scale multipliers (1x, 2x HiDPI), transparent vs dark backgrounds, outer padding margins, and standard PNG encoding (fixes #33).
 - PNG export operations and shortcuts in `ruqa-app` (`export_actions`, `Ctrl+E`) computing aggregate board bounds and exporting crisp diagrams directly to disk (fixes #33).
 - `RenderError::PngEncode` error variant in `ruqa-core` capturing PNG encoding diagnostics (fixes #33).

@@ -59,6 +59,12 @@ impl SelectionManager {
         self.selection.is_empty()
     }
 
+    /// Returns `true` if the specified element is currently selected.
+    #[must_use]
+    pub fn is_selected(&self, id: ElementId) -> bool {
+        self.selection.is_selected(id)
+    }
+
     /// Clears all element selections and cancels any active drag gesture.
     pub fn clear(&mut self) {
         self.selection.clear();

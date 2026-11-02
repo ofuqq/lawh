@@ -25,6 +25,7 @@ pub mod vault_layout;
 pub mod vault_render;
 
 pub use export_png::{
+    export_elements_to_pixmap, export_elements_to_png, export_elements_to_png_file,
     export_scene_to_pixmap, export_scene_to_png, export_scene_to_png_file, PngExportOptions,
 };
 pub use grid_render::{render_grid, GridConfig, GridStyle};

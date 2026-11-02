@@ -103,3 +103,43 @@ fn test_empty_scene_export_succeeds_without_panic() {
     assert!(tmp.is_file());
     let _ = fs::remove_file(&tmp);
 }
+
+#[test]
+fn test_export_png_tight_selection_bounds_vs_full_diagram() {
+    let mut app = WhiteboardApp::new();
+    let rect_a = sample_rect(1, 10.0, 10.0, 50.0, 50.0);
+    let rect_b = sample_rect(2, 500.0, 500.0, 100.0, 100.0);
+    app.scene.push(rect_a);
+    app.scene.push(rect_b);
+
+    // 1. With no selection, export bounds enclose both elements (full canvas diagram)
+    assert!(!app.has_active_selection());
+    let full_bounds = app.export_bounds();
+    assert_eq!(full_bounds.min.x, 9.0);
+    assert_eq!(full_bounds.min.y, 9.0);
+    assert_eq!(full_bounds.max.x, 601.0);
+    assert_eq!(full_bounds.max.y, 601.0);
+    assert_eq!(app.export_elements().len(), 2);
+
+    // 2. Select only Rect A
+    app.selection.set_selection(vec![1]);
+    assert!(app.has_active_selection());
+    let sel_bounds = app.export_bounds();
+    assert_eq!(sel_bounds.min.x, 9.0);
+    assert_eq!(sel_bounds.min.y, 9.0);
+    assert_eq!(sel_bounds.max.x, 61.0);
+    assert_eq!(sel_bounds.max.y, 61.0);
+    let sel_elements = app.export_elements();
+    assert_eq!(sel_elements.len(), 1);
+    assert_eq!(sel_elements[0].id(), 1);
+
+    // 3. Export selection to PNG and verify file is created
+    let tmp = std::env::temp_dir().join(format!("ruqa_export_sel_{}.png", std::process::id()));
+    let _ = fs::remove_file(&tmp);
+
+    app.export_png(&tmp, &PngExportOptions::default()).unwrap();
+    assert!(tmp.is_file());
+    let bytes = fs::read(&tmp).unwrap();
+    assert_eq!(&bytes[0..8], b"\x89PNG\r\n\x1a\n");
+    let _ = fs::remove_file(&tmp);
+}

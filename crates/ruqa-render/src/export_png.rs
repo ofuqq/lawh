@@ -67,10 +67,10 @@ impl PngExportOptions {
     }
 }
 
-/// Renders the specified bounding region of a scene into an allocated [`tiny_skia::Pixmap`].
+/// Renders the specified sequence of elements within given bounds into an allocated [`tiny_skia::Pixmap`].
 #[must_use]
-pub fn export_scene_to_pixmap(
-    scene: &Scene,
+pub fn export_elements_to_pixmap<'a>(
+    elements: impl IntoIterator<Item = &'a ruqa_core::element::Element>,
     bounds: Rect,
     options: &PngExportOptions,
 ) -> Option<Pixmap> {
@@ -105,23 +105,33 @@ pub fn export_scene_to_pixmap(
     let ty = (padding - bounds.min.y) * scale;
     let transform = Transform::from_row(scale, 0.0, 0.0, scale, tx, ty);
 
-    for elem in scene.elements() {
+    for elem in elements {
         render_element(elem, &mut pixmap.as_mut(), transform);
     }
 
     Some(pixmap)
 }
 
-/// Renders a canvas scene and encodes it directly into a PNG byte buffer.
-///
-/// # Errors
-/// Returns [`RenderError`] if dimensions are invalid or PNG encoding fails.
-pub fn export_scene_to_png(
+/// Renders the specified bounding region of a scene into an allocated [`tiny_skia::Pixmap`].
+#[must_use]
+pub fn export_scene_to_pixmap(
     scene: &Scene,
     bounds: Rect,
     options: &PngExportOptions,
+) -> Option<Pixmap> {
+    export_elements_to_pixmap(scene.elements(), bounds, options)
+}
+
+/// Renders a collection of elements and encodes them directly into a PNG byte buffer.
+///
+/// # Errors
+/// Returns [`RenderError`] if dimensions are invalid or PNG encoding fails.
+pub fn export_elements_to_png<'a>(
+    elements: impl IntoIterator<Item = &'a ruqa_core::element::Element>,
+    bounds: Rect,
+    options: &PngExportOptions,
 ) -> Result<Vec<u8>, RenderError> {
-    let pixmap = export_scene_to_pixmap(scene, bounds, options).ok_or_else(|| {
+    let pixmap = export_elements_to_pixmap(elements, bounds, options).ok_or_else(|| {
         let scale = options.scale.clamp(0.1, 16.0);
         let padded_w = bounds.width() + (options.padding.max(0.0) * 2.0);
         let padded_h = bounds.height() + (options.padding.max(0.0) * 2.0);
@@ -137,18 +147,30 @@ pub fn export_scene_to_png(
     })
 }
 
-/// Renders a canvas scene to PNG and writes it atomically to the specified file path.
+/// Renders a canvas scene and encodes it directly into a PNG byte buffer.
+///
+/// # Errors
+/// Returns [`RenderError`] if dimensions are invalid or PNG encoding fails.
+pub fn export_scene_to_png(
+    scene: &Scene,
+    bounds: Rect,
+    options: &PngExportOptions,
+) -> Result<Vec<u8>, RenderError> {
+    export_elements_to_png(scene.elements(), bounds, options)
+}
+
+/// Renders a collection of elements to PNG and writes them atomically to the specified file path.
 ///
 /// # Errors
 /// Returns [`RenderError`] if rendering, PNG encoding, or filesystem write fails.
-pub fn export_scene_to_png_file(
-    scene: &Scene,
+pub fn export_elements_to_png_file<'a>(
+    elements: impl IntoIterator<Item = &'a ruqa_core::element::Element>,
     bounds: Rect,
     path: impl AsRef<Path>,
     options: &PngExportOptions,
 ) -> Result<(), RenderError> {
     let path = path.as_ref();
-    let png_bytes = export_scene_to_png(scene, bounds, options)?;
+    let png_bytes = export_elements_to_png(elements, bounds, options)?;
 
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| RenderError::ImageWrite {
@@ -161,6 +183,19 @@ pub fn export_scene_to_png_file(
         path: path.to_path_buf(),
         source: e,
     })
+}
+
+/// Renders a canvas scene to PNG and writes it atomically to the specified file path.
+///
+/// # Errors
+/// Returns [`RenderError`] if rendering, PNG encoding, or filesystem write fails.
+pub fn export_scene_to_png_file(
+    scene: &Scene,
+    bounds: Rect,
+    path: impl AsRef<Path>,
+    options: &PngExportOptions,
+) -> Result<(), RenderError> {
+    export_elements_to_png_file(scene.elements(), bounds, path, options)
 }
 
 #[cfg(test)]
@@ -229,5 +264,23 @@ mod tests {
         let read_bytes = fs::read(&tmp).unwrap();
         assert_eq!(read_bytes, bytes);
         let _ = fs::remove_file(&tmp);
+    }
+
+    #[test]
+    fn test_export_elements_subset_renders_tight_bounds() {
+        let elem1 = sample_rect(1, 0.0, 0.0, 50.0, 50.0);
+        let _elem2 = sample_rect(2, 500.0, 500.0, 100.0, 100.0);
+        let elements = vec![&elem1];
+
+        let bounds = Rect::from_xywh(0.0, 0.0, 50.0, 50.0);
+        let options = PngExportOptions {
+            scale: 1.0,
+            padding: 20.0,
+            ..Default::default()
+        };
+
+        let pixmap = export_elements_to_pixmap(elements, bounds, &options).unwrap();
+        assert_eq!(pixmap.width(), 90);
+        assert_eq!(pixmap.height(), 90);
     }
 }

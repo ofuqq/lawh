@@ -1,9 +1,10 @@
 //! PNG image export actions and shortcut handling for [`WhiteboardApp`].
 
 use crate::window_app::WhiteboardApp;
+use ruqa_core::element::Element;
 use ruqa_core::error::RenderError;
 use ruqa_core::geometry::Rect;
-use ruqa_render::export_png::{export_scene_to_png_file, PngExportOptions};
+use ruqa_render::export_png::{export_elements_to_png_file, PngExportOptions};
 use std::path::{Path, PathBuf};
 use tracing::info;
 
@@ -18,21 +19,48 @@ impl WhiteboardApp {
         }
     }
 
-    /// Calculates the diagram bounding box for export (whole board aggregate bounds).
+    /// Returns `true` if one or more canvas elements are actively selected.
+    #[must_use]
+    pub fn has_active_selection(&self) -> bool {
+        !self.selection.is_empty()
+    }
+
+    /// Calculates the tight export bounding box.
+    ///
+    /// If elements are selected, returns the bounding box enclosing the selection.
+    /// If nothing is selected, returns the bounding box enclosing all scene elements.
     #[must_use]
     pub fn export_bounds(&self) -> Rect {
-        let ids: Vec<u64> = self
-            .scene
-            .elements()
-            .iter()
-            .map(ruqa_core::element::Element::id)
-            .collect();
+        if self.has_active_selection() {
+            if let Some(bounds) = self.scene.selection_bounds(self.selection.selected_ids()) {
+                return bounds;
+            }
+        }
+
+        let ids: Vec<u64> = self.scene.elements().iter().map(Element::id).collect();
         self.scene
             .selection_bounds(&ids)
             .unwrap_or_else(|| Rect::from_xywh(0.0, 0.0, 200.0, 150.0))
     }
 
-    /// Exports the current canvas scene to a high-resolution PNG file.
+    /// Returns the collection of elements to be rendered in the export.
+    ///
+    /// If elements are selected, yields only the selected elements.
+    /// If nothing is selected, yields all elements on the canvas.
+    #[must_use]
+    pub fn export_elements(&self) -> Vec<&Element> {
+        if self.has_active_selection() {
+            self.scene
+                .elements()
+                .iter()
+                .filter(|e| self.selection.is_selected(e.id()))
+                .collect()
+        } else {
+            self.scene.elements().iter().collect()
+        }
+    }
+
+    /// Exports the current canvas or selection to a high-resolution PNG file.
     ///
     /// # Errors
     /// Returns [`RenderError`] if rendering, PNG encoding, or filesystem write fails.
@@ -43,8 +71,14 @@ impl WhiteboardApp {
     ) -> Result<(), RenderError> {
         let path = path.as_ref();
         let bounds = self.export_bounds();
-        export_scene_to_png_file(&self.scene, bounds, path, options)?;
-        info!(path = ?path, scale = options.scale, "exported canvas to PNG image");
+        let elements = self.export_elements();
+        export_elements_to_png_file(elements, bounds, path, options)?;
+        info!(
+            path = ?path,
+            is_selection = self.has_active_selection(),
+            scale = options.scale,
+            "exported canvas to PNG image"
+        );
         Ok(())
     }
 
