@@ -15,9 +15,11 @@ pub mod migration;
 pub mod scene;
 pub mod stroke;
 pub mod style;
+pub mod tool;
 
 pub use document::RuqaDocument;
 pub use history::{Command, HistoryStack};
+pub use tool::Tool;
 
 /// Version indicator for the ruqa-core library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

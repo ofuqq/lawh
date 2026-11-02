@@ -13,8 +13,7 @@ use std::sync::Arc;
 use tiny_skia::Transform;
 use tracing::warn;
 use winit::dpi::PhysicalSize;
-use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta};
-use winit::keyboard::{Key, NamedKey};
+use winit::event::{ElementState, MouseButton, MouseScrollDelta};
 use winit::window::Window;
 
 /// Default logical window width in CSS pixels.
@@ -56,6 +55,12 @@ pub struct WhiteboardApp {
     pub autosave_interval: std::time::Duration,
     /// Timestamp of the most recent modification while dirty.
     pub last_dirty_time: Option<std::time::Instant>,
+    /// Active tool mode selected in the toolbar HUD.
+    pub active_tool: ruqa_core::tool::Tool,
+    /// Currently hovered toolbar button, if cursor is over the toolbar.
+    pub hovered_tool: Option<ruqa_core::tool::Tool>,
+    /// Whether the pointer was pressed inside the toolbar HUD.
+    pub toolbar_pressed: bool,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -89,6 +94,9 @@ impl WhiteboardApp {
             is_dirty: false,
             autosave_interval: DEFAULT_AUTOSAVE_INTERVAL,
             last_dirty_time: None,
+            active_tool: ruqa_core::tool::Tool::default(),
+            hovered_tool: None,
+            toolbar_pressed: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,
@@ -111,6 +119,14 @@ impl WhiteboardApp {
         self.motion_events_count += 1;
         let logical_x = physical_x / self.scale_factor;
         let logical_y = physical_y / self.scale_factor;
+        #[allow(clippy::cast_possible_truncation)]
+        let screen_pt = Point::new(logical_x as f32, logical_y as f32);
+        self.handle_toolbar_cursor_moved(screen_pt);
+
+        if self.toolbar_pressed {
+            return;
+        }
+
         if let Some((dx, dy)) = self.pointer.update_cursor(logical_x, logical_y) {
             if self.pointer.is_panning() {
                 self.pointer.panned_during_press = true;
@@ -142,6 +158,13 @@ impl WhiteboardApp {
                 self.pointer.left_pressed = pressed;
                 if pressed {
                     self.pointer.panned_during_press = false;
+                    if let Some((cx, cy)) = self.pointer.cursor_pos {
+                        #[allow(clippy::cast_possible_truncation)]
+                        let screen_pt = Point::new(cx as f32, cy as f32);
+                        if self.handle_toolbar_pointer_down(screen_pt) {
+                            return;
+                        }
+                    }
                     if !self.pointer.is_panning() {
                         if let Some((cx, cy)) = self.pointer.cursor_pos {
                             #[allow(clippy::cast_possible_truncation)]
@@ -159,13 +182,18 @@ impl WhiteboardApp {
                             );
                         }
                     }
-                } else if !self.pointer.panned_during_press {
-                    if let Some(cmd) = self
-                        .selection
-                        .handle_pointer_up(&self.scene, self.pointer.shift_held)
-                    {
-                        self.history.push(cmd);
-                        self.mark_dirty();
+                } else {
+                    if self.handle_toolbar_pointer_up() {
+                        return;
+                    }
+                    if !self.pointer.panned_during_press {
+                        if let Some(cmd) = self
+                            .selection
+                            .handle_pointer_up(&self.scene, self.pointer.shift_held)
+                        {
+                            self.history.push(cmd);
+                            self.mark_dirty();
+                        }
                     }
                 }
             }
@@ -193,65 +221,6 @@ impl WhiteboardApp {
         }
     }
 
-    /// Handles key state changes directly by logical key and element state.
-    pub fn handle_key(&mut self, key: &Key, state: ElementState) {
-        let pressed = state == ElementState::Pressed;
-        if matches!(key, Key::Named(NamedKey::Space)) {
-            self.pointer.space_held = pressed;
-        }
-        if matches!(key, Key::Named(NamedKey::Shift)) {
-            self.pointer.shift_held = pressed;
-        }
-        if matches!(key, Key::Named(NamedKey::Control | NamedKey::Super)) {
-            self.pointer.ctrl_held = pressed;
-        }
-
-        if pressed {
-            if matches!(key, Key::Named(NamedKey::Delete | NamedKey::Backspace)) {
-                self.delete_selected();
-            } else if self.pointer.ctrl_held {
-                match key {
-                    Key::Character(c) if c.eq_ignore_ascii_case("z") => {
-                        let changed = if self.pointer.shift_held {
-                            self.history.redo(&mut self.scene)
-                        } else {
-                            self.history.undo(&mut self.scene)
-                        };
-                        if changed {
-                            self.mark_dirty();
-                            self.request_redraw();
-                        }
-                    }
-                    Key::Character(c) if c.eq_ignore_ascii_case("y") => {
-                        let changed = self.history.redo(&mut self.scene);
-                        if changed {
-                            self.mark_dirty();
-                            self.request_redraw();
-                        }
-                    }
-                    Key::Character(c) if c.eq_ignore_ascii_case("d") => {
-                        self.duplicate_selected();
-                    }
-                    Key::Character(c) if c.eq_ignore_ascii_case("c") => {
-                        self.copy_selected();
-                    }
-                    Key::Character(c) if c.eq_ignore_ascii_case("v") => {
-                        self.paste_clipboard();
-                    }
-                    Key::Character(c) if c.eq_ignore_ascii_case("s") => {
-                        let _ = self.save();
-                    }
-                    _ => {}
-                }
-            }
-        }
-    }
-
-    /// Handles keyboard events (e.g. Spacebar held for panning, Shift for multi-selection, Ctrl+Z/Y for undo/redo).
-    pub fn handle_keyboard_input(&mut self, event: &KeyEvent) {
-        self.handle_key(&event.logical_key, event.state);
-    }
-
     /// Handles window focus changes (clearing held inputs on focus loss).
     pub fn handle_focused(&mut self, focused: bool) {
         if !focused {
@@ -275,6 +244,7 @@ impl WhiteboardApp {
         let pan = self.viewport.pan;
         let active_marquee = self.selection.active_marquee();
         let selection_bounds = self.scene.selection_bounds(self.selection.selected_ids());
+        let toolbar_layout = ruqa_render::toolbar_render::ToolbarLayout::new(logical_size.width);
 
         let Some(presenter) = &mut self.presenter else {
             return;
@@ -313,6 +283,15 @@ impl WhiteboardApp {
                 transform,
             );
         }
+
+        ruqa_render::toolbar_render::render_toolbar(
+            &mut presenter.pixmap_mut().as_mut(),
+            &toolbar_layout,
+            self.active_tool,
+            self.hovered_tool,
+            self.scale_factor,
+            &ruqa_render::toolbar_render::ToolbarStyle::default(),
+        );
 
         if let Err(e) = presenter.present() {
             warn!(?e, "frame present failed");

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Minimal floating top HUD toolbar for tool selection in `ruqa-render` and `ruqa-app` featuring rounded dark theme styling, active badge highlights, and custom vector icons for all 8 tools (Select, Pen, Rectangle, Ellipse, Diamond, Line, Arrow, Eraser) (fixes #26).
+- Canvas click isolation and hit-testing preventing toolbar clicks from placing shapes or selecting elements underneath (fixes #26).
+- `Tool` enumeration and canonical tool definitions in `ruqa-core` (fixes #26).
 - Atomic crash-safe document saving in `ruqa-core` writing payloads to sibling temporary files (`.<filename>.tmp`) with disk syncing (`sync_all`) before atomic replacement (`std::fs::rename`) (fixes #54).
 - Automatic background autosave in `ruqa-app` triggered after 30 seconds of inactivity when documents are dirty and have assigned file paths (fixes #54).
 - Document dirty state tracking (`is_dirty: bool`) and dynamic OS window title updates (`Ruqa - filename.ruqa*`, `Ruqa - Untitled*`) in `ruqa-app` (fixes #25).
