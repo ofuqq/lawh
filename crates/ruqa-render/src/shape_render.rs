@@ -194,6 +194,36 @@ pub fn render_scene_viewport(
     }
 }
 
+/// Renders a semi-transparent rectangular selection marquee with a solid border.
+pub fn render_marquee(
+    rect: ruqa_core::geometry::Rect,
+    pixmap: &mut PixmapMut<'_>,
+    transform: Transform,
+) {
+    let Some(skia_rect) =
+        tiny_skia::Rect::from_xywh(rect.min.x, rect.min.y, rect.width(), rect.height())
+    else {
+        return;
+    };
+
+    // Semi-transparent blue fill
+    let mut fill_paint = Paint::default();
+    fill_paint.set_color_rgba8(25, 118, 210, 38);
+    fill_paint.anti_alias = true;
+    pixmap.fill_rect(skia_rect, &fill_paint, transform, None);
+
+    // Subtle blue outline border
+    let mut stroke_paint = Paint::default();
+    stroke_paint.set_color_rgba8(25, 118, 210, 204);
+    stroke_paint.anti_alias = true;
+    let stroke = tiny_skia::Stroke {
+        width: 1.0,
+        ..Default::default()
+    };
+    let path = tiny_skia::PathBuilder::from_rect(skia_rect);
+    pixmap.stroke_path(&path, &stroke_paint, &stroke, transform, None);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

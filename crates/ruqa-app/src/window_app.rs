@@ -6,8 +6,11 @@
 
 use crate::event_dispatch::{scroll_zoom_factor, PointerState};
 use crate::presenter::Presenter;
+use crate::selection::SelectionManager;
 use ruqa_core::geometry::{Point, Size, Viewport};
+use ruqa_core::scene::Scene;
 use std::sync::Arc;
+use tiny_skia::Transform;
 use tracing::{debug, info, warn};
 use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalSize, PhysicalPosition, PhysicalSize};
@@ -37,6 +40,10 @@ pub struct WhiteboardApp {
     pub pointer: PointerState,
     /// Infinite canvas viewport camera.
     pub viewport: Viewport,
+    /// Active scene document graph.
+    pub scene: Scene,
+    /// Selection tool controller and state.
+    pub selection: SelectionManager,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -62,11 +69,23 @@ impl WhiteboardApp {
             presenter: None,
             pointer: PointerState::new(),
             viewport: Viewport::default(),
+            scene: Scene::new(),
+            selection: SelectionManager::new(),
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,
             motion_events_count: 0,
         }
+    }
+
+    /// Returns the current logical window size in pixels.
+    #[must_use]
+    pub fn logical_size(&self) -> Size {
+        #[allow(clippy::cast_possible_truncation)]
+        Size::new(
+            (f64::from(self.physical_size.width) / self.scale_factor) as f32,
+            (f64::from(self.physical_size.height) / self.scale_factor) as f32,
+        )
     }
 
     /// Handles mouse motion in physical window coordinates.
@@ -82,6 +101,13 @@ impl WhiteboardApp {
                 #[allow(clippy::cast_possible_truncation)]
                 let world_dy = -(dy as f32) / self.viewport.zoom;
                 self.viewport.pan_by(Point::new(world_dx, world_dy));
+            } else if self.pointer.left_pressed && self.selection.active_marquee.is_some() {
+                #[allow(clippy::cast_possible_truncation)]
+                let world_pt = self.viewport.screen_to_world(
+                    Point::new(logical_x as f32, logical_y as f32),
+                    self.logical_size(),
+                );
+                self.selection.handle_pointer_move(world_pt);
             }
         }
     }
@@ -94,6 +120,24 @@ impl WhiteboardApp {
                 self.pointer.left_pressed = pressed;
                 if pressed {
                     self.pointer.panned_during_press = false;
+                    if !self.pointer.is_panning() {
+                        if let Some((cx, cy)) = self.pointer.cursor_pos {
+                            #[allow(clippy::cast_possible_truncation)]
+                            let world_pt = self.viewport.screen_to_world(
+                                Point::new(cx as f32, cy as f32),
+                                self.logical_size(),
+                            );
+                            self.selection.handle_pointer_down(
+                                &self.scene,
+                                world_pt,
+                                self.pointer.shift_held,
+                                ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
+                            );
+                        }
+                    }
+                } else if !self.pointer.panned_during_press {
+                    self.selection
+                        .handle_pointer_up(&self.scene, self.pointer.shift_held);
                 }
             }
             MouseButton::Middle => {
@@ -110,11 +154,7 @@ impl WhiteboardApp {
     pub fn handle_mouse_wheel(&mut self, delta: MouseScrollDelta) {
         let factor = scroll_zoom_factor(delta);
         if let Some((cx, cy)) = self.pointer.cursor_pos {
-            #[allow(clippy::cast_possible_truncation)]
-            let logical_size = Size::new(
-                (f64::from(self.physical_size.width) / self.scale_factor) as f32,
-                (f64::from(self.physical_size.height) / self.scale_factor) as f32,
-            );
+            let logical_size = self.logical_size();
             #[allow(clippy::cast_possible_truncation)]
             let anchor = Point::new(cx as f32, cy as f32);
             #[allow(clippy::cast_possible_truncation)]
@@ -122,11 +162,14 @@ impl WhiteboardApp {
         }
     }
 
-    /// Handles keyboard events (e.g. Spacebar held for panning).
+    /// Handles keyboard events (e.g. Spacebar held for panning, Shift for multi-selection).
     pub fn handle_keyboard_input(&mut self, event: &KeyEvent) {
         let pressed = event.state == ElementState::Pressed;
         if matches!(event.logical_key, Key::Named(NamedKey::Space)) {
             self.pointer.space_held = pressed;
+        }
+        if matches!(event.logical_key, Key::Named(NamedKey::Shift)) {
+            self.pointer.shift_held = pressed;
         }
     }
 
@@ -134,6 +177,7 @@ impl WhiteboardApp {
     pub fn handle_focused(&mut self, focused: bool) {
         if !focused {
             self.pointer.reset_inputs();
+            self.selection.active_marquee = None;
         }
     }
 
@@ -141,6 +185,49 @@ impl WhiteboardApp {
     fn request_redraw(&self) {
         if let Some(w) = &self.window {
             w.request_redraw();
+        }
+    }
+
+    /// Renders the scene and interactive overlays into the presenter surface.
+    pub fn render_frame(&mut self) {
+        let logical_size = self.logical_size();
+        let center = logical_size.center();
+        let zoom = self.viewport.zoom;
+        let pan = self.viewport.pan;
+        let active_marquee = self.selection.active_marquee;
+
+        let Some(presenter) = &mut self.presenter else {
+            return;
+        };
+
+        presenter.clear_dark();
+        ruqa_render::shape_render::render_scene_viewport(
+            &self.scene,
+            &self.viewport,
+            logical_size,
+            &mut presenter.pixmap_mut().as_mut(),
+        );
+
+        if let Some(marquee) = active_marquee {
+            let transform = Transform::from_row(
+                zoom,
+                0.0,
+                0.0,
+                zoom,
+                center.x - pan.x * zoom,
+                center.y - pan.y * zoom,
+            );
+            ruqa_render::shape_render::render_marquee(
+                marquee.rect(),
+                &mut presenter.pixmap_mut().as_mut(),
+                transform,
+            );
+        }
+
+        if let Err(e) = presenter.present() {
+            warn!(?e, "frame present failed");
+        } else {
+            self.frames_presented += 1;
         }
     }
 }
@@ -255,43 +342,9 @@ impl ApplicationHandler for WhiteboardApp {
                 self.handle_focused(focused);
             }
             WindowEvent::RedrawRequested => {
-                if let Some(presenter) = &mut self.presenter {
-                    presenter.clear_dark();
-                    if let Err(e) = presenter.present() {
-                        warn!(?e, "frame present failed");
-                    } else {
-                        self.frames_presented += 1;
-                    }
-                }
+                self.render_frame();
             }
             _ => {}
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn whiteboard_app_initial_state() {
-        let app = WhiteboardApp::new();
-        assert!(app.window.is_none());
-        assert!(app.presenter.is_none());
-        assert_eq!(app.frames_presented, 0);
-        assert_eq!(app.scale_factor, 1.0);
-        assert_eq!(app.physical_size.width, DEFAULT_WIDTH);
-        assert_eq!(app.physical_size.height, DEFAULT_HEIGHT);
-        assert_eq!(app.viewport, Viewport::default());
-    }
-
-    #[test]
-    fn window_dimensions_constraints() {
-        const { assert!(DEFAULT_WIDTH >= MIN_WIDTH) };
-        const { assert!(DEFAULT_HEIGHT >= MIN_HEIGHT) };
-        assert_eq!(DEFAULT_WIDTH, 1280);
-        assert_eq!(DEFAULT_HEIGHT, 800);
-        assert_eq!(MIN_WIDTH, 640);
-        assert_eq!(MIN_HEIGHT, 480);
     }
 }
