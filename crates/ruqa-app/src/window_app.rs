@@ -61,6 +61,8 @@ pub struct WhiteboardApp {
     pub hovered_tool: Option<ruqa_core::tool::Tool>,
     /// Whether the pointer was pressed inside the toolbar HUD.
     pub toolbar_pressed: bool,
+    /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
+    pub is_editing_text: bool,
     /// Current physical window size.
     pub physical_size: PhysicalSize<u32>,
     /// HiDPI scale factor (e.g. 1.0 on 96 DPI, 2.0 on Retina).
@@ -97,6 +99,7 @@ impl WhiteboardApp {
             active_tool: ruqa_core::tool::Tool::default(),
             hovered_tool: None,
             toolbar_pressed: false,
+            is_editing_text: false,
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
             frames_presented: 0,

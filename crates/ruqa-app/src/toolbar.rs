@@ -11,6 +11,14 @@ impl WhiteboardApp {
         ToolbarLayout::new(self.logical_size().width)
     }
 
+    /// Sets the active drawing tool and requests a redraw if it changed.
+    pub fn set_active_tool(&mut self, tool: ruqa_core::tool::Tool) {
+        if self.active_tool != tool {
+            self.active_tool = tool;
+            self.request_redraw();
+        }
+    }
+
     /// Hit-tests a logical screen point against the toolbar.
     ///
     /// If a tool button is clicked, updates active tool, flags toolbar interaction,

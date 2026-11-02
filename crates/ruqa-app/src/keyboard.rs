@@ -55,6 +55,14 @@ impl WhiteboardApp {
                     }
                     _ => {}
                 }
+            } else if !self.is_editing_text {
+                if let Key::Character(c) = key {
+                    if let Some(first_char) = c.chars().next() {
+                        if let Some(tool) = ruqa_core::tool::Tool::from_shortcut(first_char) {
+                            self.set_active_tool(tool);
+                        }
+                    }
+                }
             }
         }
     }

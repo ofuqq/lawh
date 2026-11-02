@@ -22,11 +22,13 @@ pub enum Tool {
     Arrow,
     /// Continuous element eraser tool.
     Eraser,
+    /// On-canvas text tool.
+    Text,
 }
 
 impl Tool {
-    /// Array of all 8 primary drawing and manipulation tools in canonical toolbar order.
-    pub const ALL: [Tool; 8] = [
+    /// Array of all 9 primary drawing and manipulation tools in canonical toolbar order.
+    pub const ALL: [Tool; 9] = [
         Tool::Select,
         Tool::Pen,
         Tool::Rectangle,
@@ -35,6 +37,7 @@ impl Tool {
         Tool::Line,
         Tool::Arrow,
         Tool::Eraser,
+        Tool::Text,
     ];
 
     /// Returns the human-readable display label for this tool.
@@ -49,6 +52,7 @@ impl Tool {
             Tool::Line => "Line",
             Tool::Arrow => "Arrow",
             Tool::Eraser => "Eraser",
+            Tool::Text => "Text",
         }
     }
 
@@ -64,6 +68,26 @@ impl Tool {
             Tool::Line => 'L',
             Tool::Arrow => 'A',
             Tool::Eraser => 'E',
+            Tool::Text => 'T',
+        }
+    }
+
+    /// Maps a single-key keyboard shortcut character to its corresponding [`Tool`], if recognized.
+    ///
+    /// Supports both primary and secondary aliases (e.g. both `'O'` and `'C'` for [`Tool::Ellipse`]).
+    #[must_use]
+    pub fn from_shortcut(c: char) -> Option<Self> {
+        match c.to_ascii_uppercase() {
+            'V' => Some(Tool::Select),
+            'P' => Some(Tool::Pen),
+            'R' => Some(Tool::Rectangle),
+            'O' | 'C' => Some(Tool::Ellipse),
+            'D' => Some(Tool::Diamond),
+            'L' => Some(Tool::Line),
+            'A' => Some(Tool::Arrow),
+            'E' => Some(Tool::Eraser),
+            'T' => Some(Tool::Text),
+            _ => None,
         }
     }
 }
@@ -74,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_all_tools_count_and_uniqueness() {
-        assert_eq!(Tool::ALL.len(), 8);
+        assert_eq!(Tool::ALL.len(), 9);
         for (i, t1) in Tool::ALL.iter().enumerate() {
             for (j, t2) in Tool::ALL.iter().enumerate() {
                 if i != j {
@@ -83,6 +107,24 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn test_from_shortcut_mapping() {
+        assert_eq!(Tool::from_shortcut('v'), Some(Tool::Select));
+        assert_eq!(Tool::from_shortcut('V'), Some(Tool::Select));
+        assert_eq!(Tool::from_shortcut('p'), Some(Tool::Pen));
+        assert_eq!(Tool::from_shortcut('r'), Some(Tool::Rectangle));
+        assert_eq!(Tool::from_shortcut('o'), Some(Tool::Ellipse));
+        assert_eq!(Tool::from_shortcut('c'), Some(Tool::Ellipse));
+        assert_eq!(Tool::from_shortcut('C'), Some(Tool::Ellipse));
+        assert_eq!(Tool::from_shortcut('d'), Some(Tool::Diamond));
+        assert_eq!(Tool::from_shortcut('l'), Some(Tool::Line));
+        assert_eq!(Tool::from_shortcut('a'), Some(Tool::Arrow));
+        assert_eq!(Tool::from_shortcut('e'), Some(Tool::Eraser));
+        assert_eq!(Tool::from_shortcut('t'), Some(Tool::Text));
+        assert_eq!(Tool::from_shortcut('x'), None);
+        assert_eq!(Tool::from_shortcut('1'), None);
     }
 
     #[test]

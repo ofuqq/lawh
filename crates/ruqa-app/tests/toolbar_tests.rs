@@ -107,3 +107,101 @@ fn test_toolbar_recalculates_on_window_resize() {
         "wider window centers toolbar further to the right"
     );
 }
+
+fn press_key(app: &mut WhiteboardApp, key: winit::keyboard::Key) {
+    app.handle_key(&key, ElementState::Pressed);
+    app.handle_key(&key, ElementState::Released);
+}
+
+#[test]
+fn test_single_key_shortcuts_switch_active_tool() {
+    use winit::keyboard::Key;
+
+    let mut app = WhiteboardApp::new();
+    assert_eq!(app.active_tool, Tool::Select);
+
+    press_key(&mut app, Key::Character("p".into()));
+    assert_eq!(app.active_tool, Tool::Pen);
+
+    press_key(&mut app, Key::Character("r".into()));
+    assert_eq!(app.active_tool, Tool::Rectangle);
+
+    press_key(&mut app, Key::Character("o".into()));
+    assert_eq!(app.active_tool, Tool::Ellipse);
+
+    press_key(&mut app, Key::Character("c".into()));
+    assert_eq!(app.active_tool, Tool::Ellipse);
+
+    press_key(&mut app, Key::Character("d".into()));
+    assert_eq!(app.active_tool, Tool::Diamond);
+
+    press_key(&mut app, Key::Character("l".into()));
+    assert_eq!(app.active_tool, Tool::Line);
+
+    press_key(&mut app, Key::Character("a".into()));
+    assert_eq!(app.active_tool, Tool::Arrow);
+
+    press_key(&mut app, Key::Character("e".into()));
+    assert_eq!(app.active_tool, Tool::Eraser);
+
+    press_key(&mut app, Key::Character("t".into()));
+    assert_eq!(app.active_tool, Tool::Text);
+
+    press_key(&mut app, Key::Character("v".into()));
+    assert_eq!(app.active_tool, Tool::Select);
+
+    // Uppercase shortcuts
+    press_key(&mut app, Key::Character("R".into()));
+    assert_eq!(app.active_tool, Tool::Rectangle);
+    press_key(&mut app, Key::Character("P".into()));
+    assert_eq!(app.active_tool, Tool::Pen);
+}
+
+#[test]
+fn test_shortcuts_suppressed_when_editing_text() {
+    use winit::keyboard::Key;
+
+    let mut app = WhiteboardApp::new();
+    assert_eq!(app.active_tool, Tool::Select);
+
+    // Enable text editing mode
+    app.is_editing_text = true;
+
+    // Pressing 'r' or 'p' must NOT switch active tool
+    press_key(&mut app, Key::Character("r".into()));
+    assert_eq!(app.active_tool, Tool::Select);
+
+    press_key(&mut app, Key::Character("p".into()));
+    assert_eq!(app.active_tool, Tool::Select);
+
+    // Disable text editing mode
+    app.is_editing_text = false;
+
+    // Now single-key shortcut switches tool
+    press_key(&mut app, Key::Character("r".into()));
+    assert_eq!(app.active_tool, Tool::Rectangle);
+}
+
+#[test]
+fn test_ctrl_combinations_do_not_switch_tools() {
+    use winit::keyboard::{Key, NamedKey};
+
+    let mut app = WhiteboardApp::new();
+    app.active_tool = Tool::Select;
+
+    // Press Ctrl+D (duplicate) with Ctrl held down
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Pressed);
+    press_key(&mut app, Key::Character("d".into()));
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Released);
+
+    // Should still be Select, not Diamond!
+    assert_eq!(app.active_tool, Tool::Select);
+
+    // Press Ctrl+C (copy)
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Pressed);
+    press_key(&mut app, Key::Character("c".into()));
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Released);
+
+    // Should still be Select, not Ellipse!
+    assert_eq!(app.active_tool, Tool::Select);
+}

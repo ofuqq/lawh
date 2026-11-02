@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Single-key keyboard shortcuts (`V`, `P`, `R`, `O`/`C`, `D`, `L`, `A`, `E`, `T`) in `ruqa-app` for instant drawing tool switching (fixes #27).
+- Text editing suppression logic (`is_editing_text`) preventing accidental tool switches while typing (fixes #27).
+- `Tool::from_shortcut` helper with alias support ('O' and 'C' for Ellipse) and `Tool::Text` variant in `ruqa-core` (fixes #27).
 - Minimal floating top HUD toolbar for tool selection in `ruqa-render` and `ruqa-app` featuring rounded dark theme styling, active badge highlights, and custom vector icons for all 8 tools (Select, Pen, Rectangle, Ellipse, Diamond, Line, Arrow, Eraser) (fixes #26).
 - Canvas click isolation and hit-testing preventing toolbar clicks from placing shapes or selecting elements underneath (fixes #26).
 - `Tool` enumeration and canonical tool definitions in `ruqa-core` (fixes #26).

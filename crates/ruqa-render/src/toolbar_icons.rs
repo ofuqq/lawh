@@ -93,6 +93,15 @@ fn path_eraser(cx: f32, cy: f32) -> Option<Path> {
     pb.finish()
 }
 
+fn path_text(cx: f32, cy: f32) -> Option<Path> {
+    let mut pb = PathBuilder::new();
+    pb.move_to(cx - 5.5, cy - 6.0);
+    pb.line_to(cx + 5.5, cy - 6.0);
+    pb.move_to(cx, cy - 6.0);
+    pb.line_to(cx, cy + 6.0);
+    pb.finish()
+}
+
 /// Draws the vector icon for a specific [`Tool`] centered at `(cx, cy)`.
 pub fn draw_icon(
     pixmap: &mut PixmapMut,
@@ -156,6 +165,13 @@ pub fn draw_icon(
         Tool::Eraser => {
             if let Some(path) = path_eraser(cx, cy) {
                 pixmap.stroke_path(&path, &paint, &stroke, transform, None);
+            }
+        }
+        Tool::Text => {
+            if let Some(path) = path_text(cx, cy) {
+                let mut text_stroke = stroke;
+                text_stroke.width = 1.8;
+                pixmap.stroke_path(&path, &paint, &text_stroke, transform, None);
             }
         }
     }
