@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact_name: ruqa-linux-x86_64
+          - target: x86_64-apple-darwin
+            os: macos-13
+            artifact_name: ruqa-macos-x86_64
+          - target: aarch64-apple-darwin
+            os: macos-14
+            artifact_name: ruqa-macos-aarch64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Configure Cargo cache
+        uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3 # v2.7.7
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libxkbcommon-dev libxkbcommon-x11-dev
+
+      - name: Build optimized release binary
+        run: cargo build --release --package ruqa-app --target ${{ matrix.target }}
+
+      - name: Package release archive (.tar.gz)
+        shell: bash
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          ARCHIVE_DIR="${{ matrix.artifact_name }}-${TAG_NAME}"
+          mkdir -p "$ARCHIVE_DIR"
+          cp "target/${{ matrix.target }}/release/ruqa-app" "$ARCHIVE_DIR/ruqa"
+          cp LICENSE NOTICE README.md "$ARCHIVE_DIR/"
+          tar -czvf "${ARCHIVE_DIR}.tar.gz" "$ARCHIVE_DIR"
+          echo "ARCHIVE_PATH=${ARCHIVE_DIR}.tar.gz" >> $GITHUB_ENV
+          echo "ARCHIVE_NAME=${ARCHIVE_DIR}.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload release artifact to job
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_PATH }}
+          if-no-files-found: error
+
+  draft-release:
+    name: Create GitHub Draft Release
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download all release artifacts
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          path: release-artifacts
+
+      - name: Publish Draft Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "Preparing GitHub Draft Release for ${TAG_NAME}"
+
+          # Collect all packaged .tar.gz assets
+          mapfile -t ASSETS < <(find release-artifacts -type f -name "*.tar.gz")
+          echo "Found ${#ASSETS[@]} release asset archives:"
+          printf '%s\n' "${ASSETS[@]}"
+
+          # Create a draft release so maintainers can review notes and artifacts before publishing
+          gh release create "${TAG_NAME}" \
+            --draft \
+            --title "Ruqa ${TAG_NAME}" \
+            --generate-notes \
+            "${ASSETS[@]}"

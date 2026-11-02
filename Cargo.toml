@@ -23,3 +23,11 @@ repository = "https://github.com/ofuqq/ruqa"
 homepage = "https://github.com/ofuqq/ruqa"
 description = "A lightweight, open-source desktop whiteboard and study scratchpad in Rust."
 readme = "README.md"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+

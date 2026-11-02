@@ -81,3 +81,18 @@ Closes #14
 3. **Disclose AI Assistance**: If AI tools (Claude, Gemini, Copilot, ChatGPT) generated or assisted the PR, check the AI-assisted checkbox, use the `Assisted-by` commit trailer, and attach the `workflow: ai-assisted` label.
 4. **Owner Review**: The repository owner acts as gatekeeper, reviewing architectural fit, test evidence, and documentation.
 5. **Squash & Merge**: Merged exclusively as a single squash commit into `main`. The feature branch is automatically deleted upon merge.
+
+---
+
+## 5. Release Packaging & Deployment Pipeline
+
+Ruqa automates multi-platform binary packaging through `.github/workflows/release.yml`:
+
+- **Trigger**: Pushing any annotated version tag matching `v*` (e.g. `git tag -a v0.1.0 -m "v0.1.0 release" && git push origin v0.1.0`).
+- **Platforms**:
+  - Linux `x86_64-unknown-linux-gnu` (Ubuntu latest runner)
+  - macOS `x86_64-apple-darwin` (macOS 13 Intel runner)
+  - macOS `aarch64-apple-darwin` (macOS 14 Apple Silicon runner)
+- **Optimization**: Built with `opt-level = 3`, Link-Time Optimization (`lto = true`), and binary symbol stripping.
+- **Packaging**: Bundles binary with `LICENSE`, `NOTICE`, and `README.md` into `ruqa-<platform>-<tag>.tar.gz` archives.
+- **Draft Releases**: Automatically generates a **Draft Release** on GitHub Releases with changelog notes. Releases are never published automatically to stable without final maintainer review and sign-off.
