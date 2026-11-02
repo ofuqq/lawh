@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Duplicate and copy/paste selected elements with `Ctrl+D`, `Ctrl+C`, and `Ctrl+V` in `ruqa-app` with cursor-centered pasting, fresh ID generation, roughness PRNG seed re-randomization, and full undo/redo integration (fixes #52).
+- Element duplication helper methods (`Element::duplicate_with`, `Element::set_id`) in `ruqa-core` (fixes #52).
 - Deleting single and multi-selected canvas elements with `Delete` and `Backspace` keys in `ruqa-app` (fixes #51).
 - Atomic `DeleteElements` command registration in `HistoryStack` enabling instant `Ctrl+Z` restoration of deleted shapes with original IDs and exact z-order layer positions (fixes #51).
 - Unlimited undo and redo history using the command pattern (`HistoryStack`, `Command`) in `ruqa-core` supporting discrete reversible actions (add, delete, move, modify), configurable depth, and linear history truncation (fixes #23).

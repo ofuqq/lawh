@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod clipboard;
 pub mod drag;
 pub mod event_dispatch;
 pub mod logging;

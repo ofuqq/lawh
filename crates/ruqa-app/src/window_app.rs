@@ -42,6 +42,8 @@ pub struct WhiteboardApp {
     pub scene: Scene,
     /// Selection tool controller and state.
     pub selection: SelectionManager,
+    /// Internal clipboard of copied elements.
+    pub clipboard: Vec<ruqa_core::element::Element>,
     /// Undo/redo history stack using the command pattern.
     pub history: ruqa_core::history::HistoryStack,
     /// Current physical window size.
@@ -71,6 +73,7 @@ impl WhiteboardApp {
             viewport: Viewport::default(),
             scene: Scene::new(),
             selection: SelectionManager::new(),
+            clipboard: Vec::new(),
             history: ruqa_core::history::HistoryStack::new(),
             physical_size: PhysicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT),
             scale_factor: 1.0,
@@ -208,6 +211,15 @@ impl WhiteboardApp {
                         if changed {
                             self.request_redraw();
                         }
+                    }
+                    Key::Character(c) if c.eq_ignore_ascii_case("d") => {
+                        self.duplicate_selected();
+                    }
+                    Key::Character(c) if c.eq_ignore_ascii_case("c") => {
+                        self.copy_selected();
+                    }
+                    Key::Character(c) if c.eq_ignore_ascii_case("v") => {
+                        self.paste_clipboard();
                     }
                     _ => {}
                 }

@@ -48,3 +48,19 @@ impl Default for ElementStyle {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_element_style_defaults() {
+        let style = ElementStyle::default();
+        assert_eq!(style.stroke_color, "#E0E0E0");
+        assert_eq!(style.stroke_width, 2.0);
+        assert!(style.fill_color.is_none());
+        assert_eq!(style.fill_style, FillStyle::None);
+        assert_eq!(style.roughness, 1.2);
+        assert_eq!(style.seed, 0);
+    }
+}

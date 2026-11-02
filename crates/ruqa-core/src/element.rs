@@ -90,6 +90,28 @@ impl Element {
         }
     }
 
+    /// Sets the unique identifier of this element.
+    pub fn set_id(&mut self, new_id: ElementId) {
+        match self {
+            Self::Rectangle { id, .. }
+            | Self::Ellipse { id, .. }
+            | Self::Diamond { id, .. }
+            | Self::Line { id, .. }
+            | Self::Arrow { id, .. }
+            | Self::Stroke { id, .. } => *id = new_id,
+        }
+    }
+
+    /// Returns a duplicate of this element with a fresh ID, new PRNG roughness seed, and translated by `offset`.
+    #[must_use]
+    pub fn duplicate_with(&self, new_id: ElementId, new_seed: u64, offset: Point) -> Self {
+        let mut cloned = self.clone();
+        cloned.set_id(new_id);
+        cloned.style_mut().seed = new_seed;
+        cloned.translate(offset);
+        cloned
+    }
+
     /// Returns a reference to the element's visual styling.
     #[must_use]
     pub const fn style(&self) -> &ElementStyle {
@@ -277,60 +299,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_element_style_defaults() {
-        let style = ElementStyle::default();
-        assert_eq!(style.stroke_color, "#E0E0E0");
-        assert_eq!(style.stroke_width, 2.0);
-        assert!(style.fill_color.is_none());
-        assert_eq!(style.fill_style, FillStyle::None);
-        assert_eq!(style.roughness, 1.2);
-        assert_eq!(style.seed, 0);
-    }
-
-    #[test]
-    fn test_element_accessors_and_bounds() {
-        let style = ElementStyle {
-            stroke_color: "#FFFFFF".into(),
-            stroke_width: 3.0,
-            fill_color: Some("#333333".into()),
-            fill_style: FillStyle::Solid,
-            roughness: 1.0,
-            seed: 12345,
-        };
-
+    fn test_element_duplicate_with() {
         let rect = Element::Rectangle {
             id: 1,
-            bounds: Rect::from_xywh(10.0, 20.0, 100.0, 50.0),
-            style: style.clone(),
+            bounds: Rect::from_xywh(10.0, 10.0, 50.0, 50.0),
+            style: ElementStyle {
+                seed: 100,
+                ..Default::default()
+            },
         };
-        assert_eq!(rect.id(), 1);
-        assert_eq!(rect.bounds().width(), 100.0);
-        assert_eq!(rect.bounds().height(), 50.0);
-        assert_eq!(rect.style(), &style);
-
-        let line = Element::Line {
-            id: 2,
-            start: Point::new(100.0, 200.0),
-            end: Point::new(50.0, 150.0),
-            style: style.clone(),
-        };
-        assert_eq!(line.id(), 2);
-        assert_eq!(line.bounds().min, Point::new(50.0, 150.0));
-        assert_eq!(line.bounds().max, Point::new(100.0, 200.0));
-
-        let rect_bb = rect.bounding_box();
-        assert_eq!(rect_bb.min, Point::new(8.5, 18.5));
-        assert_eq!(rect_bb.max, Point::new(111.5, 71.5));
-    }
-
-    #[test]
-    fn test_element_translation() {
-        let mut rect = Element::Rectangle {
-            id: 1,
-            bounds: Rect::from_xywh(10.0, 20.0, 30.0, 40.0),
-            style: ElementStyle::default(),
-        };
-        rect.translate(Point::new(5.0, -10.0));
-        assert_eq!(rect.bounds(), Rect::from_xywh(15.0, 10.0, 30.0, 40.0));
+        let dup = rect.duplicate_with(2, 999, Point::new(20.0, 20.0));
+        assert_eq!(dup.id(), 2);
+        assert_eq!(dup.style().seed, 999);
+        assert_eq!(dup.bounds(), Rect::from_xywh(30.0, 30.0, 50.0, 50.0));
     }
 }

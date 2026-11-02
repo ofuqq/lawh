@@ -190,3 +190,97 @@ fn test_delete_with_empty_selection_is_noop() {
     assert_eq!(app.scene.len(), 1);
     assert_eq!(app.history.undo_len(), 0);
 }
+
+#[test]
+fn test_ctrl_d_duplicate_selected_elements() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, 10.0, 10.0, 50.0, 50.0));
+    app.selection.set_selection([1]);
+
+    // Hold Ctrl and press 'd'
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Pressed);
+    press_key(&mut app, Key::Character("d".into()));
+
+    assert_eq!(app.scene.len(), 2);
+    let dup_id = *app.selection.selected_ids().iter().next().unwrap();
+    assert_ne!(dup_id, 1);
+    let dup = app.scene.get(dup_id).unwrap();
+    assert_eq!(dup.bounds(), Rect::from_xywh(30.0, 30.0, 50.0, 50.0));
+    assert_ne!(dup.style().seed, app.scene.get(1).unwrap().style().seed);
+
+    // Ctrl+Z undoes duplication
+    press_key(&mut app, Key::Character("z".into()));
+    assert_eq!(app.scene.len(), 1);
+    assert!(app.scene.get(dup_id).is_none());
+
+    // Ctrl+Y redoes duplication
+    press_key(&mut app, Key::Character("y".into()));
+    assert_eq!(app.scene.len(), 2);
+    assert!(app.scene.get(dup_id).is_some());
+}
+
+#[test]
+fn test_ctrl_c_and_ctrl_v_copy_paste_selected_elements() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, 100.0, 100.0, 60.0, 40.0));
+    app.selection.set_selection([1]);
+
+    // Hold Ctrl
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Pressed);
+
+    // Ctrl+C copies to clipboard
+    press_key(&mut app, Key::Character("c".into()));
+    assert_eq!(app.clipboard.len(), 1);
+    assert_eq!(app.clipboard[0].id(), 1);
+
+    // Ctrl+V pastes without cursor -> offsets by DUPLICATE_OFFSET (+20, +20)
+    press_key(&mut app, Key::Character("v".into()));
+    assert_eq!(app.scene.len(), 2);
+    let pasted_id = *app.selection.selected_ids().iter().next().unwrap();
+    assert_ne!(pasted_id, 1);
+    let pasted = app.scene.get(pasted_id).unwrap();
+    assert_eq!(pasted.bounds(), Rect::from_xywh(120.0, 120.0, 60.0, 40.0));
+
+    // Ctrl+Z undoes paste
+    press_key(&mut app, Key::Character("z".into()));
+    assert_eq!(app.scene.len(), 1);
+    assert!(app.scene.get(pasted_id).is_none());
+}
+
+#[test]
+fn test_ctrl_v_paste_at_cursor_world_position() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, 0.0, 0.0, 100.0, 100.0));
+    app.selection.set_selection([1]);
+
+    // Copy to clipboard
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Pressed);
+    press_key(&mut app, Key::Character("c".into()));
+
+    // Move cursor to center of window (640, 400) -> world position (0, 0)
+    app.handle_cursor_moved(640.0, 400.0);
+
+    // Paste at cursor position: element bounds center was at (50, 50).
+    // Now offset = cursor (0, 0) - center (50, 50) = (-50, -50).
+    // New bounds min = 0 - 50 = -50, max = 100 - 50 = 50.
+    press_key(&mut app, Key::Character("v".into()));
+    assert_eq!(app.scene.len(), 2);
+    let pasted_id = *app.selection.selected_ids().iter().next().unwrap();
+    let pasted = app.scene.get(pasted_id).unwrap();
+    assert_eq!(pasted.bounds(), Rect::from_xywh(-50.0, -50.0, 100.0, 100.0));
+}
+
+#[test]
+fn test_duplicate_and_copy_paste_empty_selection_is_noop() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, 0.0, 0.0, 50.0, 50.0));
+
+    app.handle_key(&Key::Named(NamedKey::Control), ElementState::Pressed);
+    press_key(&mut app, Key::Character("d".into()));
+    press_key(&mut app, Key::Character("c".into()));
+    press_key(&mut app, Key::Character("v".into()));
+
+    assert_eq!(app.scene.len(), 1);
+    assert_eq!(app.clipboard.len(), 0);
+    assert_eq!(app.history.undo_len(), 0);
+}

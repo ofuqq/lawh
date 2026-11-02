@@ -65,6 +65,12 @@ impl SelectionManager {
         self.active_drag = None;
     }
 
+    /// Sets the selection to the specified element IDs and cancels any active drag gesture.
+    pub fn set_selection(&mut self, ids: impl IntoIterator<Item = ElementId>) {
+        self.selection.set_selection(ids);
+        self.active_drag = None;
+    }
+
     /// Handles pointer press down at a given world and screen coordinate.
     ///
     /// If an active selection handle is hit, initiates resize dragging.
