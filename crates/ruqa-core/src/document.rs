@@ -108,31 +108,55 @@ impl RuqaDocument {
         Self::from_json_str_with_path(json, Path::new("<memory>"))
     }
 
-    /// Deserializes and validates a document from a JSON string with an associated path for error reporting.
+    /// Deserializes, validates, and automatically migrates a document from a JSON string with an associated path for error reporting.
     pub fn from_json_str_with_path(json: &str, path: &Path) -> Result<Self, DocumentError> {
-        let doc: Self = serde_json::from_str(json).map_err(|e| DocumentError::Parse {
-            path: path.to_path_buf(),
-            source: Box::new(e),
-        })?;
+        let mut value: serde_json::Value =
+            serde_json::from_str(json).map_err(|e| DocumentError::Parse {
+                path: path.to_path_buf(),
+                source: Box::new(e),
+            })?;
 
-        if doc.format != FORMAT_MAGIC {
+        let format = value
+            .get("format")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+        if format != FORMAT_MAGIC {
             return Err(DocumentError::Parse {
                 path: path.to_path_buf(),
                 source: format!(
                     "invalid format identifier '{}'; expected '{}'",
-                    doc.format, FORMAT_MAGIC
+                    format, FORMAT_MAGIC
                 )
                 .into(),
             });
         }
 
-        if doc.schema_version > CURRENT_SCHEMA_VERSION {
+        let schema_version = value
+            .get("schema_version")
+            .and_then(serde_json::Value::as_u64)
+            .map(|v| v as u32)
+            .unwrap_or(0);
+
+        if schema_version > CURRENT_SCHEMA_VERSION {
             return Err(DocumentError::UnsupportedVersion {
                 path: path.to_path_buf(),
-                found: doc.schema_version.to_string(),
+                found: schema_version.to_string(),
                 max_supported: CURRENT_SCHEMA_VERSION.to_string(),
             });
         }
+
+        if schema_version < CURRENT_SCHEMA_VERSION {
+            crate::migration::default_pipeline().migrate(
+                &mut value,
+                CURRENT_SCHEMA_VERSION,
+                path,
+            )?;
+        }
+
+        let doc: Self = serde_json::from_value(value).map_err(|e| DocumentError::Parse {
+            path: path.to_path_buf(),
+            source: Box::new(e),
+        })?;
 
         Ok(doc)
     }

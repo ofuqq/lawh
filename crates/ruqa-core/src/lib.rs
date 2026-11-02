@@ -11,6 +11,7 @@ pub mod error;
 pub mod geometry;
 pub mod history;
 pub mod hit_test;
+pub mod migration;
 pub mod scene;
 pub mod stroke;
 pub mod style;

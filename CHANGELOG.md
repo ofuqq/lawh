@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Document schema migration framework (`Migration`, `MigrationPipeline`, `V0ToV1Migration`) in `ruqa-core` executing sequential AST transforms over raw JSON before domain struct deserialization (fixes #53).
 - Canonical document persistence (`RuqaDocument`, `CanvasMeta`) in `ruqa-core` serializing viewport camera and all scene elements in versioned `.ruqa` JSON format with schema version validation and forward compatibility (fixes #24).
 - File I/O helpers (`save_to_file`, `load_from_file`, `to_json_string`, `from_json_str`) with structured `DocumentError` diagnostics (fixes #24).
 - Duplicate and copy/paste selected elements with `Ctrl+D`, `Ctrl+C`, and `Ctrl+V` in `ruqa-app` with cursor-centered pasting, fresh ID generation, roughness PRNG seed re-randomization, and full undo/redo integration (fixes #52).

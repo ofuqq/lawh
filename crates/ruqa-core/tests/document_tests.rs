@@ -213,3 +213,32 @@ fn test_forward_compatibility_ignores_unknown_properties() {
     assert_eq!(doc.elements.len(), 1);
     assert_eq!(doc.elements[0].id(), 1);
 }
+
+#[test]
+fn test_load_older_v0_schema_runs_migration_into_v1() {
+    let json = r##"{
+        "format": "ruqa",
+        "schema_version": 0,
+        "app_version": "0.0.1",
+        "pan_x": 100.0,
+        "pan_y": -50.0,
+        "zoom": 2.0,
+        "background_color": "#000000",
+        "elements": [
+            {
+                "id": 42,
+                "type": "rectangle",
+                "bounds": { "min": { "x": 10.0, "y": 10.0 }, "max": { "x": 60.0, "y": 60.0 } },
+                "style": { "stroke_color": "#FFF", "stroke_width": 2.0 }
+            }
+        ]
+    }"##;
+
+    let doc = RuqaDocument::from_json_str(json).expect("migration succeeds");
+    assert_eq!(doc.schema_version, 1);
+    assert_eq!(doc.canvas.viewport.pan, Point::new(100.0, -50.0));
+    assert_eq!(doc.canvas.viewport.zoom, 2.0);
+    assert_eq!(doc.canvas.background_color, "#000000");
+    assert_eq!(doc.elements.len(), 1);
+    assert_eq!(doc.elements[0].id(), 42);
+}
