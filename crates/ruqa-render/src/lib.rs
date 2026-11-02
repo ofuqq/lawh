@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod export_png;
 pub mod grid_render;
 pub mod offscreen;
 pub mod pen_render;
@@ -23,6 +24,9 @@ pub mod toolbar_render;
 pub mod vault_layout;
 pub mod vault_render;
 
+pub use export_png::{
+    export_scene_to_pixmap, export_scene_to_png, export_scene_to_png_file, PngExportOptions,
+};
 pub use grid_render::{render_grid, GridConfig, GridStyle};
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};

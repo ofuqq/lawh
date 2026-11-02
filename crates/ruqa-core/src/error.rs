@@ -76,6 +76,13 @@ pub enum RenderError {
         #[source]
         source: std::io::Error,
     },
+
+    /// Encoding pixel data into PNG format failed.
+    #[error("failed to encode PNG image: {reason}")]
+    PngEncode {
+        /// Explanation of encoding failure.
+        reason: String,
+    },
 }
 
 #[cfg(test)]

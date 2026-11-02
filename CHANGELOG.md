@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Headless high-resolution PNG image export pipeline in `ruqa-render` (`export_png`, `PngExportOptions`, `export_scene_to_pixmap`, `export_scene_to_png`, `export_scene_to_png_file`) supporting custom resolution scale multipliers (1x, 2x HiDPI), transparent vs dark backgrounds, outer padding margins, and standard PNG encoding (fixes #33).
+- PNG export operations and shortcuts in `ruqa-app` (`export_actions`, `Ctrl+E`) computing aggregate board bounds and exporting crisp diagrams directly to disk (fixes #33).
+- `RenderError::PngEncode` error variant in `ruqa-core` capturing PNG encoding diagnostics (fixes #33).
 - Local Study Vault hierarchy scanner and data model in `ruqa-core` (`StudyVault`, `FlatVaultItem`, `MAX_VAULT_DEPTH: 6`, `RUQA_EXTENSION: "ruqa"`) scanning folders and boards with expand/collapse tracking (fixes #56).
 - Study Vault drawer sidebar layout and rasterizer in `ruqa-render` (`VaultLayout`, `render_vault_sidebar`, `VaultTheme`) featuring left panel drawer, header actions, chevron toggles, folder icons, board icons, active board indicators, and hover highlights (fixes #56).
 - Study Vault sidebar integration in `ruqa-app` (`vault_actions`) toggling via `Ctrl+B`, expanding/collapsing subfolders, autosaving dirty documents when opening boards, and isolating clicks from canvas (fixes #56).

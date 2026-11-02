@@ -72,6 +72,9 @@ impl WhiteboardApp {
                     Key::Character(c) if c.eq_ignore_ascii_case("s") => {
                         let _ = self.save();
                     }
+                    Key::Character(c) if c.eq_ignore_ascii_case("e") => {
+                        let _ = self.export_high_res_png_default();
+                    }
                     Key::Character(c) if c == "'" || c == "\"" => {
                         self.toggle_grid();
                     }
