@@ -150,13 +150,13 @@ pub fn render_scene(scene: &Scene, pixmap: &mut PixmapMut<'_>, transform: Transf
 /// Renders visible elements from a scene within the viewport camera view.
 ///
 /// Applies coarse spatial culling to skip elements outside the viewport, and transforms
-/// world coordinates into window screen pixels.
+/// world coordinates into window screen pixels. Returns the number of rendered elements.
 pub fn render_scene_viewport(
     scene: &Scene,
     viewport: &Viewport,
     window_size: Size,
     pixmap: &mut PixmapMut<'_>,
-) {
+) -> usize {
     let visible_rect = viewport.visible_world_rect(window_size);
     let center = window_size.center();
     let zoom = viewport.zoom;
@@ -170,9 +170,12 @@ pub fn render_scene_viewport(
         center.y - viewport.pan.y * zoom,
     );
 
+    let mut rendered_count = 0;
     for element in scene.visible_elements(visible_rect) {
         render_element(element, pixmap, transform);
+        rendered_count += 1;
     }
+    rendered_count
 }
 
 /// Renders a semi-transparent rectangular selection marquee with a solid border.

@@ -131,7 +131,7 @@ impl Scene {
     pub fn visible_elements(&self, viewport_rect: Rect) -> impl Iterator<Item = &Element> {
         self.elements
             .iter()
-            .filter(move |elem| elem.bounds().intersects(&viewport_rect))
+            .filter(move |elem| elem.bounding_box().intersects(&viewport_rect))
     }
 
     /// Computes the aggregate bounding box enclosing every element in the scene.

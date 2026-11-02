@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Spatial axis-aligned bounding box (AABB) viewport culling in `ruqa-core` (`Scene::visible_elements`) with stroke width padding, arrowhead barb geometry, and rectangle bounds inflation (fixes #32).
+- Viewport culling rasterizer pass in `ruqa-render` (`render_scene_viewport`) skipping non-intersecting offscreen canvas shapes and returning rendered element counts (fixes #32).
+- Performance verification and benchmark suite in `ruqa-render` (`culling_tests`) proving rendering latency scales with on-screen visible elements rather than total board elements, sustaining $\ge 60\text{ FPS}$ on multi-thousand element boards (fixes #32).
 - Default dark theme palette and color constants in `ruqa-core` (`DARK_BACKGROUND_COLOR: "#121212"`, `DARK_PEN_INK: "#ECEFF4"`, `LIGHT_BACKGROUND_COLOR: "#FFFFFF"`, `LIGHT_PEN_INK: "#1E1E1E"`, `ThemeMode`) (fixes #31).
 - Perceptual color luminance, HSV saturation, and selective color inversion helpers (`invert_color`, `invert_element_style`, `invert_element`, `invert_scene`) inverting monochrome ink while strictly preserving chromatic accent colors (fixes #31).
 - Zero-allocation canvas orientation grid renderer in `ruqa-render` (`render_grid`, `GridConfig`, `GridStyle`) supporting adaptive zoom-scaled dot and graph line rendering directly into pixmaps (fixes #31).
