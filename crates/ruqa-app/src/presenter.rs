@@ -48,9 +48,11 @@ impl Presenter {
     #[must_use]
     pub fn new(window: Arc<Window>) -> Option<Self> {
         let context = Context::new(window.clone()).ok()?;
-        let surface = Surface::new(&context, window.clone()).ok()?;
+        let mut surface = Surface::new(&context, window.clone()).ok()?;
         let size = window.inner_size();
         let (w, h) = (size.width.max(1), size.height.max(1));
+        let (w_nz, h_nz) = (std::num::NonZeroU32::new(w)?, std::num::NonZeroU32::new(h)?);
+        surface.resize(w_nz, h_nz).ok()?;
         let pixmap = Pixmap::new(w, h)?;
         debug!(width = w, height = h, "Presenter created");
         Some(Self {
