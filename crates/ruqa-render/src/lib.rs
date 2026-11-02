@@ -11,10 +11,13 @@ pub mod rough_convert;
 pub mod selection_render;
 pub mod shape_render;
 pub mod spike_benchmark;
+pub mod style_panel_layout;
+pub mod style_panel_render;
 pub mod text_layout;
 pub mod toolbar_icons;
 pub mod toolbar_render;
 
+pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};
 
 /// Library version string.

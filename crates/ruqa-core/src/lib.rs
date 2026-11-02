@@ -19,6 +19,7 @@ pub mod tool;
 
 pub use document::RuqaDocument;
 pub use history::{Command, HistoryStack};
+pub use style::{ElementStyle, FillStyle, RoughnessPreset, StrokeWidthPreset, PALETTE_COLORS};
 pub use tool::Tool;
 
 /// Version indicator for the ruqa-core library.
