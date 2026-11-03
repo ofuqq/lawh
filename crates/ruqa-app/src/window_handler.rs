@@ -40,6 +40,7 @@ fn build_window_attrs(event_loop: &ActiveEventLoop, title: &str) -> WindowAttrib
 
 impl ApplicationHandler for WhiteboardApp {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        event_loop.set_control_flow(winit::event_loop::ControlFlow::Wait);
         if self.window.is_some() {
             return;
         }

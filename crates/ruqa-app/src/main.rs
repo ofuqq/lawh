@@ -40,6 +40,7 @@ fn main() {
         info!("display detected; starting interactive window");
         match EventLoop::new() {
             Ok(event_loop) => {
+                event_loop.set_control_flow(winit::event_loop::ControlFlow::Wait);
                 let mut app = WhiteboardApp::new();
                 app.load_recent_files();
                 if let Some(path) = initial_file {
