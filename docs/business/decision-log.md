@@ -72,3 +72,18 @@ This log records major technical, architectural, product, and governance decisio
 ### [2026-11-01] Decision 11: English-Only Tracked Documentation
 - **Decision**: All tracked repository files must be written exclusively in English. Remove `README.ar.md`. Internal founder guides in Arabic reside strictly in gitignored `.local/GUIDE.ar.md`.
 - **Status**: **Approved & Implemented**.
+
+---
+
+### [2026-11-03] Decision 12: Upstream Collaboration Protocol & Evaluation of rough_tiny_skia (#132)
+- **Decision**: Endorse the architectural direction of adopting the official companion crate `rough_tiny_skia` to replace the in-tree `rough_convert.rs` and manual drawing loop once upstream lands necessary feature parity in a `0.14.x` release. Establish a formal protocol for evaluating and accepting inbound community contributions and upstream transitions:
+  1. **Identity & Ownership Verification**: Confirm identity and crates.io ownership before endorsing upstream transitions (verified `orhanbalci` as owner of `roughr` and `rough_tiny_skia`).
+  2. **Licensing & DCO Alignment**: Require Apache-2.0 or compatible permissive licensing without copyleft dependencies, validated by `cargo deny`. All community contributions must adhere to clean-room standards and Developer Certificate of Origin (DCO).
+  3. **Technical Acceptance Criteria**: Require full feature and safety parity before replacement:
+     - `draw_with_transform(&mut PixmapMut, Transform)` supporting viewport pan/zoom and HiDPI transforms.
+     - Graceful, non-panicking handling of empty operation sets (`PathBuilder::finish()` returning `None`).
+     - Consistent line cap and join styling across both solid and dashed stroke paths.
+  4. **Regression Verification**: Require that any future migration passes the existing golden image rasterization tests in `crates/ruqa-render/tests/` without visual regressions.
+- **Context**: Upstream maintainer Orhan Balci opened issue #132 proposing Ruqa transition from its internal adapter to `rough_tiny_skia`. Offloading primitive conversion to the upstream maintainer aligns with Ruqa's low-maintenance strategy while benefiting the broader ecosystem.
+- **Status**: **Accepted (Blocked on upstream `rough_tiny_skia 0.14.x` release)**.
+
