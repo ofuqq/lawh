@@ -157,6 +157,19 @@ pub fn render_scene_viewport(
     window_size: Size,
     pixmap: &mut PixmapMut<'_>,
 ) -> usize {
+    render_scene_viewport_scaled(scene, viewport, window_size, 1.0, pixmap)
+}
+
+/// Renders visible elements from a scene within the viewport camera view with device scale factor support.
+///
+/// Scales screen coordinates by `scale_factor` to fill physical HiDPI pixmaps. Returns the number of rendered elements.
+pub fn render_scene_viewport_scaled(
+    scene: &Scene,
+    viewport: &Viewport,
+    window_size: Size,
+    scale_factor: f32,
+    pixmap: &mut PixmapMut<'_>,
+) -> usize {
     let visible_rect = viewport.visible_world_rect(window_size);
     let center = window_size.center();
     let zoom = viewport.zoom;
@@ -168,7 +181,8 @@ pub fn render_scene_viewport(
         zoom,
         center.x - viewport.pan.x * zoom,
         center.y - viewport.pan.y * zoom,
-    );
+    )
+    .post_scale(scale_factor, scale_factor);
 
     let mut rendered_count = 0;
     for element in scene.visible_elements(visible_rect) {

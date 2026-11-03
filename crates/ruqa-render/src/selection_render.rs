@@ -107,7 +107,20 @@ pub fn render_selection(
     pixmap: &mut PixmapMut<'_>,
     style: &SelectionStyle,
 ) {
+    render_selection_scaled(world_bounds, viewport, window_size, 1.0, pixmap, style);
+}
+
+/// Renders the selection bounding box and 8 resize handles with HiDPI scale factor support.
+pub fn render_selection_scaled(
+    world_bounds: Rect,
+    viewport: &Viewport,
+    window_size: Size,
+    scale_factor: f32,
+    pixmap: &mut PixmapMut<'_>,
+    style: &SelectionStyle,
+) {
     let screen_rect = selection_screen_rect(world_bounds, viewport, window_size, style.padding);
+    let transform = Transform::from_scale(scale_factor, scale_factor);
 
     // 1. Draw selection bounding box outline
     if let Some(skia_rect) = tiny_skia::Rect::from_xywh(
@@ -124,7 +137,7 @@ pub fn render_selection(
             ..Default::default()
         };
         let path = tiny_skia::PathBuilder::from_rect(skia_rect);
-        pixmap.stroke_path(&path, &stroke_paint, &stroke, Transform::identity(), None);
+        pixmap.stroke_path(&path, &stroke_paint, &stroke, transform, None);
     }
 
     // 2. Draw 8 square resize handles
@@ -148,15 +161,9 @@ pub fn render_selection(
             handle.bounds.width(),
             handle.bounds.height(),
         ) {
-            pixmap.fill_rect(skia_handle, &fill_paint, Transform::identity(), None);
+            pixmap.fill_rect(skia_handle, &fill_paint, transform, None);
             let path = tiny_skia::PathBuilder::from_rect(skia_handle);
-            pixmap.stroke_path(
-                &path,
-                &stroke_paint,
-                &handle_stroke,
-                Transform::identity(),
-                None,
-            );
+            pixmap.stroke_path(&path, &stroke_paint, &handle_stroke, transform, None);
         }
     }
 }

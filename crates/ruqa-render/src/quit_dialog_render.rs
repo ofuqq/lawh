@@ -28,7 +28,19 @@ pub fn render_quit_dialog(
     hovered_action: Option<QuitDialogAction>,
     theme: &QuitDialogTheme,
 ) {
-    let transform = Transform::identity();
+    render_quit_dialog_scaled(pixmap, layout, hovered_action, 1.0, theme);
+}
+
+/// Renders the complete quit confirmation dialog overlay with HiDPI scale factor support.
+pub fn render_quit_dialog_scaled(
+    pixmap: &mut PixmapMut<'_>,
+    layout: &QuitDialogLayout,
+    hovered_action: Option<QuitDialogAction>,
+    scale_factor: f64,
+    theme: &QuitDialogTheme,
+) {
+    #[allow(clippy::cast_possible_truncation)]
+    let transform = Transform::from_scale(scale_factor as f32, scale_factor as f32);
 
     // 1. Semi-transparent backdrop dimming
     let mut backdrop_paint = Paint::default();
@@ -36,7 +48,7 @@ pub fn render_quit_dialog(
     if let Some(screen_rect) =
         tiny_skia::Rect::from_xywh(0.0, 0.0, pixmap.width() as f32, pixmap.height() as f32)
     {
-        pixmap.fill_rect(screen_rect, &backdrop_paint, transform, None);
+        pixmap.fill_rect(screen_rect, &backdrop_paint, Transform::identity(), None);
     }
 
     // 2. Dialog box container

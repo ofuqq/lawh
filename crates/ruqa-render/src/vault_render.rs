@@ -51,7 +51,20 @@ pub fn render_vault_sidebar(
     hovered_path: Option<&Path>,
     theme: &VaultTheme,
 ) {
-    let t = Transform::identity();
+    render_vault_sidebar_scaled(pixmap, layout, active_path, hovered_path, 1.0, theme);
+}
+
+/// Renders the complete Study Vault drawer sidebar into `pixmap` with HiDPI scale factor support.
+pub fn render_vault_sidebar_scaled(
+    pixmap: &mut PixmapMut<'_>,
+    layout: &VaultLayout,
+    active_path: Option<&Path>,
+    hovered_path: Option<&Path>,
+    scale_factor: f64,
+    theme: &VaultTheme,
+) {
+    #[allow(clippy::cast_possible_truncation)]
+    let t = Transform::from_scale(scale_factor as f32, scale_factor as f32);
 
     // 1. Drawer background
     let mut bg_paint = Paint::default();

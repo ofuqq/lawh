@@ -57,11 +57,24 @@ fn rounded_rect_path(rect: Rect, radius: f32) -> Option<tiny_skia::Path> {
 pub fn render_recent_files_hud(
     pixmap: &mut PixmapMut<'_>,
     layout: &RecentFilesLayout,
-    _entries: &[RecentFileEntry],
+    entries: &[RecentFileEntry],
     hovered_path: Option<&Path>,
     theme: &RecentFilesTheme,
 ) {
-    let transform = Transform::identity();
+    render_recent_files_hud_scaled(pixmap, layout, entries, hovered_path, 1.0, theme);
+}
+
+/// Renders the complete Recent Files / Welcome HUD modal overlay with HiDPI scale factor support.
+pub fn render_recent_files_hud_scaled(
+    pixmap: &mut PixmapMut<'_>,
+    layout: &RecentFilesLayout,
+    _entries: &[RecentFileEntry],
+    hovered_path: Option<&Path>,
+    scale_factor: f64,
+    theme: &RecentFilesTheme,
+) {
+    #[allow(clippy::cast_possible_truncation)]
+    let transform = Transform::from_scale(scale_factor as f32, scale_factor as f32);
 
     // 1. Semi-transparent backdrop dimming
     let mut backdrop_paint = Paint::default();
@@ -69,7 +82,7 @@ pub fn render_recent_files_hud(
     if let Some(screen_rect) =
         tiny_skia::Rect::from_xywh(0.0, 0.0, pixmap.width() as f32, pixmap.height() as f32)
     {
-        pixmap.fill_rect(screen_rect, &backdrop_paint, transform, None);
+        pixmap.fill_rect(screen_rect, &backdrop_paint, Transform::identity(), None);
     }
 
     // 2. Dialog container

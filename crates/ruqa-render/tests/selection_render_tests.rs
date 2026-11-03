@@ -4,8 +4,8 @@ use ruqa_core::element::{Element, ElementStyle};
 use ruqa_core::geometry::{Point, Rect, Size, Viewport};
 use ruqa_core::scene::Scene;
 use ruqa_render::selection_render::{
-    compute_handles, hit_test_handle, render_selection, selection_screen_rect, HandleKind,
-    SelectionStyle,
+    compute_handles, hit_test_handle, render_selection, render_selection_scaled,
+    selection_screen_rect, HandleKind, SelectionStyle,
 };
 use tiny_skia::Pixmap;
 
@@ -137,4 +137,39 @@ fn test_render_selection_multi_element_rasterization() {
 
     let non_zero_pixels = pixmap.data().iter().filter(|&&b| b != 0).count();
     assert!(non_zero_pixels > 0);
+}
+
+#[test]
+fn test_render_selection_scaled_hidpi() {
+    let mut pixmap = Pixmap::new(800, 800).expect("pixmap allocation succeeds");
+    let world_bounds = Rect::from_xywh(50.0, 50.0, 80.0, 80.0);
+    let logical_size = Size::new(400.0, 400.0);
+    let viewport = Viewport::new(Point::ZERO, 1.0);
+    let style = SelectionStyle::default();
+
+    render_selection_scaled(
+        world_bounds,
+        &viewport,
+        logical_size,
+        2.0,
+        &mut pixmap.as_mut(),
+        &style,
+    );
+
+    // Screen center for 400x400 is (200, 200). World (50..130) -> Screen (250..330).
+    // With 2x scale, physical pixels are at (500..660), which is in x >= 400, y >= 400.
+    let mut rendered_in_bottom_right = 0;
+    for y in 400..800 {
+        for x in 400..800 {
+            let pixel = pixmap.pixel(x, y).expect("valid coordinates");
+            if pixel.red() > 0 || pixel.green() > 0 || pixel.blue() > 0 {
+                rendered_in_bottom_right += 1;
+            }
+        }
+    }
+
+    assert!(
+        rendered_in_bottom_right > 0,
+        "Selection bounds and handles must render in the scaled physical area on HiDPI displays"
+    );
 }

@@ -66,6 +66,17 @@ pub fn render_grid(
     window_size: Size,
     config: &GridConfig,
 ) {
+    render_grid_scaled(pixmap, viewport, window_size, 1.0, config);
+}
+
+/// Renders the canvas orientation grid into `pixmap` with HiDPI scale factor support.
+pub fn render_grid_scaled(
+    pixmap: &mut PixmapMut<'_>,
+    viewport: &Viewport,
+    window_size: Size,
+    scale_factor: f32,
+    config: &GridConfig,
+) {
     if config.style == GridStyle::None {
         return;
     }
@@ -95,17 +106,17 @@ pub fn render_grid(
 
     match config.style {
         GridStyle::Dots => {
-            #[allow(clippy::cast_possible_wrap)]
-            let dot_size = config.size.max(1) as isize;
+            #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+            let dot_size = ((config.size as f32 * scale_factor).round() as isize).max(1);
             let mut y = start_y;
             while y <= end_y {
                 let mut x = start_x;
                 while x <= end_x {
                     let screen_pt = viewport.world_to_screen(Point::new(x, y), window_size);
                     #[allow(clippy::cast_possible_truncation)]
-                    let sx = screen_pt.x.round() as isize;
+                    let sx = (screen_pt.x * scale_factor).round() as isize;
                     #[allow(clippy::cast_possible_truncation)]
-                    let sy = screen_pt.y.round() as isize;
+                    let sy = (screen_pt.y * scale_factor).round() as isize;
 
                     for dy in 0..dot_size {
                         for dx in 0..dot_size {
@@ -129,37 +140,47 @@ pub fn render_grid(
         }
         GridStyle::GraphLines => {
             // Vertical graph lines
+            #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+            let line_width = ((config.size as f32 * scale_factor).round() as isize).max(1);
             let mut x = start_x;
             while x <= end_x {
                 let screen_pt = viewport.world_to_screen(Point::new(x, 0.0), window_size);
                 #[allow(clippy::cast_possible_truncation)]
-                let sx = screen_pt.x.round() as isize;
-                if sx >= 0 && (sx as usize) < width {
-                    for py in 0..height {
-                        let offset = (py * width + (sx as usize)) * 4;
-                        data[offset] = r;
-                        data[offset + 1] = g;
-                        data[offset + 2] = b;
-                        data[offset + 3] = a;
+                let sx = (screen_pt.x * scale_factor).round() as isize;
+                for lw in 0..line_width {
+                    let px = sx + lw;
+                    if px >= 0 && (px as usize) < width {
+                        for py in 0..height {
+                            let offset = (py * width + (px as usize)) * 4;
+                            data[offset] = r;
+                            data[offset + 1] = g;
+                            data[offset + 2] = b;
+                            data[offset + 3] = a;
+                        }
                     }
                 }
                 x += step;
             }
 
             // Horizontal graph lines
+            #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+            let line_width = ((config.size as f32 * scale_factor).round() as isize).max(1);
             let mut y = start_y;
             while y <= end_y {
                 let screen_pt = viewport.world_to_screen(Point::new(0.0, y), window_size);
                 #[allow(clippy::cast_possible_truncation)]
-                let sy = screen_pt.y.round() as isize;
-                if sy >= 0 && (sy as usize) < height {
-                    let row_start = (sy as usize) * width * 4;
-                    for px in 0..width {
-                        let offset = row_start + px * 4;
-                        data[offset] = r;
-                        data[offset + 1] = g;
-                        data[offset + 2] = b;
-                        data[offset + 3] = a;
+                let sy = (screen_pt.y * scale_factor).round() as isize;
+                for lw in 0..line_width {
+                    let py = sy + lw;
+                    if py >= 0 && (py as usize) < height {
+                        let row_start = (py as usize) * width * 4;
+                        for px in 0..width {
+                            let offset = row_start + px * 4;
+                            data[offset] = r;
+                            data[offset + 1] = g;
+                            data[offset + 2] = b;
+                            data[offset + 3] = a;
+                        }
                     }
                 }
                 y += step;

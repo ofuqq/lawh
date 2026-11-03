@@ -30,9 +30,10 @@ pub use export_png::{
     export_elements_to_pixmap, export_elements_to_png, export_elements_to_png_file,
     export_scene_to_pixmap, export_scene_to_png, export_scene_to_png_file, PngExportOptions,
 };
-pub use grid_render::{render_grid, GridConfig, GridStyle};
+pub use grid_render::{render_grid, render_grid_scaled, GridConfig, GridStyle};
 pub use quit_dialog_render::{
-    render_quit_dialog, QuitDialogAction, QuitDialogLayout, QuitDialogTheme,
+    render_quit_dialog, render_quit_dialog_scaled, QuitDialogAction, QuitDialogLayout,
+    QuitDialogTheme,
 };
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};

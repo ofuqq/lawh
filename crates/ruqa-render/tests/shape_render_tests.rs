@@ -3,7 +3,9 @@
 use ruqa_core::element::{Element, ElementStyle};
 use ruqa_core::geometry::{Point, Rect, Size, Viewport};
 use ruqa_core::scene::Scene;
-use ruqa_render::shape_render::{render_element, render_scene_viewport};
+use ruqa_render::shape_render::{
+    render_element, render_scene_viewport, render_scene_viewport_scaled,
+};
 use tiny_skia::{Color, Pixmap, Transform};
 
 #[test]
@@ -128,4 +130,45 @@ fn test_viewport_culling_skips_offscreen_elements() {
         .count();
 
     assert!(non_black > 0, "visible element should render pixels");
+}
+
+#[test]
+fn test_render_scene_viewport_scaled_hidpi() {
+    let mut scene = Scene::new();
+    // Element positioned near the bottom right of logical window
+    scene.push(Element::Rectangle {
+        id: 1,
+        bounds: Rect::from_xywh(100.0, 50.0, 80.0, 80.0),
+        style: ElementStyle {
+            stroke_color: "#FFFFFF".into(),
+            stroke_width: 4.0,
+            seed: 9999,
+            ..Default::default()
+        },
+    });
+
+    let viewport = Viewport::new(Point::ZERO, 1.0);
+    let logical_size = Size::new(400.0, 300.0);
+    // 2.0x scale factor on an 800x600 physical pixmap
+    let mut pixmap = Pixmap::new(800, 600).expect("pixmap allocation");
+    pixmap.fill(Color::BLACK);
+
+    render_scene_viewport_scaled(&scene, &viewport, logical_size, 2.0, &mut pixmap.as_mut());
+
+    // With 2x scale factor, logical (300, 200) maps to physical (600, 400).
+    // Verify that pixels are rendered in the bottom-right quadrant (x >= 400 and y >= 300).
+    let mut rendered_in_bottom_right = 0;
+    for y in 300..600 {
+        for x in 400..800 {
+            let pixel = pixmap.pixel(x, y).expect("valid pixel coordinates");
+            if pixel.red() > 0 || pixel.green() > 0 || pixel.blue() > 0 {
+                rendered_in_bottom_right += 1;
+            }
+        }
+    }
+
+    assert!(
+        rendered_in_bottom_right > 0,
+        "HiDPI 2.0x scaling must render elements into the full physical surface beyond 1x logical bounds"
+    );
 }

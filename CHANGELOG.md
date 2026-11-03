@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Apply HiDPI scale factor to pixmap rendering transforms in `ruqa-render` and `ruqa-app` (`render_scene_viewport_scaled`, `render_selection_scaled`, `render_grid_scaled`, `render_recent_files_hud_scaled`, `render_vault_sidebar_scaled`, `render_quit_dialog_scaled`) ensuring full-bleed, sharp rendering across Retina and scaled displays (fixes #90).
+
 ## [0.1.0] - 2026-11-03
 
 ### Highlights

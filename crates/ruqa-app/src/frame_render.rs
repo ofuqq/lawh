@@ -37,27 +37,33 @@ impl WhiteboardApp {
 
         presenter.clear_color_hex(self.theme_mode.background_color());
 
+        #[allow(clippy::cast_possible_truncation)]
+        let scale_f32 = self.scale_factor as f32;
+
         if self.show_grid {
-            ruqa_render::grid_render::render_grid(
+            ruqa_render::grid_render::render_grid_scaled(
                 &mut presenter.pixmap_mut().as_mut(),
                 &self.viewport,
                 logical_size,
+                scale_f32,
                 &self.grid_config,
             );
         }
 
-        ruqa_render::shape_render::render_scene_viewport(
+        ruqa_render::shape_render::render_scene_viewport_scaled(
             &self.scene,
             &self.viewport,
             logical_size,
+            scale_f32,
             &mut presenter.pixmap_mut().as_mut(),
         );
 
         if let Some(bounds) = selection_bounds {
-            ruqa_render::selection_render::render_selection(
+            ruqa_render::selection_render::render_selection_scaled(
                 bounds,
                 &self.viewport,
                 logical_size,
+                scale_f32,
                 &mut presenter.pixmap_mut().as_mut(),
                 &ruqa_render::selection_render::SelectionStyle::default(),
             );
@@ -71,7 +77,8 @@ impl WhiteboardApp {
                 zoom,
                 center.x - pan.x * zoom,
                 center.y - pan.y * zoom,
-            );
+            )
+            .post_scale(scale_f32, scale_f32);
             ruqa_render::shape_render::render_marquee(
                 marquee.rect(),
                 &mut presenter.pixmap_mut().as_mut(),
@@ -101,30 +108,33 @@ impl WhiteboardApp {
         }
 
         if let Some(recent_layout) = recent_layout {
-            ruqa_render::recent_files_render::render_recent_files_hud(
+            ruqa_render::recent_files_render::render_recent_files_hud_scaled(
                 &mut presenter.pixmap_mut().as_mut(),
                 &recent_layout,
                 &self.recent_files.entries,
                 self.hovered_recent_file.as_deref(),
+                self.scale_factor,
                 &ruqa_render::recent_files_render::RecentFilesTheme::default(),
             );
         }
 
         if let Some(vault_layout) = vault_layout {
-            ruqa_render::vault_render::render_vault_sidebar(
+            ruqa_render::vault_render::render_vault_sidebar_scaled(
                 &mut presenter.pixmap_mut().as_mut(),
                 &vault_layout,
                 self.file_path.as_deref(),
                 self.hovered_vault_item.as_deref(),
+                self.scale_factor,
                 &ruqa_render::vault_render::VaultTheme::default(),
             );
         }
 
         if let Some(quit_layout) = quit_layout {
-            ruqa_render::render_quit_dialog(
+            ruqa_render::render_quit_dialog_scaled(
                 &mut presenter.pixmap_mut().as_mut(),
                 &quit_layout,
                 self.hovered_quit_action,
+                self.scale_factor,
                 &ruqa_render::QuitDialogTheme::default(),
             );
         }
