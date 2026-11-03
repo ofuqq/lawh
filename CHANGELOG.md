@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Support mixed Arabic and Latin bidirectional (BiDi) line wrapping with Unicode UAX #9 isolate helpers and max width constraints in `ruqa-render` (`layout_with_max_width`, `wrap_ltr_isolate`, `render_text_element_wrapped`) (fixes #42).
 - Integrate Parley text layout and Skrifa outline rasterization in `ruqa-render` and `ruqa-core` (`Element::Text`, `render_text_element`) for bilingual text rendering on canvas (fixes #39).
 - Font documentation and licensing guide in `assets/fonts/README.md` for bundled Aref Ruqaa (OFL-1.1) and Roboto (Apache-2.0) fonts (fixes #40).
 - Sample demo board CLI flag (`--demo`) in `ruqa-app` (`populate_demo_board`, `load_demo_board`) seeding the canvas with hand-drawn rectangle, ellipse, diamond, arrow, line, and freehand pen stroke for visual exploration and interaction testing (fixes #84).

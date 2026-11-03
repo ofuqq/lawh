@@ -70,14 +70,15 @@ impl OutlinePen for SkiaOutlinePen {
     }
 }
 
-/// Renders a text element at the specified canvas world position.
-pub fn render_text_element(
+/// Renders a text element at the specified canvas world position with optional max width wrapping.
+pub fn render_text_element_wrapped(
     position: Point,
     content: &str,
     font_size: f32,
     style: &ElementStyle,
     pixmap: &mut PixmapMut<'_>,
     transform: Transform,
+    max_width: Option<f32>,
 ) {
     if content.trim().is_empty() {
         return;
@@ -91,7 +92,7 @@ pub fn render_text_element(
 
     CACHED_SHAPER.with(|shaper_cell| {
         let mut shaper = shaper_cell.borrow_mut();
-        let layout = shaper.layout(content, font_size);
+        let layout = shaper.layout_with_max_width(content, font_size, max_width);
 
         let mut pen = SkiaOutlinePen::new(position.x, position.y);
 
@@ -127,6 +128,18 @@ pub fn render_text_element(
             pixmap.fill_path(&path, &paint, FillRule::Winding, transform, None);
         }
     });
+}
+
+/// Renders a text element at the specified canvas world position.
+pub fn render_text_element(
+    position: Point,
+    content: &str,
+    font_size: f32,
+    style: &ElementStyle,
+    pixmap: &mut PixmapMut<'_>,
+    transform: Transform,
+) {
+    render_text_element_wrapped(position, content, font_size, style, pixmap, transform, None);
 }
 
 #[cfg(test)]
@@ -179,6 +192,32 @@ mod tests {
         assert!(
             non_zero_pixels > 50,
             "Rendered Arabic text should produce visible raster pixels, got {non_zero_pixels}"
+        );
+    }
+
+    #[test]
+    fn test_render_bilingual_wrapped_text_produces_pixels() {
+        let mut pixmap = Pixmap::new(300, 200).expect("pixmap creation");
+        let style = ElementStyle {
+            stroke_color: "#38BDF8".to_string(),
+            ..Default::default()
+        };
+
+        let sample = "خوارزمية Dijkstra تعمل في تعقيد O(V log V) للرسم البياني";
+        render_text_element_wrapped(
+            Point::new(10.0, 20.0),
+            sample,
+            20.0,
+            &style,
+            &mut pixmap.as_mut(),
+            Transform::identity(),
+            Some(180.0),
+        );
+
+        let non_zero_pixels = pixmap.data().chunks_exact(4).filter(|p| p[3] > 0).count();
+        assert!(
+            non_zero_pixels > 100,
+            "Rendered wrapped bilingual text should produce pixels across wrapped lines, got {non_zero_pixels}"
         );
     }
 }

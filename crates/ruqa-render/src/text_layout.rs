@@ -13,6 +13,21 @@ pub const AREF_RUQAA_BYTES: &[u8] = include_bytes!("../../../assets/fonts/ArefRu
 /// Bundled Latin font (Roboto Regular).
 pub const ROBOTO_BYTES: &[u8] = include_bytes!("../../../assets/fonts/Roboto-Regular.ttf");
 
+/// Unicode Left-to-Right Isolate (`U+2066`).
+pub const LRI: char = '\u{2066}';
+/// Unicode Right-to-Left Isolate (`U+2067`).
+pub const RLI: char = '\u{2067}';
+/// Unicode First Strong Isolate (`U+2068`).
+pub const FSI: char = '\u{2068}';
+/// Unicode Pop Directional Isolate (`U+2069`).
+pub const PDI: char = '\u{2069}';
+
+/// Wraps an embedded LTR token (math, code, shortcuts) in UAX #9 directional isolate characters.
+#[must_use]
+pub fn wrap_ltr_isolate(token: &str) -> String {
+    format!("{LRI}{token}{PDI}")
+}
+
 /// Bidirectional text shaper combining Arabic cursive fonts with Latin fallbacks.
 pub struct BilingualShaper {
     font_cx: FontContext,
@@ -42,8 +57,18 @@ impl BilingualShaper {
         Self { font_cx, layout_cx }
     }
 
-    /// Shapes a text string into a laid-out paragraph.
+    /// Shapes a text string into a laid-out paragraph without width constraints.
     pub fn layout(&mut self, text: &str, font_size: f32) -> Layout<()> {
+        self.layout_with_max_width(text, font_size, None)
+    }
+
+    /// Shapes a text string into a laid-out paragraph with optional maximum width line wrapping.
+    pub fn layout_with_max_width(
+        &mut self,
+        text: &str,
+        font_size: f32,
+        max_width: Option<f32>,
+    ) -> Layout<()> {
         let mut builder = self
             .layout_cx
             .ranged_builder(&mut self.font_cx, text, 1.0, true);
@@ -62,7 +87,7 @@ impl BilingualShaper {
         )));
 
         let mut layout = builder.build(text);
-        layout.break_all_lines(None);
+        layout.break_all_lines(max_width);
         layout
     }
 }
@@ -264,5 +289,30 @@ mod tests {
         let _shaper = BilingualShaper::new();
         assert!(!ROBOTO_BYTES.is_empty());
         assert!(!AREF_RUQAA_BYTES.is_empty());
+    }
+
+    #[test]
+    fn test_bidi_line_wrapping_with_max_width() {
+        let mut shaper = BilingualShaper::new();
+        let sentence = "خوارزمية Dijkstra هي خوارزمية للبحث عن أقصر مسار في الرسم البياني الموزون";
+        let unwrapped = shaper.layout(sentence, 20.0);
+        assert_eq!(unwrapped.lines().count(), 1);
+
+        // Wrap to a narrow constraint (e.g. 200 logical pixels)
+        let wrapped = shaper.layout_with_max_width(sentence, 20.0, Some(200.0));
+        assert!(
+            wrapped.lines().count() >= 2,
+            "Constrained line width must break into multiple lines, got {}",
+            wrapped.lines().count()
+        );
+        assert!(wrapped.width() <= 250.0);
+    }
+
+    #[test]
+    fn test_uax9_ltr_isolate_wrapper() {
+        let isolated = wrap_ltr_isolate("O(V log V)");
+        assert!(isolated.starts_with(LRI));
+        assert!(isolated.ends_with(PDI));
+        assert_eq!(isolated.chars().count(), 12);
     }
 }
