@@ -29,6 +29,9 @@ impl WhiteboardApp {
             || self.hovered_vault_item != prev_vault
             || self.hovered_tool != prev_tool;
 
+        // Unconditionally update cursor position so pointer tracking is never stale or None
+        let delta = self.pointer.update_cursor(logical_x, logical_y);
+
         if self.show_quit_dialog
             || self.show_welcome_hud
             || (self.show_vault_sidebar && self.vault_layout().contains(screen_pt))
@@ -39,7 +42,7 @@ impl WhiteboardApp {
         }
 
         let mut canvas_changed = false;
-        if let Some((dx, dy)) = self.pointer.update_cursor(logical_x, logical_y) {
+        if let Some((dx, dy)) = delta {
             if self.pointer.is_panning() {
                 self.pointer.panned_during_press = true;
                 #[allow(clippy::cast_possible_truncation)]
@@ -77,51 +80,59 @@ impl WhiteboardApp {
                 self.pointer.left_pressed = pressed;
                 if pressed {
                     self.pointer.panned_during_press = false;
-                    if let Some((cx, cy)) = self.pointer.cursor_pos {
-                        #[allow(clippy::cast_possible_truncation)]
-                        let screen_pt = Point::new(cx as f32, cy as f32);
-                        if self.handle_quit_dialog_pointer_down(screen_pt)
-                            || self.handle_recent_files_pointer_down(screen_pt)
-                            || self.handle_vault_pointer_down(screen_pt)
-                        {
-                            return;
-                        }
+                    let Some((cx, cy)) = self.pointer.cursor_pos else {
+                        return;
+                    };
+                    #[allow(clippy::cast_possible_truncation)]
+                    let screen_pt = Point::new(cx as f32, cy as f32);
+
+                    // 1. Modals have top priority
+                    if self.show_quit_dialog && self.handle_quit_dialog_pointer_down(screen_pt) {
+                        return;
                     }
-                    if !self.pointer.is_panning() {
-                        if let Some((cx, cy)) = self.pointer.cursor_pos {
-                            #[allow(clippy::cast_possible_truncation)]
-                            let screen_pt = Point::new(cx as f32, cy as f32);
-                            if self.handle_toolbar_pointer_down(screen_pt)
-                                || self.handle_style_panel_pointer_down(screen_pt)
-                            {
-                                return;
-                            }
-                        }
+                    if self.show_welcome_hud && self.handle_recent_files_pointer_down(screen_pt) {
+                        return;
                     }
+
+                    // 2. Toolbar HUD (top center)
+                    if !self.pointer.is_panning() && self.handle_toolbar_pointer_down(screen_pt) {
+                        return;
+                    }
+
+                    // 3. Drawer Sidebar (Study Vault - rendered in front of left HUD)
+                    if self.show_vault_sidebar && self.handle_vault_pointer_down(screen_pt) {
+                        return;
+                    }
+
+                    // 4. Style Panel HUD (underneath sidebar when sidebar is open)
+                    if !self.pointer.is_panning()
+                        && self.show_style_panel
+                        && self.handle_style_panel_pointer_down(screen_pt)
+                    {
+                        return;
+                    }
+
+                    // 5. Canvas interactions
                     if !self.pointer.is_panning() {
-                        if let Some((cx, cy)) = self.pointer.cursor_pos {
-                            #[allow(clippy::cast_possible_truncation)]
-                            let screen_pt = Point::new(cx as f32, cy as f32);
-                            let logical_size = self.logical_size();
-                            let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
-                            if self.active_tool == ruqa_core::tool::Tool::Eraser {
-                                self.handle_eraser_pointer_down(world_pt);
-                            } else if self.active_tool == ruqa_core::tool::Tool::Text {
-                                self.handle_text_tool_pointer_down(world_pt);
-                            } else {
-                                if self.is_editing_text {
-                                    self.commit_text_edit();
-                                }
-                                self.selection.handle_pointer_down(
-                                    &self.scene,
-                                    world_pt,
-                                    screen_pt,
-                                    &self.viewport,
-                                    logical_size,
-                                    self.pointer.shift_held,
-                                    ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
-                                );
+                        let logical_size = self.logical_size();
+                        let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
+                        if self.active_tool == ruqa_core::tool::Tool::Eraser {
+                            self.handle_eraser_pointer_down(world_pt);
+                        } else if self.active_tool == ruqa_core::tool::Tool::Text {
+                            self.handle_text_tool_pointer_down(world_pt);
+                        } else {
+                            if self.is_editing_text {
+                                self.commit_text_edit();
                             }
+                            self.selection.handle_pointer_down(
+                                &self.scene,
+                                world_pt,
+                                screen_pt,
+                                &self.viewport,
+                                logical_size,
+                                self.pointer.shift_held,
+                                ruqa_core::hit_test::DEFAULT_HIT_TOLERANCE,
+                            );
                         }
                     }
                 } else {

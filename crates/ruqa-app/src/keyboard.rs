@@ -63,6 +63,15 @@ impl WhiteboardApp {
                     return;
                 }
             }
+            if matches!(key, Key::Named(NamedKey::Enter)) && self.show_welcome_hud {
+                if let Some(path) = self.hovered_recent_file.clone() {
+                    let _ = self.open_recent_file(&path);
+                } else {
+                    self.show_welcome_hud = false;
+                    self.request_redraw();
+                }
+                return;
+            }
             if matches!(key, Key::Named(NamedKey::Delete | NamedKey::Backspace)) {
                 self.delete_selected();
             } else if self.pointer.ctrl_held {

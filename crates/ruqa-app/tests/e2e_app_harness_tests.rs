@@ -294,3 +294,81 @@ fn test_harness_modal_and_sidebar_rendering() {
         "Vault sidebar must render full drawer height"
     );
 }
+
+#[test]
+fn test_harness_welcome_hud_dismiss_and_sidebar_toggle() {
+    let mut harness = AppHarness::new(1280, 800);
+
+    // 1. Verify clicking 'X' button dismisses Welcome HUD
+    harness.app.show_welcome_hud = true;
+    let layout = harness.app.recent_files_layout();
+    let close_pt = layout.close_button_bounds.center();
+    harness.click(
+        f64::from(close_pt.x),
+        f64::from(close_pt.y),
+        MouseButton::Left,
+    );
+    assert!(
+        !harness.app.show_welcome_hud,
+        "Clicking 'X' button must dismiss Welcome HUD"
+    );
+
+    // 2. Verify clicking outside dialog dismisses Welcome HUD
+    harness.app.show_welcome_hud = true;
+    harness.click(50.0, 50.0, MouseButton::Left);
+    assert!(
+        !harness.app.show_welcome_hud,
+        "Clicking outside dialog must dismiss Welcome HUD"
+    );
+
+    // 3. Verify Escape key dismisses Welcome HUD
+    harness.app.show_welcome_hud = true;
+    harness.key_tap(&Key::Named(NamedKey::Escape));
+    assert!(
+        !harness.app.show_welcome_hud,
+        "Escape key must dismiss Welcome HUD"
+    );
+
+    // 4. Verify Enter key dismisses Welcome HUD
+    harness.app.show_welcome_hud = true;
+    harness.key_tap(&Key::Named(NamedKey::Enter));
+    assert!(
+        !harness.app.show_welcome_hud,
+        "Enter key must dismiss Welcome HUD"
+    );
+
+    // 5. Verify Study Vault folder row toggles expansion on mouse click
+    let unique_name = format!(
+        "ruqa_vault_test_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    );
+    let tmp_path = std::env::temp_dir().join(unique_name);
+    std::fs::create_dir_all(tmp_path.join("Algorithms")).expect("create folder");
+    std::fs::write(tmp_path.join("Algorithms").join("Dijkstra.ruqa"), "{}").expect("write board");
+
+    harness.app.set_vault_root(&tmp_path);
+    harness.app.show_vault_sidebar = true;
+    harness.app.refresh_vault_entries();
+
+    assert_eq!(harness.app.vault_entries.len(), 1);
+    assert!(!harness.app.vault_entries[0].is_expanded);
+
+    let vault_layout = harness.app.vault_layout();
+    assert!(!vault_layout.rows.is_empty());
+    let row_pt = vault_layout.rows[0].row_bounds.center();
+
+    // Click folder row to expand
+    harness.click(f64::from(row_pt.x), f64::from(row_pt.y), MouseButton::Left);
+    assert_eq!(harness.app.vault_entries.len(), 2);
+    assert!(harness.app.vault_entries[0].is_expanded);
+
+    // Click folder row again to collapse
+    harness.click(f64::from(row_pt.x), f64::from(row_pt.y), MouseButton::Left);
+    assert_eq!(harness.app.vault_entries.len(), 1);
+    assert!(!harness.app.vault_entries[0].is_expanded);
+
+    let _ = std::fs::remove_dir_all(&tmp_path);
+}
