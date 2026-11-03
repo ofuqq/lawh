@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Font documentation and licensing guide in `assets/fonts/README.md` for bundled Aref Ruqaa (OFL-1.1) and Roboto (Apache-2.0) fonts (fixes #40).
 - Sample demo board CLI flag (`--demo`) in `ruqa-app` (`populate_demo_board`, `load_demo_board`) seeding the canvas with hand-drawn rectangle, ellipse, diamond, arrow, line, and freehand pen stroke for visual exploration and interaction testing (fixes #84).
 
 ### Fixed
