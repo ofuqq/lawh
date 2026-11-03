@@ -6,6 +6,7 @@
 //! and rendered pixel geometry.
 
 use ruqa_app::window_app::WhiteboardApp;
+use ruqa_core::element::Element;
 use ruqa_core::geometry::Rect;
 use ruqa_core::tool::Tool;
 use tiny_skia::{Pixmap, PremultipliedColorU8};
@@ -487,4 +488,85 @@ fn test_harness_chrome_ui_text_typography_rendered() {
         cancel_pixels > 20,
         "Cancel button must contain text pixels, got {cancel_pixels}"
     );
+}
+
+#[test]
+fn test_harness_interactive_shape_and_pen_drawing() {
+    let mut harness = AppHarness::new(1280, 800);
+    assert_eq!(harness.app.scene.len(), 0);
+
+    // 1. Draw a Rectangle
+    harness.app.active_tool = Tool::Rectangle;
+    harness.drag((250.0, 250.0), (400.0, 350.0), 5);
+    assert_eq!(harness.app.scene.len(), 1);
+    assert!(matches!(
+        harness.app.scene.elements()[0],
+        Element::Rectangle { .. }
+    ));
+
+    // 2. Draw an Ellipse
+    harness.app.active_tool = Tool::Ellipse;
+    harness.drag((450.0, 250.0), (600.0, 350.0), 5);
+    assert_eq!(harness.app.scene.len(), 2);
+    assert!(matches!(
+        harness.app.scene.elements()[1],
+        Element::Ellipse { .. }
+    ));
+
+    // 3. Draw a Diamond
+    harness.app.active_tool = Tool::Diamond;
+    harness.drag((650.0, 250.0), (800.0, 350.0), 5);
+    assert_eq!(harness.app.scene.len(), 3);
+    assert!(matches!(
+        harness.app.scene.elements()[2],
+        Element::Diamond { .. }
+    ));
+
+    // 4. Draw a Line
+    harness.app.active_tool = Tool::Line;
+    harness.drag((250.0, 400.0), (400.0, 500.0), 5);
+    assert_eq!(harness.app.scene.len(), 4);
+    assert!(matches!(
+        harness.app.scene.elements()[3],
+        Element::Line { .. }
+    ));
+
+    // 5. Draw an Arrow
+    harness.app.active_tool = Tool::Arrow;
+    harness.drag((450.0, 400.0), (600.0, 500.0), 5);
+    assert_eq!(harness.app.scene.len(), 5);
+    assert!(matches!(
+        harness.app.scene.elements()[4],
+        Element::Arrow { .. }
+    ));
+
+    // 6. Draw with Pen
+    harness.app.active_tool = Tool::Pen;
+    harness.drag((650.0, 400.0), (800.0, 500.0), 10);
+    assert_eq!(harness.app.scene.len(), 6);
+    assert!(matches!(
+        harness.app.scene.elements()[5],
+        Element::Stroke { .. }
+    ));
+
+    // Render frame and verify elements produce visible rasterized pixels
+    harness.render();
+    let rect_pixels = harness
+        .count_pixels_in_rect(Rect::from_xywh(250.0, 250.0, 150.0, 100.0), |p| {
+            p.red() > 50 || p.green() > 50 || p.blue() > 50
+        });
+    assert!(
+        rect_pixels > 50,
+        "Drawn rectangle must produce visible pixels, got {rect_pixels}"
+    );
+
+    // Test undo reverts the last drawn element
+    let undone = harness.app.history.undo(&mut harness.app.scene);
+    assert!(undone, "Undo must succeed");
+    assert_eq!(harness.app.scene.len(), 5);
+
+    // Test redo restores it
+    let redone = harness.app.history.redo(&mut harness.app.scene);
+    assert!(redone, "Redo must succeed");
+    assert_eq!(harness.app.scene.len(), 6);
 }

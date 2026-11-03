@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implement interactive vector shape and freehand pen drawing gestures in `ruqa-app` (`DrawingManager`, `ActiveDrawing`) with live cursor preview rendering and reversible history commands for Rectangle, Ellipse, Diamond, Line, Arrow, and Pen tools (fixes #142).
 - Spawn inline text editing caret on canvas click with Text Tool (`T`) supporting live character entry, Backspace, multiline Enter, tool-switch commit, and undo/redo history in `ruqa-app` (fixes #41).
 - Compute tight text element bounding box and mouse selection hit-testing for bilingual text blocks in `ruqa-core` and `ruqa-render` (`measure_text_dimensions`, `measure_text_dimensions_with_max_width`) (fixes #43).
 - Support mixed Arabic and Latin bidirectional (BiDi) line wrapping with Unicode UAX #9 isolate helpers and max width constraints in `ruqa-render` (`layout_with_max_width`, `wrap_ltr_isolate`, `render_text_element_wrapped`) (fixes #42).

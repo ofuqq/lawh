@@ -57,7 +57,11 @@ impl WhiteboardApp {
                     Point::new(logical_x as f32, logical_y as f32),
                     self.logical_size(),
                 );
-                if self.active_tool == ruqa_core::tool::Tool::Eraser {
+                #[allow(clippy::cast_precision_loss)]
+                let now_ms = (self.motion_events_count as f64) * 16.0;
+                if self.drawing.is_active() {
+                    self.drawing.update_drawing(world_pt, now_ms);
+                } else if self.active_tool == ruqa_core::tool::Tool::Eraser {
                     self.handle_eraser_pointer_move(world_pt);
                 } else {
                     self.selection.handle_pointer_move(
@@ -116,14 +120,20 @@ impl WhiteboardApp {
                     if !self.pointer.is_panning() {
                         let logical_size = self.logical_size();
                         let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
+                        if self.is_editing_text {
+                            self.commit_text_edit();
+                        }
                         if self.active_tool == ruqa_core::tool::Tool::Eraser {
                             self.handle_eraser_pointer_down(world_pt);
                         } else if self.active_tool == ruqa_core::tool::Tool::Text {
                             self.handle_text_tool_pointer_down(world_pt);
+                        } else if self.active_tool.is_drawable() {
+                            self.selection.clear();
+                            #[allow(clippy::cast_precision_loss)]
+                            let now_ms = (self.motion_events_count as f64) * 16.0;
+                            self.drawing
+                                .start_drawing(self.active_tool, world_pt, now_ms);
                         } else {
-                            if self.is_editing_text {
-                                self.commit_text_edit();
-                            }
                             self.selection.handle_pointer_down(
                                 &self.scene,
                                 world_pt,
@@ -143,6 +153,18 @@ impl WhiteboardApp {
                     }
                     if self.active_tool == ruqa_core::tool::Tool::Eraser {
                         self.handle_eraser_pointer_up();
+                        return;
+                    }
+                    if self.drawing.is_active() {
+                        let next_id = self.scene.next_element_id();
+                        if let Some(element) =
+                            self.drawing.finish_drawing(next_id, &self.current_style)
+                        {
+                            self.history
+                                .push(ruqa_core::history::Command::AddElement(element.clone()));
+                            self.scene.push(element);
+                            self.mark_dirty();
+                        }
                         return;
                     }
                     if !self.pointer.panned_during_press {
@@ -187,6 +209,7 @@ impl WhiteboardApp {
             self.pointer.reset_inputs();
             self.selection.active_drag = None;
             self.eraser.reset();
+            self.drawing.cancel();
         }
     }
 }

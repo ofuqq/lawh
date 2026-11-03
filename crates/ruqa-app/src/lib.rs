@@ -8,6 +8,7 @@
 pub mod clipboard;
 pub mod demo;
 pub mod drag;
+pub mod drawing;
 pub mod eraser;
 pub mod event_dispatch;
 pub mod export_actions;

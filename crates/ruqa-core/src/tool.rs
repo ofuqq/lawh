@@ -90,6 +90,15 @@ impl Tool {
             _ => None,
         }
     }
+
+    /// Returns `true` if this tool interactively creates vector shapes or pen strokes via drag.
+    #[must_use]
+    pub fn is_drawable(self) -> bool {
+        matches!(
+            self,
+            Tool::Pen | Tool::Rectangle | Tool::Ellipse | Tool::Diamond | Tool::Line | Tool::Arrow
+        )
+    }
 }
 
 #[cfg(test)]

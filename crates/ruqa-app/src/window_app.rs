@@ -66,6 +66,8 @@ pub struct WhiteboardApp {
     pub style_panel_pressed: bool,
     /// Active continuous eraser drag state.
     pub eraser: crate::eraser::EraserState,
+    /// Active interactive shape creation and pen gesture state machine.
+    pub drawing: crate::drawing::DrawingManager,
     /// Active display theme mode (Dark by default).
     pub theme_mode: ruqa_core::theme::ThemeMode,
     /// Whether background orientation grid dots/lines are visible.
@@ -143,6 +145,7 @@ impl WhiteboardApp {
             show_style_panel: true,
             style_panel_pressed: false,
             eraser: crate::eraser::EraserState::new(),
+            drawing: crate::drawing::DrawingManager::new(),
             theme_mode: ruqa_core::theme::ThemeMode::Dark,
             show_grid: true,
             grid_config: ruqa_render::grid_render::GridConfig::dark_mode(),

@@ -77,6 +77,19 @@ impl WhiteboardApp {
             pixmap,
         );
 
+        if let Some(preview) = self.drawing.preview_element(&self.current_style) {
+            let t = Transform::from_row(
+                zoom,
+                0.0,
+                0.0,
+                zoom,
+                center.x - pan.x * zoom,
+                center.y - pan.y * zoom,
+            )
+            .post_scale(scale_f32, scale_f32);
+            ruqa_render::shape_render::render_element(&preview, pixmap, t);
+        }
+
         if self.is_editing_text {
             let t = Transform::from_row(
                 zoom,
