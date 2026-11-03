@@ -52,6 +52,10 @@ work with a mouse and keyboard?**
 - **#152 (medium)**: `--demo` opens behind the Recent Boards modal.
 - **#155 (medium)**: bundled example boards open partly outside the default
   1280x800 window.
+- **#160 (high, data loss)**: every new untitled board saves to the same
+  `untitled.ruqa`; saving two boards in a row replaces the first file silently.
+  Reproduced live: board 1 (rectangle) and board 2 (ellipse) both wrote
+  `untitled.ruqa`, with only the second surviving.
 
 ## Not verified here (needs manual verification)
 
@@ -64,6 +68,7 @@ work with a mouse and keyboard?**
 
 ## Gate colour
 
-Preliminary **YELLOW**: the previously reported "mouse does nothing / no UI
-text" failures are gone in the live binary, but #153 must be fixed before a
-v0.1.0 gate can be called green.
+**RED**: the previously reported "mouse does nothing / no UI text" failures are
+gone in the live binary, but #160 loses a user's board on the second untitled
+save and #153 silently discards spaces in the product's core text feature.
+Both must be fixed and re-verified before a v0.1.0 gate can be called green.
