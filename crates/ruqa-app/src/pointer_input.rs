@@ -106,7 +106,12 @@ impl WhiteboardApp {
                             let world_pt = self.viewport.screen_to_world(screen_pt, logical_size);
                             if self.active_tool == ruqa_core::tool::Tool::Eraser {
                                 self.handle_eraser_pointer_down(world_pt);
+                            } else if self.active_tool == ruqa_core::tool::Tool::Text {
+                                self.handle_text_tool_pointer_down(world_pt);
                             } else {
+                                if self.is_editing_text {
+                                    self.commit_text_edit();
+                                }
                                 self.selection.handle_pointer_down(
                                     &self.scene,
                                     world_pt,

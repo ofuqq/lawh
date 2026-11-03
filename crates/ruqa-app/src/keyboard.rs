@@ -22,6 +22,35 @@ impl WhiteboardApp {
             if self.show_quit_dialog && self.handle_quit_dialog_key(key) {
                 return;
             }
+            if self.is_editing_text {
+                match key {
+                    Key::Named(NamedKey::Escape) => {
+                        self.commit_text_edit();
+                        self.request_redraw();
+                        return;
+                    }
+                    Key::Named(NamedKey::Enter) => {
+                        if self.pointer.shift_held {
+                            self.text_edit_buffer.push('\n');
+                        } else {
+                            self.commit_text_edit();
+                        }
+                        self.request_redraw();
+                        return;
+                    }
+                    Key::Named(NamedKey::Backspace) => {
+                        self.text_edit_buffer.pop();
+                        self.request_redraw();
+                        return;
+                    }
+                    Key::Character(c) => {
+                        self.text_edit_buffer.push_str(c);
+                        self.request_redraw();
+                        return;
+                    }
+                    _ => return,
+                }
+            }
             if matches!(key, Key::Named(NamedKey::Escape)) {
                 if self.show_welcome_hud {
                     self.show_welcome_hud = false;

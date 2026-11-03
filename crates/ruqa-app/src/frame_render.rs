@@ -58,6 +58,55 @@ impl WhiteboardApp {
             &mut presenter.pixmap_mut().as_mut(),
         );
 
+        if self.is_editing_text {
+            let t = Transform::from_row(
+                zoom,
+                0.0,
+                0.0,
+                zoom,
+                center.x - pan.x * zoom,
+                center.y - pan.y * zoom,
+            )
+            .post_scale(scale_f32, scale_f32);
+
+            let font_size = 20.0;
+            if !self.text_edit_buffer.is_empty() {
+                ruqa_render::text_render::render_text_element(
+                    self.text_edit_position,
+                    &self.text_edit_buffer,
+                    font_size,
+                    &self.current_style,
+                    &mut presenter.pixmap_mut().as_mut(),
+                    t,
+                );
+            }
+
+            let (tw, th) = if self.text_edit_buffer.is_empty() {
+                (0.0, font_size * 1.2)
+            } else {
+                ruqa_render::measure_text_dimensions(&self.text_edit_buffer, font_size)
+            };
+
+            let caret_screen_x =
+                (center.x + (self.text_edit_position.x + tw - pan.x) * zoom) * scale_f32;
+            let caret_screen_y =
+                (center.y + (self.text_edit_position.y - pan.y) * zoom) * scale_f32;
+            let caret_h = th * zoom * scale_f32;
+
+            if let Some(rect) = tiny_skia::Rect::from_xywh(
+                caret_screen_x + 2.0 * scale_f32,
+                caret_screen_y,
+                2.0 * scale_f32,
+                caret_h,
+            ) {
+                let mut paint = tiny_skia::Paint::default();
+                paint.set_color(tiny_skia::Color::from_rgba8(56, 189, 248, 255));
+                presenter
+                    .pixmap_mut()
+                    .fill_rect(rect, &paint, Transform::identity(), None);
+            }
+        }
+
         if let Some(bounds) = selection_bounds {
             ruqa_render::selection_render::render_selection_scaled(
                 bounds,

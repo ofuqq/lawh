@@ -88,6 +88,10 @@ pub struct WhiteboardApp {
     pub hovered_vault_item: Option<std::path::PathBuf>,
     /// Whether the user is actively typing in a text field (suppressing single-key tool switches).
     pub is_editing_text: bool,
+    /// World anchor coordinate of active inline text editing session.
+    pub text_edit_position: ruqa_core::geometry::Point,
+    /// Active text edit buffer being typed on canvas.
+    pub text_edit_buffer: String,
     /// Whether the unsaved changes quit confirmation dialog is visible.
     pub show_quit_dialog: bool,
     /// Currently hovered action button in the quit confirmation dialog.
@@ -152,6 +156,8 @@ impl WhiteboardApp {
             vault_entries: Vec::new(),
             hovered_vault_item: None,
             is_editing_text: false,
+            text_edit_position: ruqa_core::geometry::Point::ZERO,
+            text_edit_buffer: String::new(),
             show_quit_dialog: false,
             hovered_quit_action: None,
             should_exit: false,
@@ -206,5 +212,45 @@ impl WhiteboardApp {
     /// Populates the whiteboard canvas with sample demonstration primitives.
     pub fn load_demo_board(&mut self) {
         crate::demo::populate_demo_board(&mut self.scene);
+    }
+
+    /// Commits the active text editing buffer into a new [`ruqa_core::element::Element::Text`] in the scene.
+    pub fn commit_text_edit(&mut self) -> bool {
+        if !self.is_editing_text {
+            return false;
+        }
+        self.is_editing_text = false;
+        let content = self.text_edit_buffer.trim().to_string();
+        self.text_edit_buffer.clear();
+        if content.is_empty() {
+            return false;
+        }
+
+        let id = self.scene.next_element_id();
+        let element = ruqa_core::element::Element::Text {
+            id,
+            position: self.text_edit_position,
+            content,
+            font_size: 20.0,
+            style: self.current_style.clone(),
+        };
+
+        self.scene.push(element.clone());
+        self.history
+            .push(ruqa_core::history::Command::AddElement(element));
+        self.mark_dirty();
+        self.selection.set_selection([id]);
+        true
+    }
+
+    /// Handles pointer click for the text tool at `world_pt`, spawning an inline text editing session.
+    pub fn handle_text_tool_pointer_down(&mut self, world_pt: ruqa_core::geometry::Point) {
+        if self.is_editing_text {
+            self.commit_text_edit();
+        }
+        self.is_editing_text = true;
+        self.text_edit_position = world_pt;
+        self.text_edit_buffer.clear();
+        self.request_redraw();
     }
 }
