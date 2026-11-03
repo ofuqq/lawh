@@ -4,13 +4,13 @@
 **Author**: Builder (Autonomous Ruqa Agent)  
 **Target Release**: `v0.1.0-rc1` (Release Candidate 1)  
 **Repository**: `ofuqq/ruqa`  
-**Quality Status**: 100% Green (All 4 Verification Gates Passing, 126 Passing Tests)
+**Quality Status**: In Verification — CI Gates PASS (298 Passing Tests); Release Gate RED pending open defects (#160, #153, #152, #155)
 
 ---
 
 ## 1. Executive Summary
 
-Ruqa has successfully reached full v0.1.0 MVP completion and is tagged as `v0.1.0-rc1`. 
+Ruqa has completed initial milestone development for v0.1.0 and is undergoing release candidate verification under the `v0.1.0-rc1` tag.
 
 Starting from initial architectural foundations and time-boxed technical spikes, the project has implemented an Excalidraw-inspired, mouse-first desktop whiteboard and study scratchpad built completely in native Rust. Across 50 merged pull requests and 56 resolved milestone issues, Ruqa provides:
 - An infinite zoomable/pannable vector canvas with a dark theme dot grid.
@@ -21,6 +21,8 @@ Starting from initial architectural foundations and time-boxed technical spikes,
 - A native Study Vault folder sidebar (`Ctrl+B`) and recent files HUD (`Ctrl+O`).
 - Atomic, crash-safe persistence in versioned `.ruqa` JSON format.
 - High-resolution 2x HiDPI PNG export (`Ctrl+E`) supporting tight selection crops and full diagrams.
+
+While the technical architecture and CI gates are solid, live interaction testing by the independent Reviewer revealed critical open defects (notably #160 data loss on untitled save and #153 text space input). Consequently, the release gate remains **RED** until all open defect PRs are reviewed and merged.
 
 ---
 
@@ -33,7 +35,7 @@ The workspace is cleanly partitioned into three decoupled crates:
 3. **`ruqa-app`** (2,894 LOC): Desktop application runtime. Manages the OS window via stable `winit 0.30`, presents framebuffers via `softbuffer 0.4`, dispatches mouse and keyboard events, maintains the interactive drawing state machine, and renders custom minimal CPU chrome (floating toolbar, style palette, vault sidebar, and modals).
 
 ### 2.2 Strict Simplicity & Quality Compliance
-- **Module Size Cap**: All 61 Rust source files across the workspace strictly adhere to the soft cap of $\le 350$ LOC (maximum file size is 349 LOC, achieved by decomposing large modules into focused submodules such as `vault_icons.rs`, `frame_render.rs`, `recent_files_render.rs`, and `drawing.rs`).
+- **Module Size Cap**: All 68 Rust source modules across the workspace crates strictly adhere to the soft cap of $\le 350$ LOC (maximum source file size is 349 LOC, achieved by decomposing large modules into focused submodules such as `vault_icons.rs`, `frame_render.rs`, `recent_files_render.rs`, and `drawing.rs`; integration test suites are capped separately at 650 LOC). Total Rust files including tests: 105.
 - **Safe Rust**: The entire codebase contains **0 unsafe blocks**.
 - **Clean-Room License Purity**: 100% Apache-2.0 licensed with explicit `NOTICE` attribution. Validated continuously in CI via `cargo deny check licenses bans sources`. Zero GPL or AGPL copyleft code.
 
@@ -50,6 +52,22 @@ Following initial milestone completion, an empirical live run on `main` (`040b72
 | **3. Blank Chrome UI Text** | Chrome UI renderers (`recent_files_render`, `vault_render`, `quit_dialog_render`) drew vector boxes but never invoked text rasterization. | Implemented `render_ui_text` in `ruqa-render` and wired clean typography into all chrome overlays using bundled fonts. | PR #141 (Closes #140) |
 | **4. Inability to Drag-Draw Shapes & Pen on Canvas** | `pointer_input.rs` lacked a drawing state machine; mouse drags fell through to marquee selection. | Built `DrawingManager` in `crates/ruqa-app/src/drawing.rs`; routed pointer down/move/up events with live preview rendering. | PR #143 (Closes #142) |
 | **5. Excessive Frames While Idle** | Lack of comprehensive unit verification for idle redraw behavior. | Verified strict `ControlFlow::Wait` in `window_handler.rs`; added tests verifying exactly 0 frames presented while idle. | PR #146 (Closes #145) |
+
+### 3.2 Known Open Defects & Gate Status (Gate: RED)
+
+While the initial 5 defects identified during the Truth Audit are resolved, automated testing and review on live release binaries surfaced 4 open defects that must be resolved prior to release:
+
+1. **#160 (High Priority / Data Loss)**: Saving a new untitled board silently overwrites existing `untitled.ruqa` without prompting or uniqueness checking.
+   - *Status*: Open. In active implementation.
+2. **#153 (Bug / Text Input)**: Spacebar key in canvas text editing was dropped (`foo bar baz` -> `foobarbaz`) and leaked into the pan modifier state.
+   - *Status*: Fixed in PR #161 (`review: needed`).
+3. **#152 (Bug / UI)**: Launching `ruqa-app --demo` left the Welcome HUD modal open over the canvas, obscuring demo shapes.
+   - *Status*: Fixed in PR #163 (`review: needed`).
+4. **#155 (Bug / Viewport)**: Bundled sample boards in `examples/` opened partially off-screen at 1280x800 due to off-center camera pan coordinates.
+   - *Status*: Fixed in PR #164 (`review: needed`).
+
+> [!IMPORTANT]
+> **Release Gate Status: RED**. In accordance with the Agent Working Agreement, `v0.1.0` will not be finalized or tagged stable until all four defect fixes are reviewed, approved (`review: ok`), merged into `main`, and validated.
 
 ---
 
@@ -69,7 +87,7 @@ To ensure these interaction defects can never regress, we designed and built an 
 | :--- | :--- | :--- | :--- |
 | **Code Formatting** | `cargo fmt --all --check` | **PASS** | 100% compliant with Rust style guide |
 | **Static Analysis** | `cargo clippy --workspace --all-targets -- -D warnings` | **PASS** | 0 warnings across all crates and tests |
-| **Test Suite** | `cargo test --workspace` | **PASS** | **126 tests passed** (0 failed, 0 ignored) |
+| **Test Suite** | `cargo test --workspace` | **PASS** | **298 tests passed** (0 failed, 0 ignored) |
 | **Supply Chain & Licensing** | `cargo deny check licenses bans sources` | **PASS** | Apache-2.0 compliant, zero copyleft/banned crates |
 | **Release Build** | `cargo build --release -p ruqa-app` | **PASS** | Binary size: **5.7 MB**; smoke test verified |
 | **Gate 1 (Spike Latency)** | Microbenchmarks | **PASS** | Frame latency: 8.62 ms; Parley shaping: 0.886 ms |

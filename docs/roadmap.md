@@ -8,9 +8,9 @@ This roadmap defines the sequential development milestones for Ruqa. Progress is
 flowchart LR
     M0["M0: Foundation & Spikes<br/>(Done)"] --> M1["M1: Canvas & Vector Engine<br/>(Done)"]
     M1 --> M2["M2: Direct Manipulation<br/>(Done)"]
-    M2 --> M3["M3: Tools, Vault & Dark HUD<br/>(Done)"]
-    M3 --> M4["M4: Polish, PNG Export & v0.1 Release<br/>(Done)"]
-    M4 --> M5["M5: Arabic & RTL Typography<br/>(Done)"]
+    M2 --> M3["M3: Tools, Vault & Dark HUD<br/>(In Verification)"]
+    M3 --> M4["M4: Bilingual Typography<br/>(In Verification)"]
+    M4 --> M5["M5: Polish & v0.1 Release<br/>(v0.1.0-rc1 Verification)"]
     M5 --> M6["M6: Smart Study & Interop<br/>(v0.2 Horizon)"]
     M6 --> M7["M7: Advanced Study & Ecosystem<br/>(v0.3+ Future)"]
 ```
@@ -60,7 +60,7 @@ flowchart LR
 
 ---
 
-## Milestone M3: Styling, Eraser, HUD & Dark Theme (DONE)
+## Milestone M3: Styling, Eraser, HUD & Dark Theme (In Verification)
 - **Goal**: Provide floating tool selection HUD, single-key shortcuts, eraser, contextual styling, and local folder Study Vault sidebar.
 - **Exit Criteria**:
   - [x] Minimal floating top toolbar HUD with active tool indicators and vector icons ([#26](https://github.com/ofuqq/ruqa/issues/26)).
@@ -72,10 +72,23 @@ flowchart LR
   - [x] Spatial viewport bounding-box culling sustaining $\ge 60\text{ FPS}$ on multi-thousand element boards ([#32](https://github.com/ofuqq/ruqa/issues/32)).
   - [x] Cross-platform recent files tracking and Welcome HUD modal (`Ctrl+O`) ([#55](https://github.com/ofuqq/ruqa/issues/55)).
   - [x] Study Vault collapsible sidebar (`Ctrl+B`) for multi-board local directory navigation ([#56](https://github.com/ofuqq/ruqa/issues/56)).
+  - [ ] **Open Verification Defect**: Fix `--demo` launching behind Welcome HUD ([#152](https://github.com/ofuqq/ruqa/issues/152), PR [#163](https://github.com/ofuqq/ruqa/pull/163) awaiting review).
 
 ---
 
-## Milestone M4: Polish, PNG Export & v0.1 Release (DONE)
+## Milestone M4: Basic Bilingual Text & Typography (v0.1) (In Verification)
+- **Goal**: Deliver first-class Arabic handwriting typography, Parley text layout integration, and inline canvas text editing.
+- **Exit Criteria**:
+  - [x] Parley text layout engine integration into the rendering pipeline ([#39](https://github.com/ofuqq/ruqa/issues/39)).
+  - [x] Bundling and runtime registration of OFL Arabic handwriting fonts (Aref Ruqaa) and Latin typography (Roboto) ([#40](https://github.com/ofuqq/ruqa/issues/40)).
+  - [x] Interactive on-canvas text element creation and editing overlay ([#41](https://github.com/ofuqq/ruqa/issues/41)).
+  - [x] Bidirectional inline editing (mixed Arabic and English) with directional cursor movement ([#42](https://github.com/ofuqq/ruqa/issues/42)).
+  - [x] Precise text glyph bounding box selection and hit-testing ([#43](https://github.com/ofuqq/ruqa/issues/43)).
+  - [ ] **Open Verification Defect**: Fix spacebar input in inline text editing without pan modifier leak ([#153](https://github.com/ofuqq/ruqa/issues/153), PR [#161](https://github.com/ofuqq/ruqa/pull/161) awaiting review).
+
+---
+
+## Milestone M5: Polish, PNG Export & v0.1 Release (v0.1.0-rc1 Verification)
 - **Goal**: High-resolution PNG export, confirmation safety, end-user documentation, dogfooding validation, and v0.1.0 release packaging.
 - **Exit Criteria**:
   - [x] High-resolution PNG canvas export (`Ctrl+E`) supporting custom scale multipliers and dark/transparent backgrounds ([#33](https://github.com/ofuqq/ruqa/issues/33)).
@@ -88,17 +101,6 @@ flowchart LR
   - [x] 2-hour continuous study dogfooding session (Gate 2 validation: 34.2 MB peak RAM, 0 panics, 60 FPS) ([#36](https://github.com/ofuqq/ruqa/issues/36)).
   - [x] Automated GitHub Actions release packaging for Linux and macOS (.tar.gz archives with LTO profile) ([#37](https://github.com/ofuqq/ruqa/issues/37)).
   - [x] **v0.1.0 Release Notes and Release Candidate Tag**: Finalized release notes and tag `v0.1.0-rc1` ([#38](https://github.com/ofuqq/ruqa/issues/38)).
-
----
-
-## Milestone M5: Arabic & RTL Typography (DONE)
-- **Goal**: Deliver first-class Arabic handwriting typography, Parley text layout integration, and inline canvas text editing.
-- **Exit Criteria**:
-  - [x] Parley text layout engine integration into the rendering pipeline ([#39](https://github.com/ofuqq/ruqa/issues/39)).
-  - [x] Bundling and runtime registration of OFL Arabic handwriting fonts (Aref Ruqaa) and Latin typography (Roboto) ([#40](https://github.com/ofuqq/ruqa/issues/40)).
-  - [x] Interactive on-canvas text element creation and editing overlay ([#41](https://github.com/ofuqq/ruqa/issues/41)).
-  - [x] Bidirectional inline editing (mixed Arabic and English) with directional cursor movement ([#42](https://github.com/ofuqq/ruqa/issues/42)).
-  - [x] Precise text glyph bounding box selection and hit-testing ([#43](https://github.com/ofuqq/ruqa/issues/43)).
 
 ---
 
