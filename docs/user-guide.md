@@ -191,7 +191,7 @@ The history is **not** persisted to the `.ruqa` file (history is cleared on file
 | Shortcut | Action |
 |:---|:---|
 | Ctrl+` (backtick) | Toggle canvas dot grid |
-| Ctrl+I | Toggle dark/light theme |
+| Ctrl+T / Ctrl+I | Toggle dark/light theme |
 
 ---
 
@@ -254,7 +254,7 @@ The viewport pan/zoom does not affect the export; the full element bounds are al
 ## 8. Dark and Light Theme
 
 Ruqa defaults to a dark canvas (`#121212` background with off-white strokes).
-Press **Ctrl+I** to toggle the light theme (white background with dark strokes).
+Press **Ctrl+T** (or **Ctrl+I**) to toggle the light theme (white background with dark strokes).
 
 The theme toggle inverts stroke and background colors while preserving accent colors
 (coral, amber, green, cyan, lavender) so diagrams remain readable in both modes.

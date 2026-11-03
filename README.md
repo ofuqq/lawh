@@ -12,28 +12,28 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/ruqa-showcase.svg" alt="Ruqa Desktop Whiteboard Showcase" width="100%" />
+  <img src="docs/assets/ruqa-showcase.png" alt="Ruqa Desktop Whiteboard Showcase" width="100%" />
 </p>
 
 **Ruqa** (named after Ruq'ah, the swift, clean Arabic handwriting style) is a lightweight, open-source desktop whiteboard and study scratchpad built in Rust by [Ofuq](https://github.com/ofuqq).
 
-Inspired by tools like Excalidraw, Ruqa is engineered from scratch for **studying, teaching, and visual explaining**. It delivers an aesthetic hand-drawn sketch look, buttery-smooth pen ink, an infinite zoomable canvas, a default dark theme, and complete offline privacy—operable entirely with a standard mouse.
+Inspired by tools like Excalidraw, Ruqa is engineered from scratch for **studying, teaching, and visual explaining**. It delivers an aesthetic hand-drawn sketch look, buttery-smooth pen ink, an infinite zoomable canvas, bilingual Arabic/Latin typography, a default dark theme, and complete offline privacy—operable entirely with a standard mouse.
 
 ---
 
-## Why Ruqa? (Native Mouse-First vs. Bloated Web Tools)
+## Why Ruqa? (Native Mouse-First vs. Web Tools)
 
-Most digital whiteboards today run inside Electron or heavy web browsers, consuming gigabytes of RAM, requiring cloud logins, and treating mouse users as second-class citizens compared to stylus tablets. Ruqa is built differently:
+Most digital whiteboards run inside Electron or heavy web browsers, requiring cloud accounts and treating mouse users as secondary to stylus tablets. Ruqa is built differently:
 
 | Feature | Ruqa (Desktop Native) | Browser Alternatives (Excalidraw web, Miro, etc.) |
 |:---|:---|:---|
-| **Engine & Stack** | Native Rust (`winit` + pure CPU `tiny-skia`) | Heavy JavaScript / WebGL / Chromium |
-| **Startup Time** | **< 300 ms** (instant launch) | 3,000 – 8,000 ms (bundling, assets, network) |
-| **Memory Footprint** | **< 50 MB** typical (pure CPU rasterization) | 400 MB – 1.5 GB per browser tab |
-| **Offline Privacy** | **100% Offline** · Zero telemetry · Local `.ruqa` JSON | Mandatory cloud accounts or fragile browser IndexedDB |
-| **Input Philosophy** | **Mouse-First**: velocity pen, wheel zoom, single-key tools | Tablet/touch-first, mouse scrolling often imprecise |
-| **Rendering** | Deterministic rough shapes with stable PRNG seeds | Re-randomizes jitter or relies on complex shaders |
-| **Study Vault** | Native local folder browser sidebar (`Ctrl+B`) | Requires manual file uploads or paid workspace cloud |
+| **Engine & Stack** | Native Rust (`winit` + pure CPU `tiny-skia` + `softbuffer`) | JavaScript / WebGL / Chromium / Electron |
+| **Startup Behavior** | Fast native execution (compiled Rust binary without browser runtime boot latency) | Web bundle download, asset loading, and browser initialization |
+| **Memory Footprint** | **~34.2 MB** peak RSS measured in continuous 125-op study simulation (`dogfooding_session_tests`) | Browser tab and background helper processes |
+| **Offline Privacy** | **100% Offline** · Zero telemetry · Local `.ruqa` JSON | Cloud accounts, sync servers, or fragile browser storage |
+| **Input Philosophy** | **Mouse-First**: velocity pen, wheel zoom, single-key tools | Stylus/touch-first priority |
+| **Rendering** | Deterministic rough shapes with stable PRNG seeds; redraw-on-demand (0 frames while idle) | Dynamic re-jittering and continuous animation loops |
+| **Study Vault** | Native local folder browser sidebar (`Ctrl+B`) | Manual file uploads or cloud workspace lock-in |
 
 ---
 
@@ -42,14 +42,16 @@ Most digital whiteboards today run inside Electron or heavy web browsers, consum
 - [x] **Infinite Vector Canvas**: Smooth 60+ FPS panning (`Space`+drag or middle-click) and mouse-wheel zooming anchored at cursor.
 - [x] **Geometric Shapes**: Hand-drawn sketchy rectangles, ellipses, diamonds, straight lines, and directional arrows.
 - [x] **Smooth Freehand Pen**: Velocity-interpolated ink strokes with Catmull-Rom spline smoothing.
+- [x] **Bilingual Typography**: Mixed Arabic and Latin text layout powered by `parley` and `skrifa` with bundled OFL fonts.
 - [x] **Direct Manipulation**: Click & marquee multi-selection, drag translation, and 8-handle corner/edge interactive resizing.
 - [x] **Continuous Eraser**: Drag across shapes or ink paths to erase continuously in a single atomic undoable action.
 - [x] **Contextual Styling**: 6-color dark palette, thin/medium/bold stroke widths, and 5 fill patterns (None, Solid, Semi-transparent, Hachure, Cross-hatch).
-- [x] **Theme Inversion**: High-contrast dark theme by default (`#121212`), with instant `Ctrl+I` toggle preserving accent colors.
+- [x] **Theme Inversion**: High-contrast dark theme by default (`#121212`), with instant `Ctrl+T` / `Ctrl+I` toggle preserving accent colors.
 - [x] **Document Persistence**: Versioned, forward-compatible `.ruqa` JSON format with atomic crash-safe autosave.
 - [x] **Unsaved Changes Guard**: Headless modal dialog preventing accidental data loss on close or quit.
 - [x] **High-Resolution PNG Export**: Crisp 2x HiDPI snapshot export supporting tight selection crop vs full diagram.
 - [x] **Study Organization**: Startup Recent Files HUD and local Study Vault directory sidebar (`Ctrl+B`).
+- [x] **Redraw-on-Demand**: Strict event-driven presentation (`ControlFlow::Wait`) presenting 0 frames while idle.
 
 See [docs/user-guide.md](docs/user-guide.md) for the complete controls and keyboard shortcut cheatsheet.
 
@@ -82,7 +84,7 @@ cargo run --release -p ruqa-app
 ```
 
 > [!NOTE]
-> Local desktop execution commands (`ruqa-app`) are marked as **untested** until the Milestone M1 windowing harness lands. Workflows and tests are verified via GitHub Actions CI on Linux runners.
+> Ruqa is verified across native desktop windowed execution (`cargo run --release -p ruqa-app`) and an end-to-end headless application harness (`crates/ruqa-app/tests/e2e_app_harness_tests.rs`) validating mouse routing, interactive drawing, dialogs, and rendered pixel geometry.
 
 ---
 
@@ -92,8 +94,8 @@ cargo run --release -p ruqa-app
 ruqa/
 ├── crates/
 │   ├── ruqa-core/         # Core geometry, element models, undo stack, and file I/O
-│   ├── ruqa-render/       # (M1) 2D rendering pipeline (tiny-skia CPU, roughr, softbuffer)
-│   └── ruqa-app/          # (M1) Native OS windowing, mouse event loop, and UI chrome
+│   ├── ruqa-render/       # 2D rendering pipeline (tiny-skia CPU, roughr, softbuffer, parley)
+│   └── ruqa-app/          # Native OS windowing (winit), input dispatch, and UI chrome
 ├── docs/                  # Architectural specs, product vision, ADRs, and guides
 │   ├── adr/               # Architecture Decision Records (0001–0009)
 │   ├── architecture/      # Detailed design documents

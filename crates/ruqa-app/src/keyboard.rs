@@ -116,7 +116,9 @@ impl WhiteboardApp {
                     Key::Character(c) if c.eq_ignore_ascii_case("e") => {
                         let _ = self.export_high_res_png_default();
                     }
-                    Key::Character(c) if c.eq_ignore_ascii_case("t") => {
+                    Key::Character(c)
+                        if c.eq_ignore_ascii_case("t") || c.eq_ignore_ascii_case("i") =>
+                    {
                         self.toggle_theme();
                     }
                     Key::Character(c)

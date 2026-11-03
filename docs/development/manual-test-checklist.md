@@ -154,11 +154,11 @@ This document defines the formal, human-executed manual quality verification che
   - Seed reproducibility ensures hatch lines remain static across frame redraws.
 
 ### Test 6.2: Dark/Light Mode Inversion
-- **Objective**: Test contrast preservation during theme toggle (`Ctrl+I`).
+- **Objective**: Test contrast preservation during theme toggle (`Ctrl+T` or `Ctrl+I`).
 - **Steps**:
   1. Draw shapes using white, black, and coral strokes.
-  2. Press `Ctrl+I` to toggle to Light Theme.
-  3. Press `Ctrl+I` again to return to Dark Theme.
+  2. Press `Ctrl+T` (or `Ctrl+I`) to toggle to Light Theme.
+  3. Press `Ctrl+T` (or `Ctrl+I`) again to return to Dark Theme.
 - **Pass Criteria**:
   - In light theme, background transitions to crisp light grey/white (`#F8F9FA`), monochrome strokes invert to dark ink (`#1E1E1E`), while coral accent remains clearly legible.
   - Canvas dot grid color adjusts brightness automatically to maintain low-contrast visibility.
