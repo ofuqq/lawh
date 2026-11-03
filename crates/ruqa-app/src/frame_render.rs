@@ -1,12 +1,29 @@
 //! Frame rendering pass for the desktop whiteboard application.
 
 use crate::window_app::WhiteboardApp;
-use tiny_skia::Transform;
+use tiny_skia::{Color, PixmapMut, Transform};
 use tracing::warn;
 
 impl WhiteboardApp {
     /// Renders the scene and interactive overlays into the presenter surface.
     pub fn render_frame(&mut self) {
+        let Some(mut presenter) = self.presenter.take() else {
+            return;
+        };
+
+        self.render_to_pixmap(&mut presenter.pixmap_mut().as_mut());
+        let res = presenter.present();
+        self.presenter = Some(presenter);
+
+        if let Err(e) = res {
+            warn!(?e, "frame present failed");
+        } else {
+            self.frames_presented += 1;
+        }
+    }
+
+    /// Renders the scene, orientation grid, elements, and interactive overlays directly into `pixmap`.
+    pub fn render_to_pixmap(&self, pixmap: &mut PixmapMut<'_>) {
         let logical_size = self.logical_size();
         let center = logical_size.center();
         let zoom = self.viewport.zoom;
@@ -31,18 +48,20 @@ impl WhiteboardApp {
             None
         };
 
-        let Some(presenter) = &mut self.presenter else {
-            return;
-        };
-
-        presenter.clear_color_hex(self.theme_mode.background_color());
+        if let Some((r, g, b, a)) =
+            ruqa_core::theme::parse_hex_color(self.theme_mode.background_color())
+        {
+            pixmap.fill(Color::from_rgba8(r, g, b, a));
+        } else {
+            pixmap.fill(Color::from_rgba8(0x12, 0x12, 0x12, 0xFF));
+        }
 
         #[allow(clippy::cast_possible_truncation)]
         let scale_f32 = self.scale_factor as f32;
 
         if self.show_grid {
             ruqa_render::grid_render::render_grid_scaled(
-                &mut presenter.pixmap_mut().as_mut(),
+                pixmap,
                 &self.viewport,
                 logical_size,
                 scale_f32,
@@ -55,7 +74,7 @@ impl WhiteboardApp {
             &self.viewport,
             logical_size,
             scale_f32,
-            &mut presenter.pixmap_mut().as_mut(),
+            pixmap,
         );
 
         if self.is_editing_text {
@@ -76,7 +95,7 @@ impl WhiteboardApp {
                     &self.text_edit_buffer,
                     font_size,
                     &self.current_style,
-                    &mut presenter.pixmap_mut().as_mut(),
+                    pixmap,
                     t,
                 );
             }
@@ -101,9 +120,7 @@ impl WhiteboardApp {
             ) {
                 let mut paint = tiny_skia::Paint::default();
                 paint.set_color(tiny_skia::Color::from_rgba8(56, 189, 248, 255));
-                presenter
-                    .pixmap_mut()
-                    .fill_rect(rect, &paint, Transform::identity(), None);
+                pixmap.fill_rect(rect, &paint, Transform::identity(), None);
             }
         }
 
@@ -113,7 +130,7 @@ impl WhiteboardApp {
                 &self.viewport,
                 logical_size,
                 scale_f32,
-                &mut presenter.pixmap_mut().as_mut(),
+                pixmap,
                 &ruqa_render::selection_render::SelectionStyle::default(),
             );
         }
@@ -128,15 +145,11 @@ impl WhiteboardApp {
                 center.y - pan.y * zoom,
             )
             .post_scale(scale_f32, scale_f32);
-            ruqa_render::shape_render::render_marquee(
-                marquee.rect(),
-                &mut presenter.pixmap_mut().as_mut(),
-                t,
-            );
+            ruqa_render::shape_render::render_marquee(marquee.rect(), pixmap, t);
         }
 
         ruqa_render::toolbar_render::render_toolbar(
-            &mut presenter.pixmap_mut().as_mut(),
+            pixmap,
             &toolbar_layout,
             self.active_tool,
             self.hovered_tool,
@@ -146,7 +159,7 @@ impl WhiteboardApp {
 
         if self.show_style_panel {
             ruqa_render::style_panel_render::render_style_panel(
-                &mut presenter.pixmap_mut().as_mut(),
+                pixmap,
                 &style_layout,
                 &self.current_style.stroke_color,
                 self.current_style.stroke_width,
@@ -158,7 +171,7 @@ impl WhiteboardApp {
 
         if let Some(recent_layout) = recent_layout {
             ruqa_render::recent_files_render::render_recent_files_hud_scaled(
-                &mut presenter.pixmap_mut().as_mut(),
+                pixmap,
                 &recent_layout,
                 &self.recent_files.entries,
                 self.hovered_recent_file.as_deref(),
@@ -169,7 +182,7 @@ impl WhiteboardApp {
 
         if let Some(vault_layout) = vault_layout {
             ruqa_render::vault_render::render_vault_sidebar_scaled(
-                &mut presenter.pixmap_mut().as_mut(),
+                pixmap,
                 &vault_layout,
                 self.file_path.as_deref(),
                 self.hovered_vault_item.as_deref(),
@@ -180,18 +193,12 @@ impl WhiteboardApp {
 
         if let Some(quit_layout) = quit_layout {
             ruqa_render::render_quit_dialog_scaled(
-                &mut presenter.pixmap_mut().as_mut(),
+                pixmap,
                 &quit_layout,
                 self.hovered_quit_action,
                 self.scale_factor,
                 &ruqa_render::QuitDialogTheme::default(),
             );
-        }
-
-        if let Err(e) = presenter.present() {
-            warn!(?e, "frame present failed");
-        } else {
-            self.frames_presented += 1;
         }
     }
 }
