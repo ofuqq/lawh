@@ -10,7 +10,13 @@ fn test_demo_board_population_and_element_kinds() {
     let mut app = WhiteboardApp::new();
     assert_eq!(app.scene.len(), 0, "initial whiteboard scene must be empty");
 
+    // Simulate startup with Recent Files HUD open
+    app.show_welcome_hud = true;
     app.load_demo_board();
+    assert!(
+        !app.show_welcome_hud,
+        "loading demo board must automatically dismiss welcome HUD"
+    );
     assert_eq!(app.scene.len(), 6, "demo board must populate 6 primitives");
 
     let elements = app.scene.elements();

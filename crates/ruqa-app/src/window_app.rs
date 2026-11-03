@@ -215,6 +215,7 @@ impl WhiteboardApp {
     /// Populates the whiteboard canvas with sample demonstration primitives.
     pub fn load_demo_board(&mut self) {
         crate::demo::populate_demo_board(&mut self.scene);
+        self.show_welcome_hud = false;
     }
 
     /// Commits the active text editing buffer into a new [`ruqa_core::element::Element::Text`] in the scene.

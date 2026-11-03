@@ -48,6 +48,7 @@ fn main() {
                 if is_demo {
                     info!("populating sample demo primitives on canvas");
                     app.load_demo_board();
+                    app.show_welcome_hud = false;
                 } else if let Some(path) = initial_file {
                     if let Err(e) = app.open_recent_file(&path) {
                         warn!(?e, path = ?path, "could not open initial file argument");

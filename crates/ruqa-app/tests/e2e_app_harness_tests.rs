@@ -384,6 +384,37 @@ fn test_harness_modal_and_sidebar_rendering() {
 }
 
 #[test]
+fn test_harness_demo_mode_opens_unobscured_by_welcome_hud() {
+    let mut harness = AppHarness::new(1280, 800);
+
+    // Simulate startup state with Recent Files HUD enabled
+    harness.app.show_welcome_hud = true;
+    assert!(harness.app.show_welcome_hud);
+
+    // Launch demo board
+    harness.app.load_demo_board();
+
+    // Welcome HUD must be dismissed so shapes are immediately visible
+    assert!(
+        !harness.app.show_welcome_hud,
+        "Demo board startup must dismiss the Welcome HUD"
+    );
+
+    // Render frame
+    harness.render();
+
+    // Verify demo primitives are rendered to the framebuffer
+    let rendered_pixels = harness
+        .count_pixels_in_rect(Rect::from_xywh(300.0, 200.0, 680.0, 400.0), |p| {
+            p.red() > 50 || p.green() > 50 || p.blue() > 50
+        });
+    assert!(
+        rendered_pixels > 500,
+        "Demo shapes must be rendered in the viewport without modal overlay occlusion"
+    );
+}
+
+#[test]
 fn test_harness_welcome_hud_dismiss_and_sidebar_toggle() {
     let mut harness = AppHarness::new(1280, 800);
 
