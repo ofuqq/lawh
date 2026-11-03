@@ -88,3 +88,37 @@ fn example_boards_round_trip() {
         );
     }
 }
+
+/// Issue #155: Guarantee that all elements of bundled example study boards
+/// fit completely within the default 1280x800 viewport without being cut off or off-screen.
+#[test]
+fn example_boards_elements_fit_in_default_viewport() {
+    use ruqa_core::geometry::Size;
+
+    let default_window = Size::new(1280.0, 800.0);
+    for filename in &[
+        "dijkstra-shortest-path.ruqa",
+        "distributed-systems-cache.ruqa",
+        "binary-search-tree.ruqa",
+    ] {
+        let doc = load(filename);
+        let visible = doc.canvas.viewport.visible_world_rect(default_window);
+        for elem in &doc.elements {
+            let bb = elem.bounding_box();
+            assert!(
+                visible.contains(bb.min),
+                "{filename}: element {:?} min {:?} is outside visible viewport {:?}",
+                elem.id(),
+                bb.min,
+                visible
+            );
+            assert!(
+                visible.contains(bb.max),
+                "{filename}: element {:?} max {:?} is outside visible viewport {:?}",
+                elem.id(),
+                bb.max,
+                visible
+            );
+        }
+    }
+}
