@@ -30,7 +30,7 @@ pub struct VaultTheme {
 impl Default for VaultTheme {
     fn default() -> Self {
         Self {
-            background: Color::from_rgba8(20, 20, 24, 252),
+            background: Color::from_rgba8(20, 20, 24, 255),
             border_color: Color::from_rgba8(45, 45, 52, 255),
             header_icon_color: Color::from_rgba8(220, 225, 235, 255),
             text_dim: Color::from_rgba8(140, 145, 155, 255),

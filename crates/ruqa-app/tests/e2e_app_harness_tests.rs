@@ -223,8 +223,11 @@ fn test_harness_theme_toggle_updates_pixels() {
     harness.render();
     let dark_corner = harness.pixel_at(10, 10).unwrap();
 
-    // Toggle theme
-    harness.app.toggle_theme();
+    // Toggle theme via Ctrl+T shortcut
+    harness.app.pointer.ctrl_held = true;
+    harness.key_tap(&Key::Character("t".into()));
+    harness.app.pointer.ctrl_held = false;
+
     assert_eq!(harness.app.theme_mode, ruqa_core::theme::ThemeMode::Light);
 
     harness.render();
@@ -287,11 +290,11 @@ fn test_harness_modal_and_sidebar_rendering() {
     harness.render();
     let sidebar_pixels = harness
         .count_pixels_in_rect(Rect::from_xywh(0.0, 0.0, 250.0, 800.0), |p| {
-            p.alpha() == 255 || p.alpha() == 252
+            p.alpha() == 255
         });
     assert!(
         sidebar_pixels > 1000,
-        "Vault sidebar must render full drawer height"
+        "Vault sidebar must render full drawer height with 100% opacity"
     );
 }
 
