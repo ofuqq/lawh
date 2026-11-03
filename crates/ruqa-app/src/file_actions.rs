@@ -45,12 +45,41 @@ impl WhiteboardApp {
         }
     }
 
-    /// Saves the active document to its existing file path, or defaults to `"untitled.ruqa"` if untitled.
+    /// Returns the next available untitled file path that does not yet exist on disk.
+    ///
+    /// If `"untitled.ruqa"` does not exist in `dir`, returns that path.
+    /// Otherwise, checks `"untitled-2.ruqa"`, `"untitled-3.ruqa"`, etc. until an unused path is found.
+    #[must_use]
+    pub fn next_untitled_path(dir: &Path) -> PathBuf {
+        let base_name = dir.join("untitled.ruqa");
+        if !base_name.exists() {
+            return base_name;
+        }
+
+        let mut index = 2;
+        loop {
+            let candidate = dir.join(format!("untitled-{index}.ruqa"));
+            if !candidate.exists() {
+                return candidate;
+            }
+            index += 1;
+        }
+    }
+
+    /// Saves the active document to its existing file path, or chooses the next available
+    /// non-conflicting untitled name in the Study Vault or working directory if untitled.
     pub fn save(&mut self) -> Result<PathBuf, DocumentError> {
-        let path = self
-            .file_path
-            .clone()
-            .unwrap_or_else(|| PathBuf::from("untitled.ruqa"));
+        let path = match self.file_path.clone() {
+            Some(p) => p,
+            None => {
+                let target_dir = if self.vault.root.is_dir() {
+                    &self.vault.root
+                } else {
+                    Path::new(".")
+                };
+                Self::next_untitled_path(target_dir)
+            }
+        };
         self.save_as(&path)?;
         Ok(path)
     }
@@ -65,6 +94,7 @@ impl WhiteboardApp {
         self.last_dirty_time = None;
         self.update_window_title();
         self.record_recent_file(path);
+        self.refresh_vault_entries();
         info!(path = ?path, "saved whiteboard document");
         Ok(())
     }
