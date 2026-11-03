@@ -27,7 +27,7 @@ resulting screenshots with ImageMagick.
 |---|---|---|---|
 | Direct dependencies — `ruqa-core` | 4 (`serde`, `serde_json`, `thiserror`, `tracing`) | 6 | OK |
 | Direct dependencies — `ruqa-render` | 6 external (`parley`, `roughr`, `skrifa`, `tiny-skia`, `thiserror`, `tracing`) | 8 | OK |
-| Direct dependencies — `ruqa-app` | 7 external (`winit`, `softbuffer`, `tiny-skia`, `thiserror`, `tracing`, `tracing-subscriber`) | 9 | OK |
+| Direct dependencies — `ruqa-app` | 6 external (`winit`, `softbuffer`, `tiny-skia`, `thiserror`, `tracing`, `tracing-subscriber`) | 8 | OK |
 | Unique crates in the workspace graph | 176 | 200 | OK |
 | Release binary size (`ruqa-app`) | 5,891,160 B (5.62 MiB) | 7.0 MiB | OK |
 | Cold start (process → mapped window) | 189 ms | 250 ms | OK (see note) |
