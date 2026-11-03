@@ -49,3 +49,37 @@ fn test_element_translation() {
     rect.translate(Point::new(5.0, -10.0));
     assert_eq!(rect.bounds(), Rect::from_xywh(15.0, 10.0, 30.0, 40.0));
 }
+
+#[test]
+fn test_element_duplicate_with() {
+    let rect = Element::Rectangle {
+        id: 1,
+        bounds: Rect::from_xywh(10.0, 10.0, 50.0, 50.0),
+        style: ElementStyle {
+            seed: 100,
+            ..Default::default()
+        },
+    };
+    let dup = rect.duplicate_with(2, 999, Point::new(20.0, 20.0));
+    assert_eq!(dup.id(), 2);
+    assert_eq!(dup.style().seed, 999);
+    assert_eq!(dup.bounds(), Rect::from_xywh(30.0, 30.0, 50.0, 50.0));
+}
+
+#[test]
+fn test_text_element_bounds_and_translation() {
+    let mut text = Element::Text {
+        id: 5,
+        position: Point::new(100.0, 50.0),
+        content: "Hello World".into(),
+        font_size: 20.0,
+        style: ElementStyle::default(),
+    };
+    assert_eq!(text.id(), 5);
+    assert!(text.bounds().width() > 0.0);
+    assert!(text.bounds().height() > 0.0);
+    assert!(text.bounding_box().contains(Point::new(120.0, 60.0)));
+
+    text.translate(Point::new(50.0, 25.0));
+    assert_eq!(text.bounds().min, Point::new(150.0, 75.0));
+}

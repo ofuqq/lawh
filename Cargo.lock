@@ -1851,6 +1851,7 @@ dependencies = [
  "parley",
  "roughr",
  "ruqa-core",
+ "skrifa",
  "thiserror 2.0.21",
  "tiny-skia",
  "tracing",

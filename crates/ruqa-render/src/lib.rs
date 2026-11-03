@@ -21,6 +21,7 @@ pub mod spike_benchmark;
 pub mod style_panel_layout;
 pub mod style_panel_render;
 pub mod text_layout;
+pub mod text_render;
 pub mod toolbar_icons;
 pub mod toolbar_render;
 pub mod vault_layout;

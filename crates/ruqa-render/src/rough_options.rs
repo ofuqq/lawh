@@ -127,7 +127,7 @@ pub fn generate_element_drawables(
             }
             drawables
         }
-        Element::Stroke { .. } => Vec::new(),
+        Element::Stroke { .. } | Element::Text { .. } => Vec::new(),
     }
 }
 

@@ -74,6 +74,19 @@ pub enum Element {
         /// Visual appearance and rough parameters.
         style: ElementStyle,
     },
+    /// An on-canvas multiline text element with font size and styling.
+    Text {
+        /// Unique monotonic element identifier.
+        id: ElementId,
+        /// Top-left anchor point in canvas world coordinates.
+        position: Point,
+        /// Text content string (UTF-8, supporting mixed Arabic/Latin/numbers).
+        content: String,
+        /// Font size in world pixels.
+        font_size: f32,
+        /// Visual appearance and color parameters.
+        style: ElementStyle,
+    },
 }
 
 impl Element {
@@ -86,7 +99,8 @@ impl Element {
             | Self::Diamond { id, .. }
             | Self::Line { id, .. }
             | Self::Arrow { id, .. }
-            | Self::Stroke { id, .. } => id,
+            | Self::Stroke { id, .. }
+            | Self::Text { id, .. } => id,
         }
     }
 
@@ -98,7 +112,8 @@ impl Element {
             | Self::Diamond { id, .. }
             | Self::Line { id, .. }
             | Self::Arrow { id, .. }
-            | Self::Stroke { id, .. } => *id = new_id,
+            | Self::Stroke { id, .. }
+            | Self::Text { id, .. } => *id = new_id,
         }
     }
 
@@ -121,7 +136,8 @@ impl Element {
             | Self::Diamond { style, .. }
             | Self::Line { style, .. }
             | Self::Arrow { style, .. }
-            | Self::Stroke { style, .. } => style,
+            | Self::Stroke { style, .. }
+            | Self::Text { style, .. } => style,
         }
     }
 
@@ -134,7 +150,8 @@ impl Element {
             | Self::Diamond { style, .. }
             | Self::Line { style, .. }
             | Self::Arrow { style, .. }
-            | Self::Stroke { style, .. } => style,
+            | Self::Stroke { style, .. }
+            | Self::Text { style, .. } => style,
         }
     }
 
@@ -152,6 +169,9 @@ impl Element {
                 for p in points {
                     *p = *p + delta;
                 }
+            }
+            Self::Text { position, .. } => {
+                *position = *position + delta;
             }
         }
     }
@@ -190,6 +210,15 @@ impl Element {
                     *p = remap_point(*p);
                 }
             }
+            Self::Text {
+                position,
+                font_size,
+                ..
+            } => {
+                *position = remap_point(*position);
+                let scale_y = new_bounds.height() / old_bounds.height();
+                *font_size = (*font_size * scale_y).clamp(8.0, 144.0);
+            }
         }
     }
 
@@ -219,6 +248,26 @@ impl Element {
                     }
                     Rect::from_min_max(Point::new(min_x, min_y), Point::new(max_x, max_y))
                 }
+            }
+            Self::Text {
+                position,
+                content,
+                font_size,
+                ..
+            } => {
+                let lines: Vec<&str> = content.lines().collect();
+                let line_count = lines.len().max(1);
+                let max_len = lines
+                    .iter()
+                    .map(|l| l.chars().count())
+                    .max()
+                    .unwrap_or(0)
+                    .max(1);
+                #[allow(clippy::cast_precision_loss)]
+                let w = (max_len as f32 * font_size * 0.6).max(*font_size);
+                #[allow(clippy::cast_precision_loss)]
+                let h = (line_count as f32 * font_size * 1.3).max(*font_size);
+                Rect::from_xywh(position.x, position.y, w, h)
             }
         }
     }
@@ -284,6 +333,7 @@ impl Element {
                     Rect::from_min_max(Point::new(min_x, min_y), Point::new(max_x, max_y))
                 }
             }
+            Self::Text { .. } => self.bounds(),
         }
     }
 
@@ -291,26 +341,5 @@ impl Element {
     #[must_use]
     pub fn hit_test(&self, point: Point, tolerance: f32) -> bool {
         crate::hit_test::hit_test_element(self, point, tolerance)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_element_duplicate_with() {
-        let rect = Element::Rectangle {
-            id: 1,
-            bounds: Rect::from_xywh(10.0, 10.0, 50.0, 50.0),
-            style: ElementStyle {
-                seed: 100,
-                ..Default::default()
-            },
-        };
-        let dup = rect.duplicate_with(2, 999, Point::new(20.0, 20.0));
-        assert_eq!(dup.id(), 2);
-        assert_eq!(dup.style().seed, 999);
-        assert_eq!(dup.bounds(), Rect::from_xywh(30.0, 30.0, 50.0, 50.0));
     }
 }

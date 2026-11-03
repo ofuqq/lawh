@@ -51,6 +51,7 @@ pub fn generate_element_paths(element: &Element) -> Vec<Path> {
         } => crate::pen_render::stroke_to_outline_polygon(points, pressures, style.stroke_width)
             .into_iter()
             .collect(),
+        Element::Text { .. } => Vec::new(),
         _ => {
             let options = crate::rough_options::build_rough_options(element.style());
             generate_element_drawables(element, &options)
@@ -71,6 +72,17 @@ pub fn render_element(element: &Element, pixmap: &mut PixmapMut<'_>, transform: 
             ..
         } => {
             crate::pen_render::render_pen_stroke(points, pressures, style, pixmap, transform);
+        }
+        Element::Text {
+            position,
+            content,
+            font_size,
+            style,
+            ..
+        } => {
+            crate::text_render::render_text_element(
+                *position, content, *font_size, style, pixmap, transform,
+            );
         }
         _ => {
             let style = element.style();

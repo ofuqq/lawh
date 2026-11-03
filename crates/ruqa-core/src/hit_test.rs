@@ -135,6 +135,7 @@ pub fn hit_test_element(element: &Element, point: Point, tolerance: f32) -> bool
             }
             false
         }
+        Element::Text { .. } => true,
     }
 }
 

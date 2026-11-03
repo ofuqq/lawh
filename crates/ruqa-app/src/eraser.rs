@@ -52,7 +52,10 @@ pub fn eraser_hit_test(element: &Element, point: Point, tolerance: f32) -> bool 
         Element::Stroke { .. } | Element::Line { .. } | Element::Arrow { .. } => {
             element.hit_test(point, tolerance)
         }
-        Element::Rectangle { .. } | Element::Ellipse { .. } | Element::Diamond { .. } => true,
+        Element::Rectangle { .. }
+        | Element::Ellipse { .. }
+        | Element::Diamond { .. }
+        | Element::Text { .. } => true,
     }
 }
 
