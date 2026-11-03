@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sample demo board CLI flag (`--demo`) in `ruqa-app` (`populate_demo_board`, `load_demo_board`) seeding the canvas with hand-drawn rectangle, ellipse, diamond, arrow, line, and freehand pen stroke for visual exploration and interaction testing (fixes #84).
 
 ### Fixed
+- Verify redraw-on-demand and 0 idle frame presentation contract in `window_handler` and `pointer_input` ensuring event loop sleeps in `ControlFlow::Wait` without spurious wakeups (fixes #145).
 - Render typography and text labels in chrome UI overlays (`recent_files_render`, `vault_render`, `quit_dialog_render`) replacing vector placeholder bars with TrueType shaped text for dialog titles, board entries, folder names, and action buttons (fixes #140).
 - Make vault sidebar background completely opaque and add Ctrl+T theme shortcut (fixes #138).
 - Restore mouse routing priority, unfreeze cursor tracking over UI, and support modal dismissal (fixes #136).
