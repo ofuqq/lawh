@@ -123,6 +123,7 @@ impl ApplicationHandler for WhiteboardApp {
             }
             WindowEvent::MouseInput { state, button, .. } => {
                 self.handle_mouse_input(state, button);
+                self.request_redraw();
             }
             WindowEvent::MouseWheel { delta, .. } => {
                 self.handle_mouse_wheel(delta);
@@ -130,6 +131,7 @@ impl ApplicationHandler for WhiteboardApp {
             }
             WindowEvent::KeyboardInput { event, .. } => {
                 self.handle_keyboard_input(&event);
+                self.request_redraw();
             }
             WindowEvent::Focused(focused) => {
                 self.handle_focused(focused);

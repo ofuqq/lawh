@@ -309,3 +309,29 @@ fn test_resize_clamps_to_minimum_dimension_in_app() {
 
     app.handle_mouse_input(ElementState::Released, MouseButton::Left);
 }
+
+#[test]
+fn test_marquee_cleared_immediately_on_mouse_release() {
+    let mut app = WhiteboardApp::new();
+    app.scene.push(sample_rect(1, 0.0, 0.0, 100.0, 100.0));
+
+    // Start drag on empty space to start marquee (clear of HUD overlays)
+    app.handle_cursor_moved(490.0, 250.0);
+    app.handle_mouse_input(ElementState::Pressed, MouseButton::Left);
+    app.handle_cursor_moved(640.0, 350.0);
+
+    // Marquee must be active while dragging
+    assert!(
+        app.selection.active_marquee().is_some(),
+        "marquee should be active during drag"
+    );
+
+    // Release mouse button without moving cursor
+    app.handle_mouse_input(ElementState::Released, MouseButton::Left);
+
+    // Marquee must be immediately cleared
+    assert!(
+        app.selection.active_marquee().is_none(),
+        "active marquee must be cleared immediately upon mouse button release"
+    );
+}
