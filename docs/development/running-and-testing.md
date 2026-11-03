@@ -100,6 +100,12 @@ Runs the comprehensive stress benchmark measuring unculled 1,000, 5,000, and 10,
 cargo bench -p ruqa-render -- --test
 ```
 
+### Fixed Stress Scene Performance Budget Benchmark (Issue #159)
+Measures frame rendering latency across the fixed 7,500-element stress scene defined in `docs/product/budget.md` (5,000 rough shapes, 2,000 smoothed strokes, 500 bilingual text boxes at 2560×1440 with dark grid):
+```bash
+cargo test --release -p ruqa-app --test budget_scene -- --ignored --nocapture
+```
+
 ---
 
 ## 4. Manual QA Verification Checklist (10 Minutes)
