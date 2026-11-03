@@ -10,8 +10,9 @@ flowchart LR
     M1 --> M2["M2: Direct Manipulation<br/>(Done)"]
     M2 --> M3["M3: Tools, Vault & Dark HUD<br/>(Done)"]
     M3 --> M4["M4: Polish, PNG Export & v0.1 Release<br/>(Done)"]
-    M4 --> M5["M5: Arabic & RTL Typography<br/>(v0.2 Horizon)"]
-    M5 --> M6["M6: Advanced BiDi & Interop<br/>(Future)"]
+    M4 --> M5["M5: Arabic & RTL Typography<br/>(Done)"]
+    M5 --> M6["M6: Smart Study & Interop<br/>(v0.2 Horizon)"]
+    M6 --> M7["M7: Advanced Study & Ecosystem<br/>(v0.3+ Future)"]
 ```
 
 ---
@@ -90,24 +91,36 @@ flowchart LR
 
 ---
 
-## Milestone M5: Arabic & RTL Typography (v0.2 Post-MVP Horizon)
+## Milestone M5: Arabic & RTL Typography (DONE)
 - **Goal**: Deliver first-class Arabic handwriting typography, Parley text layout integration, and inline canvas text editing.
-- **Scope**:
-  - Parley text layout engine integration into the rendering pipeline ([#39](https://github.com/ofuqq/ruqa/issues/39)).
-  - Bundling and runtime registration of OFL Arabic handwriting fonts (Aref Ruqaa) and Latin typography (Roboto) ([#40](https://github.com/ofuqq/ruqa/issues/40)).
-  - Interactive on-canvas text element creation and editing overlay ([#41](https://github.com/ofuqq/ruqa/issues/41)).
-  - Bidirectional inline editing (mixed Arabic and English) with directional cursor movement ([#42](https://github.com/ofuqq/ruqa/issues/42)).
-  - Precise text glyph bounding box selection and hit-testing ([#43](https://github.com/ofuqq/ruqa/issues/43)).
+- **Exit Criteria**:
+  - [x] Parley text layout engine integration into the rendering pipeline ([#39](https://github.com/ofuqq/ruqa/issues/39)).
+  - [x] Bundling and runtime registration of OFL Arabic handwriting fonts (Aref Ruqaa) and Latin typography (Roboto) ([#40](https://github.com/ofuqq/ruqa/issues/40)).
+  - [x] Interactive on-canvas text element creation and editing overlay ([#41](https://github.com/ofuqq/ruqa/issues/41)).
+  - [x] Bidirectional inline editing (mixed Arabic and English) with directional cursor movement ([#42](https://github.com/ofuqq/ruqa/issues/42)).
+  - [x] Precise text glyph bounding box selection and hit-testing ([#43](https://github.com/ofuqq/ruqa/issues/43)).
 
 ---
 
-## Milestone M6: Advanced Capabilities & Interoperability (v0.3+ Future)
-- **Goal**: Advanced diagramming tools, obsidian interop, and presentation features.
+## Milestone M6: Smart Study & Interoperability (v0.2.0 Horizon)
+- **Goal**: Advanced diagramming tools, obsidian canvas interop, presentation frames, and smart connections.
 - **Scope**:
-  - Box-to-box pinned connectors and arrows with obstacle routing.
+  - Smart box-to-box pinned connectors and arrows with boundary raycasting.
+  - Bound text inside shapes with automatic vertical expansion.
   - Object alignment and equal-spacing snapping guides.
   - Instant cross-vault fuzzy search (`Ctrl+P`).
   - Numbered presentation frames (16:9, A4) with slide stepping (`PageDown`/`PageUp`).
   - Distraction-free Zen mode (`Alt+Z`).
   - Clipboard bitmap image paste (`Ctrl+V`).
   - Obsidian JSON Canvas (`.canvas`) import and export.
+  - Rendering optimizations: Dirty-rect region invalidation and pre-rasterized path cache.
+
+---
+
+## Milestone M7: Advanced Study & Ecosystem (v0.3.0+ Future)
+- **Goal**: Active recall study tools, math notation, full localization, and advanced rendering backends.
+- **Scope**:
+  - Study tape (active-recall occlusion boxes) revealable on click for flashcard review.
+  - Inline mathematical formula rendering (Typst or LaTeX subset).
+  - Full Arabic RTL user interface localization.
+  - Empirical GPU acceleration evaluation (Vello/wgpu compute) once boards exceed 1,500 visible elements.

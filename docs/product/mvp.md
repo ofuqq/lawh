@@ -16,7 +16,7 @@ Deliver a standalone desktop whiteboard and study scratchpad in native Rust that
 
 ```mermaid
 flowchart LR
-    subgraph v01["v0.1.0 Core MVP (M0–M4)"]
+    subgraph v01["v0.1.0 Core MVP (M0–M5)"]
         Canvas["Infinite Dark Canvas (Pan/Zoom)"]
         Draw["Pen, Eraser & Rough Shapes (R,O,L,A)"]
         Edit["Select, Move, Resize, Delete, Undo/Redo"]
@@ -25,7 +25,7 @@ flowchart LR
         Export["PNG Image Export"]
     end
 
-    subgraph v02["v0.2.0 Smart Features (M5)"]
+    subgraph v02["v0.2.0 Smart Features (M6)"]
         Connect["Box-to-Box Raycast Connectors"]
         AutoGrow["Bound Text Auto-Grow"]
         Search["Ctrl+P Cross-Board Search"]
@@ -49,7 +49,7 @@ flowchart LR
 
 ## 4. Detailed Feature Breakdown
 
-### v0.1.0 (Public Launch Scope: Milestones M0–M4)
+### v0.1.0 (Public Launch Scope: Milestones M0–M5)
 Every item below has concrete acceptance criteria:
 
 1. **Infinite Dark Canvas**:
@@ -83,7 +83,7 @@ Every item below has concrete acceptance criteria:
 
 ---
 
-### v0.2.0 (Milestone M5: Smart Study & Interoperability)
+### v0.2.0 (Milestone M6: Smart Study & Interoperability)
 - **Bound Text with Auto-Grow**: Typing inside a rectangle or ellipse automatically expands the container's vertical bounds when text wraps.
 - **Smart Box-to-Box Raycast Connectors**: Arrows pinned to element boundaries (using a ray-AABB intersection algorithm) that stay connected when shapes move.
 - **Snapping Guides**: Visual alignment lines showing center and edge alignment with nearby shapes during drag.
