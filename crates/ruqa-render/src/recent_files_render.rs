@@ -1,6 +1,7 @@
 //! Visual rasterization of the Recent Files / Welcome HUD modal overlay.
 
 pub use crate::recent_files_layout::{RecentFilesAction, RecentFilesLayout};
+use crate::text_render::render_ui_text;
 use ruqa_core::geometry::Rect;
 use ruqa_core::recent_files::RecentFileEntry;
 use std::path::Path;
@@ -85,7 +86,9 @@ pub fn render_recent_files_hud_scaled(
         pixmap.fill_rect(screen_rect, &backdrop_paint, Transform::identity(), None);
     }
 
-    // 2. Dialog container
+    // 2. Dialog container & Header text
+    let left = layout.dialog_bounds.min.x;
+    let top = layout.dialog_bounds.min.y;
     if let Some(dialog_path) = rounded_rect_path(layout.dialog_bounds, 12.0) {
         let mut bg_paint = Paint::default();
         bg_paint.set_color(theme.dialog_background);
@@ -101,6 +104,27 @@ pub fn render_recent_files_hud_scaled(
         };
         pixmap.stroke_path(&dialog_path, &border_paint, &stroke, transform, None);
     }
+
+    render_ui_text(
+        pixmap,
+        "Recent Boards",
+        left + 24.0,
+        top + 22.0,
+        18.0,
+        Color::from_rgba8(240, 240, 245, 255),
+        transform,
+        None,
+    );
+    render_ui_text(
+        pixmap,
+        "Open a recent board or create a new one",
+        left + 24.0,
+        top + 46.0,
+        12.0,
+        Color::from_rgba8(150, 150, 160, 255),
+        transform,
+        None,
+    );
 
     // 3. Close button (X icon)
     let cb = layout.close_button_bounds;
@@ -166,7 +190,54 @@ pub fn render_recent_files_hud_scaled(
                 doc_paint.anti_alias = true;
                 pixmap.stroke_path(&doc_path, &doc_paint, &stroke, transform, None);
             }
+
+            let file_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("Untitled.ruqa");
+            let path_str = path.to_string_lossy();
+            let text_x = bounds.min.x + 38.0;
+            let max_text_w = (bounds.width() - 48.0).max(20.0);
+
+            render_ui_text(
+                pixmap,
+                file_name,
+                text_x,
+                bounds.min.y + 6.0,
+                13.0,
+                if is_hovered {
+                    theme.accent_color
+                } else {
+                    Color::from_rgba8(230, 230, 235, 255)
+                },
+                transform,
+                Some(max_text_w),
+            );
+
+            render_ui_text(
+                pixmap,
+                &path_str,
+                text_x,
+                bounds.min.y + 23.0,
+                11.0,
+                Color::from_rgba8(130, 130, 140, 255),
+                transform,
+                Some(max_text_w),
+            );
         }
+    }
+
+    if layout.item_bounds.is_empty() {
+        render_ui_text(
+            pixmap,
+            "No recent boards found",
+            left + 24.0,
+            top + 100.0,
+            13.0,
+            Color::from_rgba8(140, 140, 150, 255),
+            transform,
+            None,
+        );
     }
 
     // 5. "New Board" button
@@ -200,6 +271,17 @@ pub fn render_recent_files_hud_scaled(
             plus_paint.anti_alias = true;
             pixmap.stroke_path(&plus_path, &plus_paint, &stroke, transform, None);
         }
+
+        render_ui_text(
+            pixmap,
+            "New Board",
+            nb.min.x + 32.0,
+            nb.min.y + 9.0,
+            13.0,
+            Color::from_rgba8(240, 240, 245, 255),
+            transform,
+            None,
+        );
     }
 }
 

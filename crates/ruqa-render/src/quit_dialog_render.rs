@@ -1,6 +1,8 @@
 //! Visual rasterization of the unsaved changes quit confirmation dialog overlay.
 
 pub use crate::quit_dialog_layout::{QuitDialogAction, QuitDialogLayout, QuitDialogTheme};
+use crate::text_layout::measure_text_dimensions;
+use crate::text_render::render_ui_text;
 use ruqa_core::geometry::Rect;
 use tiny_skia::{Color, FillRule, Paint, PathBuilder, PixmapMut, Stroke, Transform};
 
@@ -100,41 +102,61 @@ pub fn render_quit_dialog_scaled(
         }
     }
 
-    // 4. Title & message vector bars (visual placeholders representing text lines)
+    // 4. Title & message typography
     let text_x = icon_left + 44.0;
-    let title_y = icon_top + 4.0;
-    let mut title_paint = Paint::default();
-    title_paint.set_color(Color::from_rgba8(240, 240, 245, 255));
-    if let Some(r) = tiny_skia::Rect::from_xywh(text_x, title_y, 180.0, 10.0) {
-        pixmap.fill_rect(r, &title_paint, transform, None);
-    }
+    let title_y = icon_top + 2.0;
+    render_ui_text(
+        pixmap,
+        "Unsaved Changes",
+        text_x,
+        title_y,
+        17.0,
+        Color::from_rgba8(240, 240, 245, 255),
+        transform,
+        None,
+    );
 
-    let msg_y = title_y + 20.0;
-    let mut msg_paint = Paint::default();
-    msg_paint.set_color(Color::from_rgba8(160, 160, 170, 255));
-    if let Some(r) = tiny_skia::Rect::from_xywh(text_x, msg_y, 240.0, 8.0) {
-        pixmap.fill_rect(r, &msg_paint, transform, None);
-    }
-    if let Some(r) = tiny_skia::Rect::from_xywh(text_x, msg_y + 14.0, 160.0, 8.0) {
-        pixmap.fill_rect(r, &msg_paint, transform, None);
-    }
+    let msg_y = title_y + 24.0;
+    render_ui_text(
+        pixmap,
+        "Do you want to save changes to this board?",
+        text_x,
+        msg_y,
+        12.0,
+        Color::from_rgba8(160, 160, 170, 255),
+        transform,
+        None,
+    );
+    render_ui_text(
+        pixmap,
+        "Your changes will be lost if you don't save them.",
+        text_x,
+        msg_y + 16.0,
+        11.0,
+        Color::from_rgba8(130, 130, 140, 255),
+        transform,
+        None,
+    );
 
     // 5. Buttons: Cancel, Don't Save, Save
     render_button(
         pixmap,
         layout.cancel_button_bounds,
+        "Cancel",
         if hovered_action == Some(QuitDialogAction::Cancel) {
             theme.cancel_hovered
         } else {
             theme.cancel_background
         },
         Color::from_rgba8(80, 80, 88, 255),
-        Color::from_rgba8(200, 200, 210, 255),
+        Color::from_rgba8(220, 220, 225, 255),
+        transform,
     );
 
     render_button(
         pixmap,
         layout.dont_save_button_bounds,
+        "Don't Save",
         if hovered_action == Some(QuitDialogAction::DontSave) {
             theme.dont_save_hovered
         } else {
@@ -142,11 +164,13 @@ pub fn render_quit_dialog_scaled(
         },
         Color::from_rgba8(220, 38, 38, 255),
         Color::from_rgba8(255, 255, 255, 255),
+        transform,
     );
 
     render_button(
         pixmap,
         layout.save_button_bounds,
+        "Save",
         if hovered_action == Some(QuitDialogAction::Save) {
             theme.save_hovered
         } else {
@@ -154,6 +178,7 @@ pub fn render_quit_dialog_scaled(
         },
         Color::from_rgba8(14, 165, 233, 255),
         Color::from_rgba8(10, 15, 25, 255),
+        transform,
     );
 }
 
@@ -161,11 +186,12 @@ pub fn render_quit_dialog_scaled(
 fn render_button(
     pixmap: &mut PixmapMut<'_>,
     bounds: Rect,
+    label: &str,
     bg_color: Color,
     border_color: Color,
     label_color: Color,
+    transform: Transform,
 ) {
-    let transform = Transform::identity();
     if let Some(btn_path) = rounded_rect(bounds, 6.0) {
         let mut bg_paint = Paint::default();
         bg_paint.set_color(bg_color);
@@ -181,16 +207,20 @@ fn render_button(
         };
         pixmap.stroke_path(&btn_path, &border_paint, &stroke, transform, None);
 
-        // Center label indicator bar
-        let label_w = bounds.width() * 0.5;
-        let label_h = 6.0;
-        let label_x = bounds.min.x + (bounds.width() - label_w) * 0.5;
-        let label_y = bounds.min.y + (bounds.height() - label_h) * 0.5;
-        if let Some(lr) = tiny_skia::Rect::from_xywh(label_x, label_y, label_w, label_h) {
-            let mut lp = Paint::default();
-            lp.set_color(label_color);
-            pixmap.fill_rect(lr, &lp, transform, None);
-        }
+        let font_size = 13.0;
+        let (tw, th) = measure_text_dimensions(label, font_size);
+        let lx = bounds.min.x + (bounds.width() - tw).max(0.0) * 0.5;
+        let ly = bounds.min.y + (bounds.height() - th).max(0.0) * 0.5;
+        render_ui_text(
+            pixmap,
+            label,
+            lx,
+            ly,
+            font_size,
+            label_color,
+            transform,
+            None,
+        );
     }
 }
 

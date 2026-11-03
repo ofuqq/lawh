@@ -65,13 +65,15 @@ impl OutlinePen for SkiaOutlinePen {
     }
 }
 
-/// Renders a text element at the specified canvas world position with optional max width wrapping.
-pub fn render_text_element_wrapped(
-    position: Point,
-    content: &str,
-    font_size: f32,
-    style: &ElementStyle,
+/// Renders shaped UI text directly to a pixmap at the given coordinates with optional wrapping.
+#[allow(clippy::too_many_arguments)]
+pub fn render_ui_text(
     pixmap: &mut PixmapMut<'_>,
+    content: &str,
+    x: f32,
+    y: f32,
+    font_size: f32,
+    color: Color,
     transform: Transform,
     max_width: Option<f32>,
 ) {
@@ -79,8 +81,6 @@ pub fn render_text_element_wrapped(
         return;
     }
 
-    let color = parse_hex_color(&style.stroke_color)
-        .unwrap_or_else(|| Color::from_rgba8(236, 236, 236, 255));
     let mut paint = Paint::default();
     paint.set_color(color);
     paint.anti_alias = true;
@@ -89,7 +89,7 @@ pub fn render_text_element_wrapped(
         let mut shaper = shaper_cell.borrow_mut();
         let layout = shaper.layout_with_max_width(content, font_size, max_width);
 
-        let mut pen = SkiaOutlinePen::new(position.x, position.y);
+        let mut pen = SkiaOutlinePen::new(x, y);
 
         for line in layout.lines() {
             for item in line.items() {
@@ -107,7 +107,7 @@ pub fn render_text_element_wrapped(
                     let outlines = font_ref.outline_glyphs();
                     for glyph in glyph_run.positioned_glyphs() {
                         if let Some(outline_glyph) = outlines.get(GlyphId::new(glyph.id)) {
-                            pen.set_offsets(position.x + glyph.x, position.y + glyph.y);
+                            pen.set_offsets(x + glyph.x, y + glyph.y);
                             let settings = DrawSettings::unhinted(
                                 Size::new(run_font_size),
                                 LocationRef::default(),
@@ -123,6 +123,23 @@ pub fn render_text_element_wrapped(
             pixmap.fill_path(&path, &paint, FillRule::Winding, transform, None);
         }
     });
+}
+
+/// Renders a text element at the specified canvas world position with optional max width wrapping.
+pub fn render_text_element_wrapped(
+    position: Point,
+    content: &str,
+    font_size: f32,
+    style: &ElementStyle,
+    pixmap: &mut PixmapMut<'_>,
+    transform: Transform,
+    max_width: Option<f32>,
+) {
+    let color = parse_hex_color(&style.stroke_color)
+        .unwrap_or_else(|| Color::from_rgba8(236, 236, 236, 255));
+    render_ui_text(
+        pixmap, content, position.x, position.y, font_size, color, transform, max_width,
+    );
 }
 
 /// Renders a text element at the specified canvas world position.

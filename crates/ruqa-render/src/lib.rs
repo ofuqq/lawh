@@ -24,6 +24,7 @@ pub mod text_layout;
 pub mod text_render;
 pub mod toolbar_icons;
 pub mod toolbar_render;
+pub mod vault_icons;
 pub mod vault_layout;
 pub mod vault_render;
 
@@ -38,6 +39,7 @@ pub use quit_dialog_render::{
 };
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
 pub use text_layout::{measure_text_dimensions, measure_text_dimensions_with_max_width};
+pub use text_render::{render_text_element, render_text_element_wrapped, render_ui_text};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};
 
 /// Library version string.

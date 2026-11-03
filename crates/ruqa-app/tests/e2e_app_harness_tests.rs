@@ -375,3 +375,116 @@ fn test_harness_welcome_hud_dismiss_and_sidebar_toggle() {
 
     let _ = std::fs::remove_dir_all(&tmp_path);
 }
+
+#[test]
+fn test_harness_chrome_ui_text_typography_rendered() {
+    let mut harness = AppHarness::new(1280, 800);
+
+    // 1. Welcome HUD: Title and New Board text
+    harness.app.show_welcome_hud = true;
+    harness.render();
+    let hud_layout = harness.app.recent_files_layout();
+    let title_rect = Rect::from_xywh(
+        hud_layout.dialog_bounds.min.x + 24.0,
+        hud_layout.dialog_bounds.min.y + 22.0,
+        140.0,
+        22.0,
+    );
+    let title_text_pixels = harness.count_pixels_in_rect(title_rect, |p| {
+        p.red() > 200 && p.green() > 200 && p.blue() > 200
+    });
+    assert!(
+        title_text_pixels > 20,
+        "Recent Boards title must rasterize bright text glyphs, got {title_text_pixels}"
+    );
+
+    let new_board_rect = Rect::from_xywh(
+        hud_layout.new_board_bounds.min.x + 32.0,
+        hud_layout.new_board_bounds.min.y + 8.0,
+        70.0,
+        18.0,
+    );
+    let new_board_pixels = harness.count_pixels_in_rect(new_board_rect, |p| {
+        p.red() > 200 && p.green() > 200 && p.blue() > 200
+    });
+    assert!(
+        new_board_pixels > 20,
+        "New Board button must rasterize text glyphs, got {new_board_pixels}"
+    );
+
+    // Dismiss HUD
+    harness.app.show_welcome_hud = false;
+
+    // 2. Vault Sidebar: Header and Folder/Board items text
+    let unique_name = format!(
+        "ruqa_vault_text_test_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    );
+    let tmp_path = std::env::temp_dir().join(unique_name);
+    std::fs::create_dir_all(tmp_path.join("Algorithms")).expect("create folder");
+    std::fs::write(tmp_path.join("Algorithms").join("Dijkstra.ruqa"), "{}").expect("write board");
+
+    harness.app.set_vault_root(&tmp_path);
+    harness.app.show_vault_sidebar = true;
+    harness.app.refresh_vault_entries();
+    harness.render();
+
+    let header_rect = Rect::from_xywh(16.0, 14.0, 100.0, 20.0);
+    let header_pixels = harness.count_pixels_in_rect(header_rect, |p| {
+        p.red() > 180 && p.green() > 180 && p.blue() > 180
+    });
+    assert!(
+        header_pixels > 20,
+        "Study Vault header must rasterize text glyphs, got {header_pixels}"
+    );
+
+    let vault_layout = harness.app.vault_layout();
+    assert!(!vault_layout.rows.is_empty());
+    let folder_row = &vault_layout.rows[0];
+    let row_text_rect = Rect::from_xywh(
+        folder_row.row_bounds.min.x + 40.0,
+        folder_row.row_bounds.min.y + 6.0,
+        100.0,
+        20.0,
+    );
+    let row_pixels = harness.count_pixels_in_rect(row_text_rect, |p| {
+        p.red() > 180 && p.green() > 180 && p.blue() > 180
+    });
+    assert!(
+        row_pixels > 20,
+        "Folder item name must rasterize text glyphs, got {row_pixels}"
+    );
+
+    let _ = std::fs::remove_dir_all(&tmp_path);
+    harness.app.show_vault_sidebar = false;
+
+    // 3. Quit Dialog: Unsaved Changes title and button text
+    harness.app.show_quit_dialog = true;
+    harness.render();
+    let quit_layout = harness.app.quit_dialog_layout();
+    let quit_title_rect = Rect::from_xywh(
+        quit_layout.dialog_bounds.min.x + 68.0,
+        quit_layout.dialog_bounds.min.y + 24.0,
+        150.0,
+        22.0,
+    );
+    let quit_title_pixels = harness.count_pixels_in_rect(quit_title_rect, |p| {
+        p.red() > 200 && p.green() > 200 && p.blue() > 200
+    });
+    assert!(
+        quit_title_pixels > 20,
+        "Unsaved Changes quit title must rasterize text glyphs, got {quit_title_pixels}"
+    );
+
+    let cancel_btn = quit_layout.cancel_button_bounds;
+    let cancel_pixels = harness.count_pixels_in_rect(cancel_btn, |p| {
+        p.red() > 180 && p.green() > 180 && p.blue() > 180
+    });
+    assert!(
+        cancel_pixels > 20,
+        "Cancel button must contain text pixels, got {cancel_pixels}"
+    );
+}

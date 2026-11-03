@@ -1,8 +1,13 @@
 //! Visual rasterization of the Study Vault drawer sidebar into a [`tiny_skia::Pixmap`].
 
-pub use crate::vault_layout::{VaultAction, VaultItemRow, VaultLayout, VAULT_DEPTH_INDENT};
+use crate::text_render::render_ui_text;
+use crate::vault_icons::{render_board_row, render_folder_row, render_header_buttons};
+pub use crate::vault_layout::{
+    VaultAction, VaultItemRow, VaultLayout, VAULT_DEPTH_INDENT, VAULT_DRAWER_WIDTH,
+    VAULT_HEADER_HEIGHT,
+};
 use std::path::Path;
-use tiny_skia::{Color, FillRule, Paint, PathBuilder, PixmapMut, Stroke, Transform};
+use tiny_skia::{Color, Paint, PathBuilder, PixmapMut, Stroke, Transform};
 
 /// Color styling for the Study Vault drawer sidebar.
 #[derive(Debug, Clone, PartialEq)]
@@ -102,45 +107,63 @@ pub fn render_vault_sidebar_scaled(
         pixmap.stroke_path(&sep_path, &border_paint, &border_stroke, t, None);
     }
 
-    // 4. Header action buttons (Close chevron `<` and New Board `+`)
+    // 4. Header title and action buttons
+    render_ui_text(
+        pixmap,
+        "Study Vault",
+        16.0,
+        14.0,
+        15.0,
+        theme.header_icon_color,
+        t,
+        Some(150.0),
+    );
     render_header_buttons(pixmap, layout, theme, t);
+
+    if layout.rows.is_empty() {
+        render_ui_text(
+            pixmap,
+            "No boards in vault",
+            16.0,
+            VAULT_HEADER_HEIGHT + 16.0,
+            13.0,
+            theme.text_dim,
+            t,
+            Some(VAULT_DRAWER_WIDTH - 32.0),
+        );
+    }
 
     // 5. Entry rows
     for row in &layout.rows {
         let is_active = active_path.is_some_and(|p| p == row.item.path);
         let is_hovered = hovered_path.is_some_and(|p| p == row.item.path);
 
-        // Row background
-        if is_active {
-            let mut active_paint = Paint::default();
-            active_paint.set_color(theme.active_bg);
+        let row_bg = if is_active {
+            Some(theme.active_bg)
+        } else if is_hovered {
+            Some(theme.hover_bg)
+        } else {
+            None
+        };
+        if let Some(bg_col) = row_bg {
+            let mut p = Paint::default();
+            p.set_color(bg_col);
             if let Some(r) = tiny_skia::Rect::from_xywh(
                 row.row_bounds.min.x,
                 row.row_bounds.min.y,
                 row.row_bounds.width(),
                 row.row_bounds.height(),
             ) {
-                pixmap.fill_rect(r, &active_paint, t, None);
+                pixmap.fill_rect(r, &p, t, None);
             }
-
-            // Left accent strip
-            let mut accent_paint = Paint::default();
-            accent_paint.set_color(theme.active_accent);
-            if let Some(accent_r) =
+        }
+        if is_active {
+            let mut p = Paint::default();
+            p.set_color(theme.active_accent);
+            if let Some(r) =
                 tiny_skia::Rect::from_xywh(0.0, row.row_bounds.min.y, 3.0, row.row_bounds.height())
             {
-                pixmap.fill_rect(accent_r, &accent_paint, t, None);
-            }
-        } else if is_hovered {
-            let mut hover_paint = Paint::default();
-            hover_paint.set_color(theme.hover_bg);
-            if let Some(r) = tiny_skia::Rect::from_xywh(
-                row.row_bounds.min.x,
-                row.row_bounds.min.y,
-                row.row_bounds.width(),
-                row.row_bounds.height(),
-            ) {
-                pixmap.fill_rect(r, &hover_paint, t, None);
+                pixmap.fill_rect(r, &p, t, None);
             }
         }
 
@@ -151,136 +174,8 @@ pub fn render_vault_sidebar_scaled(
         if row.item.is_folder {
             render_folder_row(pixmap, row, indent_x, mid_y, theme, t);
         } else {
-            render_board_row(pixmap, indent_x, mid_y, theme, is_active, t);
+            render_board_row(pixmap, row, indent_x, mid_y, theme, is_active, t);
         }
-    }
-}
-
-fn render_header_buttons(
-    pixmap: &mut PixmapMut<'_>,
-    layout: &VaultLayout,
-    theme: &VaultTheme,
-    t: Transform,
-) {
-    let mut stroke_paint = Paint::default();
-    stroke_paint.set_color(theme.header_icon_color);
-    stroke_paint.anti_alias = true;
-    let icon_stroke = Stroke {
-        width: 1.5,
-        ..Default::default()
-    };
-
-    // Close button chevron: `<`
-    let cb = layout.close_button_bounds;
-    let cx = cb.center().x;
-    let cy = cb.center().y;
-    let mut close_pb = PathBuilder::new();
-    close_pb.move_to(cx + 3.0, cy - 6.0);
-    close_pb.line_to(cx - 3.0, cy);
-    close_pb.line_to(cx + 3.0, cy + 6.0);
-    if let Some(close_path) = close_pb.finish() {
-        pixmap.stroke_path(&close_path, &stroke_paint, &icon_stroke, t, None);
-    }
-
-    // New Board button: `+`
-    let nb = layout.new_board_bounds;
-    let nx = nb.center().x;
-    let ny = nb.center().y;
-    let mut plus_pb = PathBuilder::new();
-    plus_pb.move_to(nx - 6.0, ny);
-    plus_pb.line_to(nx + 6.0, ny);
-    plus_pb.move_to(nx, ny - 6.0);
-    plus_pb.line_to(nx, ny + 6.0);
-    if let Some(plus_path) = plus_pb.finish() {
-        pixmap.stroke_path(&plus_path, &stroke_paint, &icon_stroke, t, None);
-    }
-}
-
-fn render_folder_row(
-    pixmap: &mut PixmapMut<'_>,
-    row: &VaultItemRow,
-    indent_x: f32,
-    mid_y: f32,
-    theme: &VaultTheme,
-    t: Transform,
-) {
-    let mut chevron_paint = Paint::default();
-    chevron_paint.set_color(theme.text_dim);
-    chevron_paint.anti_alias = true;
-
-    // Expand/collapse chevron
-    let mut ch_pb = PathBuilder::new();
-    if row.item.is_expanded {
-        // Down-pointing triangle ▼
-        ch_pb.move_to(indent_x, mid_y - 3.0);
-        ch_pb.line_to(indent_x + 8.0, mid_y - 3.0);
-        ch_pb.line_to(indent_x + 4.0, mid_y + 3.0);
-    } else {
-        // Right-pointing triangle ▶
-        ch_pb.move_to(indent_x + 2.0, mid_y - 4.0);
-        ch_pb.line_to(indent_x + 8.0, mid_y);
-        ch_pb.line_to(indent_x + 2.0, mid_y + 4.0);
-    }
-    ch_pb.close();
-    if let Some(ch_path) = ch_pb.finish() {
-        pixmap.fill_path(&ch_path, &chevron_paint, FillRule::Winding, t, None);
-    }
-
-    // Folder icon
-    let fx = indent_x + 14.0;
-    let fy = mid_y - 7.0;
-    let mut folder_pb = PathBuilder::new();
-    folder_pb.move_to(fx, fy);
-    folder_pb.line_to(fx + 5.0, fy);
-    folder_pb.line_to(fx + 7.0, fy + 2.0);
-    folder_pb.line_to(fx + 14.0, fy + 2.0);
-    folder_pb.line_to(fx + 14.0, fy + 13.0);
-    folder_pb.line_to(fx, fy + 13.0);
-    folder_pb.close();
-    if let Some(folder_path) = folder_pb.finish() {
-        let mut f_paint = Paint::default();
-        f_paint.set_color(theme.folder_color);
-        f_paint.anti_alias = true;
-        let stroke = Stroke {
-            width: 1.2,
-            ..Default::default()
-        };
-        pixmap.stroke_path(&folder_path, &f_paint, &stroke, t, None);
-    }
-}
-
-fn render_board_row(
-    pixmap: &mut PixmapMut<'_>,
-    indent_x: f32,
-    mid_y: f32,
-    theme: &VaultTheme,
-    is_active: bool,
-    t: Transform,
-) {
-    let bx = indent_x + 6.0;
-    let by = mid_y - 7.0;
-
-    let mut doc_pb = PathBuilder::new();
-    doc_pb.move_to(bx, by);
-    doc_pb.line_to(bx + 7.0, by);
-    doc_pb.line_to(bx + 11.0, by + 4.0);
-    doc_pb.line_to(bx + 11.0, by + 14.0);
-    doc_pb.line_to(bx, by + 14.0);
-    doc_pb.close();
-
-    if let Some(doc_path) = doc_pb.finish() {
-        let mut d_paint = Paint::default();
-        d_paint.set_color(if is_active {
-            theme.active_accent
-        } else {
-            theme.board_color
-        });
-        d_paint.anti_alias = true;
-        let stroke = Stroke {
-            width: 1.2,
-            ..Default::default()
-        };
-        pixmap.stroke_path(&doc_path, &d_paint, &stroke, t, None);
     }
 }
 

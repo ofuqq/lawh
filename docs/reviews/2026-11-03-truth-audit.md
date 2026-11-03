@@ -101,3 +101,4 @@ The defects are decomposed into five focused issues and pull requests:
 3. **Issue 3 (Chrome UI Text Rendering)**: Wire `render_text_element` into `recent_files_render`, `vault_render`, and `quit_dialog_render` to render clean labels, folder names, board titles, and button captions using bundled fonts.
 4. **Issue 4 (Interactive Shape & Pen Drawing)**: Implement interactive shape drag-to-create and freehand pen stroke gathering in `ruqa-app`.
 5. **Issue 5 (Redraw-on-Demand Idle Verification)**: Enforce strict `ControlFlow::Wait` idle behavior; ensure 0 frames rendered while idle; measure idle CPU usage.
+
