@@ -5,6 +5,7 @@
 //! | Invocation | Behaviour |
 //! |---|---|
 //! | `cargo run -p ruqa-app` | Opens the interactive whiteboard window. |
+//! | `cargo run -p ruqa-app -- --demo` | Opens the whiteboard populated with sample primitives. |
 //! | `cargo run -p ruqa-app -- --smoke-test <N>` | Pumps `N` synthetic frames through the winit event loop and exits with code 0. Used by CI. |
 //! | *(headless, no DISPLAY)* | Runs a synthetic mouse-motion benchmark and exits. |
 
@@ -21,6 +22,7 @@ fn main() {
     // Parse simple CLI flags without pulling in a third-party arg parser.
     let args: Vec<String> = std::env::args().collect();
     let smoke_frames: Option<u32> = parse_smoke_test_flag(&args);
+    let is_demo: bool = parse_demo_flag(&args);
     let initial_file = args
         .iter()
         .skip(1)
@@ -31,8 +33,8 @@ fn main() {
 
     if let Some(n) = smoke_frames {
         // Smoke-test mode: requires a display (xvfb-run in CI provides one).
-        info!(frames = n, "smoke-test mode");
-        run_smoke_test(n);
+        info!(frames = n, is_demo, "smoke-test mode");
+        run_smoke_test(n, is_demo);
         return;
     }
 
@@ -43,7 +45,10 @@ fn main() {
                 event_loop.set_control_flow(winit::event_loop::ControlFlow::Wait);
                 let mut app = WhiteboardApp::new();
                 app.load_recent_files();
-                if let Some(path) = initial_file {
+                if is_demo {
+                    info!("populating sample demo primitives on canvas");
+                    app.load_demo_board();
+                } else if let Some(path) = initial_file {
                     if let Err(e) = app.open_recent_file(&path) {
                         warn!(?e, path = ?path, "could not open initial file argument");
                     }
@@ -71,7 +76,7 @@ fn main() {
 ///
 /// Requires a display (use `xvfb-run` in CI). The process exits 0 on success,
 /// non-zero if the event loop returns an error.
-fn run_smoke_test(n: u32) {
+fn run_smoke_test(n: u32, is_demo: bool) {
     use std::sync::atomic::AtomicU32;
     use std::sync::Arc;
 
@@ -84,7 +89,13 @@ fn run_smoke_test(n: u32) {
             // We install an event-loop hook via the UserEvent mechanism to count frames.
             // Simplest approach: run the full app and exit after N frames via a side channel.
             let mut app = SmokeApp {
-                inner: WhiteboardApp::new(),
+                inner: {
+                    let mut a = WhiteboardApp::new();
+                    if is_demo {
+                        a.load_demo_board();
+                    }
+                    a
+                },
                 frame_counter: counter_clone,
                 target_frames: target,
             };
@@ -156,6 +167,11 @@ fn parse_smoke_test_flag(args: &[String]) -> Option<u32> {
     None
 }
 
+/// Returns `true` if the `--demo` flag is present in the arguments.
+fn parse_demo_flag(args: &[String]) -> bool {
+    args.iter().any(|arg| arg == "--demo")
+}
+
 /// Synthetic 10 000-event mouse motion benchmark (headless fallback).
 fn run_headless_pointer_benchmark() {
     info!("running headless pointer benchmark (10 000 events)");
@@ -215,5 +231,22 @@ mod tests {
 
         let args_none = vec!["ruqa-app".to_string()];
         assert_eq!(parse_smoke_test_flag(&args_none), None);
+    }
+
+    #[test]
+    fn test_parse_demo_flag() {
+        let args_demo = vec!["ruqa-app".to_string(), "--demo".to_string()];
+        assert!(parse_demo_flag(&args_demo));
+
+        let args_mixed = vec![
+            "ruqa-app".to_string(),
+            "--smoke-test".to_string(),
+            "5".to_string(),
+            "--demo".to_string(),
+        ];
+        assert!(parse_demo_flag(&args_mixed));
+
+        let args_none = vec!["ruqa-app".to_string()];
+        assert!(!parse_demo_flag(&args_none));
     }
 }

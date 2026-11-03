@@ -6,6 +6,7 @@
 #![deny(unsafe_code)]
 
 pub mod clipboard;
+pub mod demo;
 pub mod drag;
 pub mod eraser;
 pub mod event_dispatch;

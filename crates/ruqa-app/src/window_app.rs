@@ -202,4 +202,9 @@ impl WhiteboardApp {
         self.mark_dirty();
         self.request_redraw();
     }
+
+    /// Populates the whiteboard canvas with sample demonstration primitives.
+    pub fn load_demo_board(&mut self) {
+        crate::demo::populate_demo_board(&mut self.scene);
+    }
 }
