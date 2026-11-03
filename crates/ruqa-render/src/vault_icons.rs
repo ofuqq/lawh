@@ -170,4 +170,3 @@ pub fn render_board_row(
         Some(max_w),
     );
 }
-
