@@ -79,3 +79,24 @@ fn mouse_wheel_zooms_anchored_at_cursor() {
     assert!((world_before.x - world_after.x).abs() < 1e-4);
     assert!((world_before.y - world_after.y).abs() < 1e-4);
 }
+
+#[test]
+fn test_idle_cursor_motion_does_not_trigger_redraw() {
+    let mut app = WhiteboardApp::new();
+    // Move on empty canvas without buttons pressed (clear of overlays)
+    let needs_redraw_1 = app.handle_cursor_moved(400.0, 300.0);
+    let needs_redraw_2 = app.handle_cursor_moved(410.0, 310.0);
+    assert!(
+        !needs_redraw_1,
+        "idle cursor motion should not request redraw"
+    );
+    assert!(
+        !needs_redraw_2,
+        "idle cursor motion should not request redraw"
+    );
+
+    // Middle click pan drag
+    app.handle_mouse_input(ElementState::Pressed, MouseButton::Middle);
+    let pan_redraw = app.handle_cursor_moved(450.0, 350.0);
+    assert!(pan_redraw, "panning motion must request redraw");
+}

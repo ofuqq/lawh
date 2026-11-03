@@ -119,8 +119,9 @@ impl ApplicationHandler for WhiteboardApp {
                 self.request_redraw();
             }
             WindowEvent::CursorMoved { position, .. } => {
-                self.handle_cursor_moved(position.x, position.y);
-                self.request_redraw();
+                if self.handle_cursor_moved(position.x, position.y) {
+                    self.request_redraw();
+                }
             }
             WindowEvent::MouseInput { state, button, .. } => {
                 self.handle_mouse_input(state, button);

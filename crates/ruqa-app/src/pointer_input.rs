@@ -7,16 +7,27 @@ use winit::event::{ElementState, MouseButton, MouseScrollDelta};
 
 impl WhiteboardApp {
     /// Handles mouse motion in physical window coordinates.
-    pub fn handle_cursor_moved(&mut self, physical_x: f64, physical_y: f64) {
+    pub fn handle_cursor_moved(&mut self, physical_x: f64, physical_y: f64) -> bool {
         self.motion_events_count += 1;
         let logical_x = physical_x / self.scale_factor;
         let logical_y = physical_y / self.scale_factor;
         #[allow(clippy::cast_possible_truncation)]
         let screen_pt = Point::new(logical_x as f32, logical_y as f32);
+
+        let prev_quit = self.hovered_quit_action;
+        let prev_recent = self.hovered_recent_file.clone();
+        let prev_vault = self.hovered_vault_item.clone();
+        let prev_tool = self.hovered_tool;
+
         self.handle_quit_dialog_cursor_moved(screen_pt);
         self.handle_recent_files_cursor_moved(screen_pt);
         self.handle_vault_cursor_moved(screen_pt);
         self.handle_toolbar_cursor_moved(screen_pt);
+
+        let hover_changed = self.hovered_quit_action != prev_quit
+            || self.hovered_recent_file != prev_recent
+            || self.hovered_vault_item != prev_vault
+            || self.hovered_tool != prev_tool;
 
         if self.show_quit_dialog
             || self.show_welcome_hud
@@ -24,9 +35,10 @@ impl WhiteboardApp {
             || self.toolbar_pressed
             || self.style_panel_pressed
         {
-            return;
+            return hover_changed;
         }
 
+        let mut canvas_changed = false;
         if let Some((dx, dy)) = self.pointer.update_cursor(logical_x, logical_y) {
             if self.pointer.is_panning() {
                 self.pointer.panned_during_press = true;
@@ -35,6 +47,7 @@ impl WhiteboardApp {
                 #[allow(clippy::cast_possible_truncation)]
                 let world_dy = -(dy as f32) / self.viewport.zoom;
                 self.viewport.pan_by(Point::new(world_dx, world_dy));
+                canvas_changed = true;
             } else if self.pointer.left_pressed {
                 #[allow(clippy::cast_possible_truncation)]
                 let world_pt = self.viewport.screen_to_world(
@@ -50,8 +63,10 @@ impl WhiteboardApp {
                         self.pointer.shift_held,
                     );
                 }
+                canvas_changed = true;
             }
         }
+        hover_changed || canvas_changed
     }
 
     /// Handles mouse button input state changes.
