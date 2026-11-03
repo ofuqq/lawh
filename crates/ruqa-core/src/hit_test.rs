@@ -54,8 +54,8 @@ pub fn hit_test_element(element: &Element, point: Point, tolerance: f32) -> bool
             let dy = point.y - center.y;
             let norm_dist_sq = (dx / rx).powi(2) + (dy / ry).powi(2);
 
-            let angle = dy.atan2(dx);
-            let boundary_pt = Point::new(center.x + rx * angle.cos(), center.y + ry * angle.sin());
+            let t = (dy * rx).atan2(dx * ry);
+            let boundary_pt = Point::new(center.x + rx * t.cos(), center.y + ry * t.sin());
 
             if is_filled {
                 norm_dist_sq <= 1.0 || point.distance(boundary_pt) <= tolerance
@@ -203,5 +203,33 @@ mod tests {
 
         // Far from line: should MISS
         assert!(!hit_test_element(&line, Point::new(50.0, 80.0), 5.0));
+    }
+
+    #[test]
+    fn test_unfilled_non_circular_ellipse_hit_testing() {
+        // rx = 200, ry = 20, center = (0, 0)
+        let ellipse = Element::Ellipse {
+            id: 4,
+            bounds: Rect::from_xywh(-200.0, -20.0, 400.0, 40.0),
+            style: ElementStyle {
+                fill_color: None,
+                stroke_width: 2.0,
+                ..Default::default()
+            },
+        };
+
+        // Point on perimeter at t = pi/4
+        let t = std::f32::consts::FRAC_PI_4;
+        let pt_on_stroke = Point::new(200.0 * t.cos(), 20.0 * t.sin());
+        assert!(
+            hit_test_element(&ellipse, pt_on_stroke, 5.0),
+            "point on non-circular ellipse perimeter must hit"
+        );
+
+        // Center of unfilled ellipse should MISS
+        assert!(
+            !hit_test_element(&ellipse, Point::new(0.0, 0.0), 5.0),
+            "center of unfilled ellipse must miss"
+        );
     }
 }
