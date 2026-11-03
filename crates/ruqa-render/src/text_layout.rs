@@ -28,6 +28,36 @@ pub fn wrap_ltr_isolate(token: &str) -> String {
     format!("{LRI}{token}{PDI}")
 }
 
+thread_local! {
+    pub(crate) static CACHED_SHAPER: std::cell::RefCell<BilingualShaper> = std::cell::RefCell::new(BilingualShaper::new());
+}
+
+/// Measures the shaped layout width and height for text at the given font size.
+#[must_use]
+pub fn measure_text_dimensions(text: &str, font_size: f32) -> (f32, f32) {
+    measure_text_dimensions_with_max_width(text, font_size, None)
+}
+
+/// Measures the shaped layout width and height for text with optional max width constraint.
+#[must_use]
+pub fn measure_text_dimensions_with_max_width(
+    text: &str,
+    font_size: f32,
+    max_width: Option<f32>,
+) -> (f32, f32) {
+    if text.trim().is_empty() {
+        return (font_size * 0.5, font_size * 1.2);
+    }
+    CACHED_SHAPER.with(|shaper_cell| {
+        let mut shaper = shaper_cell.borrow_mut();
+        let layout = shaper.layout_with_max_width(text, font_size, max_width);
+        (
+            layout.width().max(font_size * 0.5),
+            layout.height().max(font_size * 1.2),
+        )
+    })
+}
+
 /// Bidirectional text shaper combining Arabic cursive fonts with Latin fallbacks.
 pub struct BilingualShaper {
     font_cx: FontContext,

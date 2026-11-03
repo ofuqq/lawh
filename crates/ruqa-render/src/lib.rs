@@ -37,6 +37,7 @@ pub use quit_dialog_render::{
     QuitDialogTheme,
 };
 pub use style_panel_render::{render_style_panel, StyleAction, StylePanelLayout, StylePanelTheme};
+pub use text_layout::{measure_text_dimensions, measure_text_dimensions_with_max_width};
 pub use toolbar_render::{render_toolbar, ToolbarLayout, ToolbarStyle};
 
 /// Library version string.

@@ -1,18 +1,13 @@
 //! Vector rasterization of text elements using Parley layout and Skrifa outline extraction.
 
 use crate::shape_render::parse_hex_color;
-use crate::text_layout::BilingualShaper;
+use crate::text_layout::CACHED_SHAPER;
 use ruqa_core::element::ElementStyle;
 use ruqa_core::geometry::Point;
 use skrifa::instance::{LocationRef, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
 use skrifa::{FontRef, GlyphId, MetadataProvider};
-use std::cell::RefCell;
 use tiny_skia::{Color, FillRule, Paint, PathBuilder, PixmapMut, Transform};
-
-thread_local! {
-    static CACHED_SHAPER: RefCell<BilingualShaper> = RefCell::new(BilingualShaper::new());
-}
 
 /// An [`OutlinePen`] implementation that builds [`tiny_skia::Path`] geometry from TrueType outlines.
 struct SkiaOutlinePen {

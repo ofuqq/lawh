@@ -255,7 +255,11 @@ impl Element {
                 font_size,
                 ..
             } => {
-                let lines: Vec<&str> = content.lines().collect();
+                let lines: Vec<&str> = if content.ends_with('\n') {
+                    content.split('\n').collect()
+                } else {
+                    content.lines().collect()
+                };
                 let line_count = lines.len().max(1);
                 let max_len = lines
                     .iter()
