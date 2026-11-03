@@ -7,7 +7,7 @@
   "canvas": {
     "background_color": "#121212",
     "viewport": {
-      "pan": { "x": -50.0, "y": -50.0 },
+      "pan": { "x": 410.0, "y": 225.0 },
       "zoom": 1.0
     }
   },

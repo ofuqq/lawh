@@ -213,3 +213,45 @@ fn test_autosave_does_not_fire_when_untitled_or_clean() {
         .expect("check succeeds");
     assert!(!res);
 }
+
+#[test]
+fn test_open_bundled_example_boards_fit_default_viewport() {
+    use ruqa_core::geometry::Size;
+    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let examples_dir = manifest
+        .parent()
+        .expect("crates dir")
+        .parent()
+        .expect("workspace root")
+        .join("examples");
+
+    for filename in &[
+        "dijkstra-shortest-path.ruqa",
+        "distributed-systems-cache.ruqa",
+        "binary-search-tree.ruqa",
+    ] {
+        let path = examples_dir.join(filename);
+        let mut app = WhiteboardApp::new();
+        app.open_file(&path).expect("open bundled example board");
+        assert_eq!(app.file_path, Some(path));
+
+        let visible = app.viewport.visible_world_rect(Size::new(1280.0, 800.0));
+        for elem in app.scene.elements() {
+            let bb = elem.bounding_box();
+            assert!(
+                visible.contains(bb.min),
+                "{filename}: element {:?} min {:?} is outside visible viewport {:?}",
+                elem.id(),
+                bb.min,
+                visible
+            );
+            assert!(
+                visible.contains(bb.max),
+                "{filename}: element {:?} max {:?} is outside visible viewport {:?}",
+                elem.id(),
+                bb.max,
+                visible
+            );
+        }
+    }
+}
