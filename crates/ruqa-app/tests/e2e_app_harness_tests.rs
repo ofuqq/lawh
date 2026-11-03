@@ -112,10 +112,14 @@ impl AppHarness {
         self.app.handle_key(key, ElementState::Released);
     }
 
-    /// Simulates typing characters.
+    /// Simulates typing characters, dispatching `NamedKey::Space` for spaces to mirror OS winit event flow.
     pub fn type_text(&mut self, text: &str) {
         for ch in text.chars() {
-            let key = Key::Character(ch.to_string().into());
+            let key = if ch == ' ' {
+                Key::Named(NamedKey::Space)
+            } else {
+                Key::Character(ch.to_string().into())
+            };
             self.key_tap(&key);
         }
     }
@@ -266,6 +270,86 @@ fn test_harness_inline_text_editing_and_shaping() {
     assert!(
         text_pixels > 20,
         "Rendered shaped text must produce visible ink pixels"
+    );
+}
+
+#[test]
+fn test_harness_text_editing_spacebar_insertion_and_no_pan_leak() {
+    let mut harness = AppHarness::new(1280, 800);
+
+    // Switch to text tool 't'
+    harness.key_tap(&Key::Character("t".into()));
+    assert_eq!(harness.app.active_tool, Tool::Text);
+
+    // Click canvas at (300, 300) to begin inline editing
+    harness.click(300.0, 300.0, MouseButton::Left);
+    assert!(harness.app.is_editing_text);
+    assert!(!harness.app.pointer.space_held);
+
+    // Type words separated by NamedKey::Space
+    harness.type_text("foo bar baz");
+    assert_eq!(harness.app.text_edit_buffer, "foo bar baz");
+    assert!(
+        !harness.app.pointer.space_held,
+        "Space key while editing text must not set space_held"
+    );
+
+    // Commit with Enter
+    harness.key_tap(&Key::Named(NamedKey::Enter));
+    assert!(!harness.app.is_editing_text);
+    assert_eq!(harness.app.scene.len(), 1);
+
+    // Inspect committed text element
+    let element = &harness.app.scene.elements()[0];
+    if let Element::Text { content, .. } = element {
+        assert_eq!(
+            content, "foo bar baz",
+            "Committed element must preserve typed space characters"
+        );
+    } else {
+        panic!("Expected Element::Text");
+    }
+
+    // Switch to Select tool to verify dragging does NOT trigger panning
+    harness.key_tap(&Key::Character("v".into()));
+    assert_eq!(harness.app.active_tool, Tool::Select);
+    let cam_pan_before = harness.app.viewport.pan;
+    harness.pointer_down(MouseButton::Left);
+    harness.pointer_move(350.0, 350.0);
+    harness.pointer_up(MouseButton::Left);
+    assert_eq!(
+        harness.app.viewport.pan, cam_pan_before,
+        "Left drag after committing text editing must not pan the viewport"
+    );
+
+    // Now test bilingual phrase with space: "خوارزمية Dijkstra"
+    harness.key_tap(&Key::Character("t".into()));
+    harness.click(300.0, 450.0, MouseButton::Left);
+    assert!(harness.app.is_editing_text);
+    harness.type_text("خوارزمية Dijkstra");
+    assert_eq!(harness.app.text_edit_buffer, "خوارزمية Dijkstra");
+    harness.key_tap(&Key::Named(NamedKey::Enter));
+
+    let elem_bilingual = &harness.app.scene.elements()[1];
+    if let Element::Text { content, .. } = elem_bilingual {
+        assert_eq!(content, "خوارزمية Dijkstra");
+    } else {
+        panic!("Expected Element::Text");
+    }
+
+    // Test persistence to disk preserves spaces
+    let temp_path =
+        std::env::temp_dir().join(format!("ruqa_test_spaces_{}.ruqa", std::process::id()));
+    harness.app.save_as(&temp_path).expect("save must succeed");
+    let json_text = std::fs::read_to_string(&temp_path).expect("read saved file");
+    let _ = std::fs::remove_file(&temp_path);
+    assert!(
+        json_text.contains("foo bar baz"),
+        "Saved JSON must contain text with spaces"
+    );
+    assert!(
+        json_text.contains("خوارزمية Dijkstra"),
+        "Saved JSON must contain bilingual text with spaces"
     );
 }
 

@@ -9,7 +9,11 @@ impl WhiteboardApp {
     pub fn handle_key(&mut self, key: &Key, state: ElementState) {
         let pressed = state == ElementState::Pressed;
         if matches!(key, Key::Named(NamedKey::Space)) {
-            self.pointer.space_held = pressed;
+            if self.is_editing_text {
+                self.pointer.space_held = false;
+            } else {
+                self.pointer.space_held = pressed;
+            }
         }
         if matches!(key, Key::Named(NamedKey::Shift)) {
             self.pointer.shift_held = pressed;
@@ -40,6 +44,11 @@ impl WhiteboardApp {
                     }
                     Key::Named(NamedKey::Backspace) => {
                         self.text_edit_buffer.pop();
+                        self.request_redraw();
+                        return;
+                    }
+                    Key::Named(NamedKey::Space) => {
+                        self.text_edit_buffer.push(' ');
                         self.request_redraw();
                         return;
                     }

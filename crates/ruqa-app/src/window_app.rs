@@ -252,6 +252,7 @@ impl WhiteboardApp {
             self.commit_text_edit();
         }
         self.is_editing_text = true;
+        self.pointer.space_held = false;
         self.text_edit_position = world_pt;
         self.text_edit_buffer.clear();
         self.request_redraw();
