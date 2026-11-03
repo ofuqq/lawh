@@ -247,4 +247,22 @@ mod tests {
         assert!(bench.mean_ms > 0.0);
         assert!(bench.character_count > 100);
     }
+
+    #[test]
+    fn test_bundled_fonts_are_valid_binaries() {
+        assert_eq!(
+            &ROBOTO_BYTES[0..4],
+            &[0x00, 0x01, 0x00, 0x00],
+            "Roboto must start with TrueType font signature"
+        );
+        assert_eq!(
+            &AREF_RUQAA_BYTES[0..4],
+            &[0x00, 0x01, 0x00, 0x00],
+            "Aref Ruqaa must start with TrueType font signature"
+        );
+
+        let _shaper = BilingualShaper::new();
+        assert!(!ROBOTO_BYTES.is_empty());
+        assert!(!AREF_RUQAA_BYTES.is_empty());
+    }
 }
