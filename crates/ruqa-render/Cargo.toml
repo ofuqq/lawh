@@ -13,6 +13,7 @@ readme = "README.md"
 ruqa-core = { path = "../ruqa-core" }
 tiny-skia = "0.11"
 roughr = "0.14"
+rough_tiny_skia = "0.14.1"
 skrifa = "0.44"
 parley = { version = "0.12", default-features = false, features = ["std"] }
 tracing = { workspace = true }

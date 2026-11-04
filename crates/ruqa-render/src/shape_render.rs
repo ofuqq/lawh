@@ -4,7 +4,7 @@
 //! and rasterizes them into a [`tiny_skia::PixmapMut`] surface with deterministic
 //! seed stability across frames.
 
-use crate::rough_convert::{default_rough_stroke, drawable_to_paths};
+use rough_tiny_skia::ToSkiaDrawable;
 use ruqa_core::element::Element;
 use ruqa_core::geometry::{Size, Viewport};
 use ruqa_core::scene::Scene;
@@ -55,8 +55,8 @@ pub fn generate_element_paths(element: &Element) -> Vec<Path> {
         _ => {
             let options = crate::rough_options::build_rough_options(element.style());
             generate_element_drawables(element, &options)
-                .iter()
-                .flat_map(drawable_to_paths)
+                .into_iter()
+                .flat_map(|d| d.to_skia_drawable().sets.into_iter().map(|set| set.ops))
                 .collect()
         }
     }
@@ -85,68 +85,11 @@ pub fn render_element(element: &Element, pixmap: &mut PixmapMut<'_>, transform: 
             );
         }
         _ => {
-            let style = element.style();
-            let options = crate::rough_options::build_rough_options(style);
-
-            let stroke_color = parse_hex_color(&style.stroke_color)
-                .unwrap_or_else(|| Color::from_rgba8(224, 224, 224, 255));
-            let mut stroke_paint = Paint::default();
-            stroke_paint.set_color(stroke_color);
-            stroke_paint.anti_alias = true;
-            let stroke = default_rough_stroke(style.stroke_width);
-
-            let fill_color = crate::rough_options::resolved_fill_color(style);
-            let fill_weight = (style.stroke_width * 0.6).max(1.0);
-            let fill_stroke = crate::rough_convert::stroke_with_capping(
-                fill_weight,
-                tiny_skia::LineCap::Round,
-                tiny_skia::LineJoin::Round,
-            );
-
-            let drawables = generate_element_drawables(element, &options);
-            for drawable in &drawables {
-                for set in &drawable.sets {
-                    match set.op_set_type {
-                        roughr::core::OpSetType::FillPath => {
-                            if let Some(fc) = fill_color {
-                                if let Some(path) = crate::rough_convert::opset_to_path_closed(set)
-                                {
-                                    let mut fill_paint = Paint::default();
-                                    fill_paint.set_color(fc);
-                                    fill_paint.anti_alias = true;
-                                    pixmap.fill_path(
-                                        &path,
-                                        &fill_paint,
-                                        tiny_skia::FillRule::Winding,
-                                        transform,
-                                        None,
-                                    );
-                                }
-                            }
-                        }
-                        roughr::core::OpSetType::FillSketch => {
-                            if let Some(fc) = fill_color {
-                                if let Some(path) = crate::rough_convert::opset_to_path(set) {
-                                    let mut fill_paint = Paint::default();
-                                    fill_paint.set_color(fc);
-                                    fill_paint.anti_alias = true;
-                                    pixmap.stroke_path(
-                                        &path,
-                                        &fill_paint,
-                                        &fill_stroke,
-                                        transform,
-                                        None,
-                                    );
-                                }
-                            }
-                        }
-                        roughr::core::OpSetType::Path => {
-                            if let Some(path) = crate::rough_convert::opset_to_path(set) {
-                                pixmap.stroke_path(&path, &stroke_paint, &stroke, transform, None);
-                            }
-                        }
-                    }
-                }
+            let options = crate::rough_options::build_rough_options(element.style());
+            for drawable in generate_element_drawables(element, &options) {
+                drawable
+                    .to_skia_drawable()
+                    .draw_with_transform(pixmap, transform);
             }
         }
     }

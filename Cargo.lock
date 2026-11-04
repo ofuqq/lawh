@@ -1805,6 +1805,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
+name = "rough_tiny_skia"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d37c24aa4bd63329726dc2f40cfe78d0f3bf6252876eb10a16ae32ddeeda810"
+dependencies = [
+ "euclid",
+ "num-traits",
+ "palette",
+ "roughr",
+ "tiny-skia",
+]
+
+[[package]]
 name = "roughr"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1849,6 +1862,7 @@ name = "ruqa-render"
 version = "0.1.0"
 dependencies = [
  "parley",
+ "rough_tiny_skia",
  "roughr",
  "ruqa-core",
  "skrifa",
