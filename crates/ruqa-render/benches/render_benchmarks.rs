@@ -3,9 +3,9 @@
 //! Measures headless 1920x1080 rasterization across deterministic scenes of 1,000, 5,000,
 //! and 10,000 mixed elements (rectangles, ellipses, arrows, and freehand strokes).
 
+use rough_tiny_skia::ToSkiaDrawable;
 use roughr::core::OptionsBuilder;
 use roughr::generator::Generator;
-use ruqa_render::rough_convert::opset_to_path;
 use std::time::Instant;
 use tiny_skia::{Color, Paint, Path, PathBuilder, Pixmap, Stroke, Transform};
 
@@ -53,12 +53,12 @@ fn generate_deterministic_scene(count: usize) -> Vec<BenchShape> {
                     .build()
                     .ok();
                 let drawable = generator.rectangle(x, y, 120.0, 80.0, &options);
-                let mut paths = Vec::new();
-                for set in &drawable.sets {
-                    if let Some(path) = opset_to_path(set) {
-                        paths.push(path);
-                    }
-                }
+                let paths: Vec<Path> = drawable
+                    .to_skia_drawable()
+                    .sets
+                    .into_iter()
+                    .map(|set| set.ops)
+                    .collect();
                 shapes.push(BenchShape {
                     paths,
                     paint,
@@ -73,12 +73,12 @@ fn generate_deterministic_scene(count: usize) -> Vec<BenchShape> {
                     .build()
                     .ok();
                 let drawable = generator.ellipse(x + 50.0, y + 40.0, 100.0, 70.0, &options);
-                let mut paths = Vec::new();
-                for set in &drawable.sets {
-                    if let Some(path) = opset_to_path(set) {
-                        paths.push(path);
-                    }
-                }
+                let paths: Vec<Path> = drawable
+                    .to_skia_drawable()
+                    .sets
+                    .into_iter()
+                    .map(|set| set.ops)
+                    .collect();
                 shapes.push(BenchShape {
                     paths,
                     paint,
@@ -95,20 +95,22 @@ fn generate_deterministic_scene(count: usize) -> Vec<BenchShape> {
                 let x2 = x + 140.0;
                 let y2 = y + 60.0;
                 let line = generator.line(x, y, x2, y2, &options);
-                let mut paths = Vec::new();
-                for set in &line.sets {
-                    if let Some(p) = opset_to_path(set) {
-                        paths.push(p);
-                    }
-                }
+                let mut paths: Vec<Path> = line
+                    .to_skia_drawable()
+                    .sets
+                    .into_iter()
+                    .map(|set| set.ops)
+                    .collect();
                 // Arrow head lines
                 let h1 = generator.line(x2, y2, x2 - 20.0, y2 - 10.0, &options);
                 let h2 = generator.line(x2, y2, x2 - 10.0, y2 - 20.0, &options);
-                for set in h1.sets.iter().chain(h2.sets.iter()) {
-                    if let Some(p) = opset_to_path(set) {
-                        paths.push(p);
-                    }
-                }
+                paths.extend(
+                    h1.to_skia_drawable()
+                        .sets
+                        .into_iter()
+                        .chain(h2.to_skia_drawable().sets)
+                        .map(|set| set.ops),
+                );
                 shapes.push(BenchShape {
                     paths,
                     paint,

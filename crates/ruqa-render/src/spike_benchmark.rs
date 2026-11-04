@@ -1,6 +1,6 @@
 //! Spike 1 Benchmark: Headless CPU rendering of 1,000 hand-drawn shapes and freehand strokes.
 
-use crate::rough_convert::opset_to_path;
+use rough_tiny_skia::ToSkiaDrawable;
 use roughr::core::OptionsBuilder;
 use roughr::generator::Generator;
 use std::time::Instant;
@@ -98,12 +98,12 @@ pub fn generate_synthetic_scene(count: usize) -> Vec<BenchmarkShape> {
                     .build()
                     .ok();
                 let drawable = generator.rectangle(x, y, 120.0, 80.0, &options);
-                let mut paths = Vec::new();
-                for set in &drawable.sets {
-                    if let Some(path) = opset_to_path(set) {
-                        paths.push(path);
-                    }
-                }
+                let paths: Vec<Path> = drawable
+                    .to_skia_drawable()
+                    .sets
+                    .into_iter()
+                    .map(|set| set.ops)
+                    .collect();
                 shapes.push(BenchmarkShape {
                     paths,
                     paint,
@@ -118,12 +118,12 @@ pub fn generate_synthetic_scene(count: usize) -> Vec<BenchmarkShape> {
                     .build()
                     .ok();
                 let drawable = generator.ellipse(x + 60.0, y + 40.0, 100.0, 70.0, &options);
-                let mut paths = Vec::new();
-                for set in &drawable.sets {
-                    if let Some(path) = opset_to_path(set) {
-                        paths.push(path);
-                    }
-                }
+                let paths: Vec<Path> = drawable
+                    .to_skia_drawable()
+                    .sets
+                    .into_iter()
+                    .map(|set| set.ops)
+                    .collect();
                 shapes.push(BenchmarkShape {
                     paths,
                     paint,
