@@ -1,7 +1,9 @@
 //! Helper module for translating [`ElementStyle`] models into [`roughr::core::Options`].
 
 use crate::shape_render::parse_hex_color;
-use roughr::core::{Drawable, FillStyle as RoughFillStyle, Options, OptionsBuilder};
+use roughr::core::{
+    Drawable, FillStyle as RoughFillStyle, LineCap, LineJoin, Options, OptionsBuilder,
+};
 use roughr::generator::Generator;
 use roughr::Point2D;
 use roughr::Srgba;
@@ -19,6 +21,18 @@ pub fn build_rough_options(style: &ElementStyle) -> Options {
     builder.seed(style.seed);
     builder.roughness(style.roughness);
     builder.stroke_width(style.stroke_width);
+
+    // Hand-drawn look: round caps and joins, light-gray fallback for bad colors.
+    let stroke_color = parse_hex_color(&style.stroke_color)
+        .unwrap_or_else(|| Color::from_rgba8(224, 224, 224, 255));
+    builder.stroke(Srgba::new(
+        stroke_color.red(),
+        stroke_color.green(),
+        stroke_color.blue(),
+        stroke_color.alpha(),
+    ));
+    builder.line_cap(LineCap::Round);
+    builder.line_join(LineJoin::Round);
 
     // Hachure gap and fill weight scale organically with stroke width
     let gap = (style.stroke_width * 4.0).max(4.0);

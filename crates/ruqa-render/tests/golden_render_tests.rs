@@ -1,9 +1,9 @@
 //! Visual regression golden-image integration tests for ruqa-render.
 
+use rough_tiny_skia::ToSkiaDrawable;
 use roughr::core::OptionsBuilder;
 use roughr::generator::Generator;
 use ruqa_render::offscreen::{compare_pixmaps, OffscreenCanvas};
-use ruqa_render::rough_convert::opset_to_path;
 use std::path::Path;
 use tiny_skia::{Color, Paint, PathBuilder, Pixmap, Stroke, Transform};
 
@@ -27,10 +27,8 @@ fn render_deterministic_test_board() -> Pixmap {
         width: 2.0,
         ..Default::default()
     };
-    for set in &rect.sets {
-        if let Some(path) = opset_to_path(set) {
-            canvas.stroke_path(&path, &rect_paint, &stroke, Transform::identity());
-        }
+    for set in rect.to_skia_drawable().sets {
+        canvas.stroke_path(&set.ops, &rect_paint, &stroke, Transform::identity());
     }
 
     // 2. Seeded rough ellipse
@@ -43,10 +41,8 @@ fn render_deterministic_test_board() -> Pixmap {
     let mut ellipse_paint = Paint::default();
     ellipse_paint.set_color(Color::from_rgba8(255, 138, 101, 255)); // Coral
     ellipse_paint.anti_alias = true;
-    for set in &ellipse.sets {
-        if let Some(path) = opset_to_path(set) {
-            canvas.stroke_path(&path, &ellipse_paint, &stroke, Transform::identity());
-        }
+    for set in ellipse.to_skia_drawable().sets {
+        canvas.stroke_path(&set.ops, &ellipse_paint, &stroke, Transform::identity());
     }
 
     // 3. Freehand smooth curve
