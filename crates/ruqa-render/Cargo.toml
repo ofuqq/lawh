@@ -11,9 +11,9 @@ readme = "README.md"
 
 [dependencies]
 ruqa-core = { path = "../ruqa-core" }
-tiny-skia = "0.11"
+tiny-skia = "0.12"
 roughr = "0.14"
-skrifa = "0.44"
+skrifa = "0.49"
 parley = { version = "0.12", default-features = false, features = ["std"] }
 tracing = { workspace = true }
 thiserror = { workspace = true }
